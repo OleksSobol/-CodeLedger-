@@ -29,9 +29,7 @@ class PdfPreviewPage extends ConsumerWidget {
   }
 
   Future<Uint8List> _generatePdf(WidgetRef ref, dynamic format) async {
-    // Note: PdfService currently hardcodes letter format in the templates
-    // In a real app we might pass the format down to the strategy.
-    
-    return ref.read(pdfServiceProvider).generateInvoicePdf(invoiceId);
+    final doc = await ref.read(invoicePdfProvider(invoiceId).future);
+    return doc.save();
   }
 }

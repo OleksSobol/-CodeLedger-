@@ -1,25 +1,63 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/providers/database_provider.dart';
-import '../../../../../features/dashboard/presentation/providers/dashboard_provider.dart';
-import '../../../../core/database/daos/invoice_template_dao.dart';
+import 'package:pdf/widgets.dart' as pw;
+import '../../../../core/database/app_database.dart';
+import '../../../invoices/presentation/providers/template_providers.dart';
+import '../../../clients/presentation/providers/client_providers.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
-import '../../application/pdf_service.dart';
+import '../../../projects/presentation/providers/project_providers.dart';
+import '../../../dashboard/presentation/providers/dashboard_provider.dart';
+import '../../data/models/pdf_invoice_data.dart';
+import '../../data/pdf_generator.dart';
 
-final invoiceTemplateDaoProvider = Provider<InvoiceTemplateDao>((ref) {
-  return InvoiceTemplateDao(ref.watch(databaseProvider));
-});
-
-final pdfServiceProvider = Provider<PdfService>((ref) {
-  // Use .notifier to get the DAO from the notifier provider if that's how it's exposed?
-  // No, invoiceDaoProvider is likely a Provider<InvoiceDao>.
-  // I need to check invoice_providers.dart to be sure but standard pattern is Provider<InvoiceDao>.
-  // The error said "Undefined name 'invoiceDaoProvider'".
-  // Maybe it's not exported or named differently?
-  // Let's assume it is named invoiceDaoProvider for now, but if it fails again I'll check.
-  
+/// Builds PdfInvoiceData from an invoice ID, then generates the PDF document.
+final invoicePdfProvider =
+    FutureProvider.family<pw.Document, int>((ref, invoiceId) async {
   final invoiceDao = ref.watch(invoiceDaoProvider);
-  final userProfileDao = ref.watch(userProfileDaoProvider);
+  final invoice = await invoiceDao.getInvoice(invoiceId);
+  final lineItems = await invoiceDao.getLineItems(invoiceId);
+
+  final client = await ref.watch(clientDaoProvider).getClient(invoice.clientId);
+  final profile = await ref.watch(userProfileDaoProvider).getProfile();
+
+  // Resolve template: invoice -> client -> profile -> first available
   final templateDao = ref.watch(invoiceTemplateDaoProvider);
-  
-  return PdfService(invoiceDao, userProfileDao, templateDao);
+  InvoiceTemplate? template;
+  if (invoice.templateId != null) {
+    template = await templateDao.getById(invoice.templateId!);
+  }
+  if (template == null && client.defaultTemplateId != null) {
+    template = await templateDao.getById(client.defaultTemplateId!);
+  }
+  if (template == null && profile.defaultTemplateId != null) {
+    template = await templateDao.getById(profile.defaultTemplateId!);
+  }
+  template ??= await templateDao.getDefault();
+  template ??= (await templateDao.getAll()).first;
+
+  // Collect project names for line items referencing projects
+  final projectIds = lineItems
+      .where((li) => li.projectId != null)
+      .map((li) => li.projectId!)
+      .toSet();
+  final projectNames = <int, String>{};
+  final projectDao = ref.watch(projectDaoProvider);
+  for (final pid in projectIds) {
+    try {
+      final project = await projectDao.getProject(pid);
+      projectNames[pid] = project.name;
+    } catch (_) {
+      // Project may have been deleted
+    }
+  }
+
+  final data = PdfInvoiceData(
+    invoice: invoice,
+    client: client,
+    profile: profile,
+    template: template,
+    lineItems: lineItems,
+    projectNames: projectNames,
+  );
+
+  return PdfGenerator.generateInvoice(data);
 });

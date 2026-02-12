@@ -7,6 +7,7 @@ import '../providers/invoice_providers.dart';
 import '../widgets/invoice_status_badge.dart';
 import '../widgets/record_payment_dialog.dart';
 import '../pages/invoices_list_page.dart';
+import '../../../pdf_generation/presentation/pages/pdf_preview_page.dart';
 
 class InvoiceDetailPage extends ConsumerWidget {
   final int invoiceId;
@@ -20,6 +21,22 @@ class InvoiceDetailPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Invoice'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            tooltip: 'View PDF',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => PdfPreviewPage(
+                    invoiceId: invoiceId,
+                    invoiceNumber: invoiceAsync.value?.invoiceNumber ?? '',
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: invoiceAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
