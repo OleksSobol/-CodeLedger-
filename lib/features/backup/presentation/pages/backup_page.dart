@@ -243,7 +243,19 @@ class _BackupPageState extends ConsumerState<BackupPage> {
         _setWorking(false, 'Sign-in cancelled');
       }
     } catch (e) {
-      _setWorking(false, 'Sign-in failed: $e');
+      final msg = e.toString();
+      if (msg.contains('10') ||
+          msg.contains('DEVELOPER_ERROR') ||
+          msg.contains('PlatformException')) {
+        _setWorking(
+          false,
+          'Google Sign-In not configured. Add google-services.json '
+          'to android/app/ from Google Cloud Console '
+          '(OAuth 2.0 credentials for com.osobol.code_ledger).',
+        );
+      } else {
+        _setWorking(false, 'Sign-in failed: $msg');
+      }
     }
   }
 

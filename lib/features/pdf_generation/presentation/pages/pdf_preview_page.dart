@@ -20,10 +20,15 @@ class PdfPreviewPage extends ConsumerWidget {
       appBar: AppBar(
         title: Text('Invoice $invoiceNumber'),
       ),
-      body: PdfPreview(
-        build: (format) => _generatePdf(ref, format),
-        canChangeOrientation: false,
-        canDebug: false,
+      body: SafeArea(
+        child: PdfPreview(
+          build: (format) => _generatePdf(ref, format),
+          canChangeOrientation: false,
+          canDebug: false,
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
+          ),
+        ),
       ),
     );
   }
