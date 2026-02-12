@@ -67,10 +67,10 @@
 **Verify:** PDF renders with all 3 templates, payment section correct
 
 ## Phase 7: Work Reports
-- [ ] Non-financial PDF report generator
-- [ ] Date range, grouped by date
-- [ ] Shows: hours, description, GitHub issue ref, repository
-- [ ] No pricing info (safe for project managers)
+- [x] Non-financial PDF report generator
+- [x] Date range, grouped by date
+- [x] Shows: hours, description, GitHub issue ref, repository
+- [x] No pricing info (safe for project managers)
 
 **Verify:** Report PDF generates without financial data
 
