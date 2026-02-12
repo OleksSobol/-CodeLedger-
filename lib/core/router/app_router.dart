@@ -6,6 +6,9 @@ import '../../features/clients/presentation/pages/clients_list_page.dart';
 import '../../features/clients/presentation/pages/client_detail_page.dart';
 import '../../features/clients/presentation/pages/client_form_page.dart';
 import '../../features/projects/presentation/pages/project_form_page.dart';
+import '../../features/time_tracking/presentation/pages/time_tracking_page.dart';
+import '../../features/time_tracking/presentation/pages/clock_in_page.dart';
+import '../../features/time_tracking/presentation/pages/manual_entry_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -71,6 +74,23 @@ final appRouter = GoRouter(
               },
             ),
           ],
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/time-tracking',
+      name: 'timeTracking',
+      builder: (context, state) => const TimeTrackingPage(),
+      routes: [
+        GoRoute(
+          path: 'clock-in',
+          name: 'clockIn',
+          builder: (context, state) => const ClockInPage(),
+        ),
+        GoRoute(
+          path: 'manual',
+          name: 'manualEntry',
+          builder: (context, state) => const ManualEntryPage(),
         ),
       ],
     ),

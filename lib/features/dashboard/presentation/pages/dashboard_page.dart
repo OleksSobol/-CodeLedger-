@@ -52,8 +52,9 @@ class DashboardPage extends StatelessWidget {
             child: ListTile(
               leading: const Icon(Icons.access_time_outlined),
               title: const Text('Time Tracking'),
-              subtitle: const Text('Coming in Phase 3'),
-              enabled: false,
+              subtitle: const Text('Clock in, manual entries, summaries'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/time-tracking'),
             ),
           ),
         ],
