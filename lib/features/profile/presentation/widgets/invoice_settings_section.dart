@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/database/app_database.dart';
 import '../providers/profile_provider.dart';
+import '../../../invoices/presentation/providers/template_providers.dart';
 
 class InvoiceSettingsSection extends ConsumerStatefulWidget {
   final UserProfile profile;
@@ -17,6 +18,7 @@ class _InvoiceSettingsSectionState
     extends ConsumerState<InvoiceSettingsSection> {
   late final TextEditingController _prefixCtrl;
   late final TextEditingController _emailSubjectCtrl;
+  int? _selectedTemplateId;
 
   @override
   void initState() {
@@ -25,6 +27,7 @@ class _InvoiceSettingsSectionState
         TextEditingController(text: widget.profile.invoiceNumberPrefix);
     _emailSubjectCtrl = TextEditingController(
         text: widget.profile.defaultEmailSubjectFormat);
+    _selectedTemplateId = widget.profile.defaultTemplateId;
   }
 
   @override
@@ -38,6 +41,7 @@ class _InvoiceSettingsSectionState
     await ref.read(profileNotifierProvider.notifier).updateInvoiceSettings(
           invoiceNumberPrefix: _prefixCtrl.text.trim(),
           defaultEmailSubjectFormat: _emailSubjectCtrl.text.trim(),
+          defaultTemplateId: _selectedTemplateId,
         );
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -48,14 +52,16 @@ class _InvoiceSettingsSectionState
 
   @override
   Widget build(BuildContext context) {
+    final templatesAsync = ref.watch(allTemplatesProvider);
+    final theme = Theme.of(context);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Invoice Settings',
-                style: Theme.of(context).textTheme.titleMedium),
+            Text('Invoice Settings', style: theme.textTheme.titleMedium),
             const SizedBox(height: 16),
             TextFormField(
               controller: _prefixCtrl,
@@ -67,7 +73,7 @@ class _InvoiceSettingsSectionState
             const SizedBox(height: 12),
             Text(
               'Next invoice: ${widget.profile.invoiceNumberPrefix}${widget.profile.nextInvoiceNumber.toString().padLeft(4, '0')}',
-              style: Theme.of(context).textTheme.bodySmall,
+              style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -80,9 +86,44 @@ class _InvoiceSettingsSectionState
             const SizedBox(height: 4),
             Text(
               'Tokens: {number}, {period}, {client}',
-              style: Theme.of(context).textTheme.bodySmall,
+              style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 16),
+
+            // Default invoice template picker
+            templatesAsync.when(
+              loading: () => const LinearProgressIndicator(),
+              error: (_, __) =>
+                  Text('Could not load templates', style: theme.textTheme.bodySmall),
+              data: (templates) {
+                return DropdownButtonFormField<int?>(
+                  initialValue: _selectedTemplateId,
+                  decoration: const InputDecoration(
+                    labelText: 'Default Invoice Template',
+                  ),
+                  items: templates
+                      .map((t) => DropdownMenuItem<int?>(
+                            value: t.id,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(t.name),
+                                if (t.description != null)
+                                  Text(t.description!,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.onSurface
+                                              .withValues(alpha: 0.6))),
+                              ],
+                            ),
+                          ))
+                      .toList(),
+                  onChanged: (v) => setState(() => _selectedTemplateId = v),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+
             Align(
               alignment: Alignment.centerRight,
               child: FilledButton.icon(

@@ -21,15 +21,15 @@ class InvoiceTemplateDao extends DatabaseAccessor<AppDatabase>
         .get();
   }
 
-  Future<InvoiceTemplate> getById(int id) {
+  Future<InvoiceTemplate?> getById(int id) {
     return (select(invoiceTemplates)..where((t) => t.id.equals(id)))
-        .getSingle();
+        .getSingleOrNull();
   }
 
-  Future<InvoiceTemplate> getByKey(String key) {
+  Future<InvoiceTemplate?> getByKey(String key) {
     return (select(invoiceTemplates)
           ..where((t) => t.templateKey.equals(key)))
-        .getSingle();
+        .getSingleOrNull();
   }
 
   Future<InvoiceTemplate?> getDefault() async {

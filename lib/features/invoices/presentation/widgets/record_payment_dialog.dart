@@ -103,7 +103,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _method,
+              initialValue: _method,
               decoration: const InputDecoration(
                 labelText: 'Payment Method',
                 border: OutlineInputBorder(),

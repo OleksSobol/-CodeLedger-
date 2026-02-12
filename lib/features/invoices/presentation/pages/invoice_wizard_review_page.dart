@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/duration_formatter.dart';
 import '../providers/invoice_providers.dart';
+import '../providers/template_providers.dart';
 import '../pages/invoices_list_page.dart';
 
 /// Wizard Step 3: Review and create the invoice.
@@ -151,6 +152,31 @@ class _InvoiceWizardReviewPageState
               )),
 
           const Divider(height: 32),
+
+          // Invoice template picker
+          ref.watch(allTemplatesProvider).when(
+                loading: () => const LinearProgressIndicator(),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (templates) {
+                  return DropdownButtonFormField<int?>(
+                    initialValue: wizard.templateId,
+                    decoration: const InputDecoration(
+                      labelText: 'Invoice Template',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: templates
+                        .map((t) => DropdownMenuItem<int?>(
+                              value: t.id,
+                              child: Text(t.name),
+                            ))
+                        .toList(),
+                    onChanged: (v) => ref
+                        .read(invoiceWizardProvider.notifier)
+                        .setTemplate(v),
+                  );
+                },
+              ),
+          const SizedBox(height: 16),
 
           // Tax override
           TextFormField(

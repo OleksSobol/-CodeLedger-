@@ -3,10 +3,11 @@ import '../app_database.dart';
 import '../tables/invoices_table.dart';
 import '../tables/invoice_line_items_table.dart';
 import '../tables/time_entries_table.dart';
+import '../tables/projects_table.dart';
 
 part 'invoice_dao.g.dart';
 
-@DriftAccessor(tables: [Invoices, InvoiceLineItems, TimeEntries])
+@DriftAccessor(tables: [Invoices, InvoiceLineItems, TimeEntries, Projects])
 class InvoiceDao extends DatabaseAccessor<AppDatabase>
     with _$InvoiceDaoMixin {
   InvoiceDao(super.db);
@@ -160,4 +161,37 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
         ))
         .then((rows) => rows > 0);
   }
+  /// Get line items with their associated time entry details (if any).
+  Future<List<LineItemWithDetails>> getLineItemsWithDetails(
+      int invoiceId) async {
+    final query = select(invoiceLineItems).join([
+      leftOuterJoin(timeEntries,
+          timeEntries.id.equalsExp(invoiceLineItems.timeEntryId)),
+      leftOuterJoin(
+          projects, projects.id.equalsExp(invoiceLineItems.projectId)),
+    ]);
+    query.where(invoiceLineItems.invoiceId.equals(invoiceId));
+    query.orderBy([OrderingTerm.asc(invoiceLineItems.sortOrder)]);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      return LineItemWithDetails(
+        lineItem: row.readTable(invoiceLineItems),
+        timeEntry: row.readTableOrNull(timeEntries),
+        project: row.readTableOrNull(projects),
+      );
+    }).toList();
+  }
+}
+
+class LineItemWithDetails {
+  final InvoiceLineItem lineItem;
+  final TimeEntry? timeEntry;
+  final Project? project;
+
+  LineItemWithDetails({
+    required this.lineItem,
+    this.timeEntry,
+    this.project,
+  });
 }

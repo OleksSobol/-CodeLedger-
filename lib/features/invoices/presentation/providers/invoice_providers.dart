@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/database/daos/invoice_dao.dart';
-import '../../../../core/constants/payment_terms.dart';
+import '../../../../core/database/daos/user_profile_dao.dart';
 import '../../../../core/constants/payment_terms.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_provider.dart';
@@ -54,6 +54,7 @@ class InvoiceWizardState {
   final List<ManualLineItem> manualLineItems;
   final String? notes;
   final double? taxRateOverride;
+  final int? templateId;
 
   const InvoiceWizardState({
     this.clientId,
@@ -61,6 +62,7 @@ class InvoiceWizardState {
     this.manualLineItems = const [],
     this.notes,
     this.taxRateOverride,
+    this.templateId,
   });
 
   InvoiceWizardState copyWith({
@@ -69,6 +71,7 @@ class InvoiceWizardState {
     List<ManualLineItem>? manualLineItems,
     String? notes,
     double? taxRateOverride,
+    int? templateId,
   }) {
     return InvoiceWizardState(
       clientId: clientId ?? this.clientId,
@@ -76,6 +79,7 @@ class InvoiceWizardState {
       manualLineItems: manualLineItems ?? this.manualLineItems,
       notes: notes ?? this.notes,
       taxRateOverride: taxRateOverride ?? this.taxRateOverride,
+      templateId: templateId ?? this.templateId,
     );
   }
 
@@ -156,6 +160,10 @@ class InvoiceWizardNotifier extends StateNotifier<InvoiceWizardState> {
 
   void setTaxRateOverride(double? rate) {
     state = state.copyWith(taxRateOverride: rate);
+  }
+
+  void setTemplate(int? templateId) {
+    state = state.copyWith(templateId: templateId);
   }
 
   void reset() {
@@ -256,6 +264,11 @@ class InvoiceNotifier extends AsyncNotifier<void> {
       ));
     }
 
+    // Resolve template: wizard override -> client default -> profile default
+    final templateId = wizard.templateId ??
+        client.defaultTemplateId ??
+        profile.defaultTemplateId;
+
     final invoiceId = await _invoiceDao.createInvoice(
       invoice: InvoicesCompanion.insert(
         clientId: wizard.clientId!,
@@ -271,6 +284,7 @@ class InvoiceNotifier extends AsyncNotifier<void> {
         total: Value(total),
         currency: Value(client.currency),
         notes: Value(wizard.notes),
+        templateId: Value(templateId),
       ),
       lineItems: lineItems,
       timeEntryIds: wizard.selectedEntries.map((e) => e.id).toList(),
