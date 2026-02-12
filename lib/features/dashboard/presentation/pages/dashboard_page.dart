@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/active_timer_card.dart';
+import '../widgets/uninvoiced_hours_card.dart';
+import '../widgets/monthly_income_card.dart';
+import '../widgets/outstanding_invoices_card.dart';
+import '../widgets/overdue_invoices_card.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -17,47 +22,67 @@ class DashboardPage extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Placeholder cards for Phase 4
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.timer_outlined),
-              title: const Text('No active timer'),
-              subtitle: const Text('Clock in from Time Tracking'),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Providers auto-refresh via Riverpod; this just gives UX feedback
+          await Future.delayed(const Duration(milliseconds: 300));
+        },
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // 1. Active timer
+            const ActiveTimerCard(),
+            const SizedBox(height: 8),
+
+            // 2. Monthly income
+            const MonthlyIncomeCard(),
+            const SizedBox(height: 8),
+
+            // 3. Uninvoiced hours per client
+            const UninvoicedHoursCard(),
+            const SizedBox(height: 8),
+
+            // 4. Outstanding invoices
+            const OutstandingInvoicesCard(),
+            const SizedBox(height: 8),
+
+            // 5. Overdue invoices
+            const OverdueInvoicesCard(),
+            const SizedBox(height: 16),
+
+            // Quick nav
+            const Divider(),
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.people_outline),
+                title: const Text('Clients'),
+                subtitle: const Text('Manage clients and projects'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/clients'),
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.people_outline),
-              title: const Text('Clients'),
-              subtitle: const Text('Manage your clients and projects'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/clients'),
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.access_time_outlined),
+                title: const Text('Time Tracking'),
+                subtitle: const Text('Entries, summaries, manual entry'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/time-tracking'),
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.receipt_long_outlined),
-              title: const Text('Invoices'),
-              subtitle: const Text('Coming in Phase 5'),
-              enabled: false,
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.receipt_long_outlined),
+                title: const Text('Invoices'),
+                subtitle: const Text('Coming in Phase 5'),
+                enabled: false,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.access_time_outlined),
-              title: const Text('Time Tracking'),
-              subtitle: const Text('Clock in, manual entries, summaries'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/time-tracking'),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
