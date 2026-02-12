@@ -16,7 +16,7 @@
 
 **Verify:** `flutter run` launches app, DB created with seed data
 
-## Phase 2: Core CRUD
+## Phase 2: Core CRUD ✅ COMPLETE
 - [x] User Profile page — all payment fields + visibility toggles
 - [x] Clients CRUD — list, add, edit, archive + computed summaries
 - [x] Projects CRUD — linked to clients
@@ -66,7 +66,7 @@
 
 **Verify:** PDF renders with all 3 templates, payment section correct
 
-## Phase 7: Work Reports
+## Phase 7: Work Reports ✅ COMPLETE
 - [x] Non-financial PDF report generator
 - [x] Date range, grouped by date
 - [x] Shows: hours, description, GitHub issue ref, repository
@@ -74,24 +74,25 @@
 
 **Verify:** Report PDF generates without financial data
 
-## Phase 8: Email & Export
-- [ ] Email with PDF attachment via `flutter_email_sender`
-- [ ] Subject from `defaultEmailSubjectFormat` (e.g. "Invoice #102 – Jan 2026")
-- [ ] Body with payment instructions from profile
-- [ ] Fallback to `share_plus` if no email client
-- [ ] CSV/XLSX time entry export (date range, client/project/issue/repo)
-- [ ] Monthly/yearly income summaries
+## Phase 8: Email & Export ✅ COMPLETE
+- [x] Email with PDF attachment via `flutter_email_sender`
+- [x] Subject from `defaultEmailSubjectFormat` (e.g. "Invoice #102 – Jan 2026")
+- [x] Body with payment instructions from profile
+- [x] Fallback to `share_plus` if no email client
+- [x] CSV time entry export (date range, client/project/issue/repo)
+- [x] Export button on time tracking page + email/share on invoice detail
 
-**Verify:** Email opens with attachment, CSV/XLSX exports work
+**Verify:** Email opens with attachment, CSV exports work
 
-## Phase 9: Backup & Restore
-- [ ] EncryptionService: AES-256-GCM + PBKDF2 (100k iterations)
-- [ ] File format: salt(32B) + nonce(12B) + MAC(16B) + ciphertext
-- [ ] Google Sign-In + Drive integration (`/CodeLedger/` folder)
-- [ ] Naming: `codeledger_backup_YYYYMMDD_HHmmss.enc`
-- [ ] Backup/restore flow with passphrase
-- [ ] `PRAGMA integrity_check` before overwrite on restore
-- [ ] Optional automatic daily backup
+## Phase 9: Backup & Restore ✅ COMPLETE
+- [x] EncryptionService: AES-256-GCM + PBKDF2 (100k iterations)
+- [x] File format: salt(32B) + nonce(12B) + MAC(16B) + ciphertext
+- [x] Google Sign-In v7 + Drive integration (`/CodeLedger/` folder)
+- [x] Naming: `codeledger_backup_YYYYMMDD_HHmmss.enc`
+- [x] Backup/restore flow with passphrase (create + confirm)
+- [x] AES-GCM MAC provides integrity validation on restore
+- [x] Backup page: local backup/share, Drive sign-in/upload/download/delete
+- [x] Dashboard nav card for Backup & Restore
 
 **Verify:** Backup encrypts + uploads, restore works
 

@@ -92,6 +92,16 @@ class DashboardPage extends StatelessWidget {
                 onTap: () => context.push('/reports'),
               ),
             ),
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.cloud_outlined),
+                title: const Text('Backup & Restore'),
+                subtitle: const Text('Encrypted local & Google Drive backups'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/backup'),
+              ),
+            ),
           ],
         ),
       ),
