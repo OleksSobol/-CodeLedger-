@@ -55,14 +55,14 @@
 
 **Verify:** Invoice generates, numbering increments, payment recording works
 
-## Phase 6: PDF Generation
-- [ ] Base abstract template + 3 implementations
+## Phase 6: PDF Generation ✅ COMPLETE
+- [x] Base abstract template + 3 implementations
   - Minimal: clean single-line
   - Detailed Breakdown: grouped by date, session descriptions + issue refs
   - Modern Developer: tech-focused, repo/issue refs prominent
-- [ ] Payment section: ACH details + optional Stripe link
-- [ ] Payment terms + late fee clause rendering
-- [ ] PDF preview, save locally, store path in DB
+- [x] Payment section: ACH details + optional Stripe link
+- [x] Payment terms + late fee clause rendering
+- [x] PDF preview, save locally, store path in DB
 
 **Verify:** PDF renders with all 3 templates, payment section correct
 

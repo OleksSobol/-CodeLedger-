@@ -82,6 +82,16 @@ class DashboardPage extends StatelessWidget {
                 onTap: () => context.push('/invoices'),
               ),
             ),
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.summarize_outlined),
+                title: const Text('Reports'),
+                subtitle: const Text('Generate non-financial work reports'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/reports'),
+              ),
+            ),
           ],
         ),
       ),

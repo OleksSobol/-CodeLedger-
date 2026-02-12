@@ -14,6 +14,7 @@ import '../../features/invoices/presentation/pages/invoice_detail_page.dart';
 import '../../features/invoices/presentation/pages/invoice_wizard_client_page.dart';
 import '../../features/invoices/presentation/pages/invoice_wizard_entries_page.dart';
 import '../../features/invoices/presentation/pages/invoice_wizard_review_page.dart';
+import '../../features/reports/presentation/pages/reports_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -133,6 +134,11 @@ final appRouter = GoRouter(
           },
         ),
       ],
+    ),
+    GoRoute(
+      path: '/reports',
+      name: 'reports',
+      builder: (context, state) => const ReportsPage(),
     ),
   ],
 );
