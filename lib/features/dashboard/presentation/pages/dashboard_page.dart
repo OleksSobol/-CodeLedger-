@@ -77,8 +77,9 @@ class DashboardPage extends StatelessWidget {
               child: ListTile(
                 leading: const Icon(Icons.receipt_long_outlined),
                 title: const Text('Invoices'),
-                subtitle: const Text('Coming in Phase 5'),
-                enabled: false,
+                subtitle: const Text('Create and manage invoices'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/invoices'),
               ),
             ),
           ],

@@ -17,41 +17,41 @@
 **Verify:** `flutter run` launches app, DB created with seed data
 
 ## Phase 2: Core CRUD
-- [ ] User Profile page — all payment fields + visibility toggles
-- [ ] Clients CRUD — list, add, edit, archive + computed summaries
-- [ ] Projects CRUD — linked to clients
-- [ ] Invoice templates seeding already done (Phase 1)
-- [ ] Rate resolver utility already done (Phase 1)
+- [x] User Profile page — all payment fields + visibility toggles
+- [x] Clients CRUD — list, add, edit, archive + computed summaries
+- [x] Projects CRUD — linked to clients
+- [x] Invoice templates seeding already done (Phase 1)
+- [x] Rate resolver utility already done (Phase 1)
 
 **Verify:** CRUD works for profile/clients/projects, visibility toggles save
 
-## Phase 3: Time Tracking
-- [ ] Timer provider with persistence across app kills
-- [ ] Clock in/out with overlap detection
-- [ ] Manual entry with GitHub issue ref + repository + tags
-- [ ] Time entries list (filterable: client, project, date, invoiced status)
-- [ ] Daily, weekly, monthly summaries
-- [ ] Uninvoiced hours view
+## Phase 3: Time Tracking ✅ COMPLETE
+- [x] Timer provider with persistence across app kills
+- [x] Clock in/out with overlap detection
+- [x] Manual entry with GitHub issue ref + repository + tags
+- [x] Time entries list (filterable: client, project, date, invoiced status)
+- [x] Daily, weekly, monthly summaries
+- [x] Uninvoiced hours view
 
 **Verify:** Clock in/out works, timer survives restart, overlaps rejected
 
-## Phase 4: Dashboard
-- [ ] Active timer card (project/client name + elapsed time)
-- [ ] Uninvoiced hours per client cards
-- [ ] This month's total income (sum of paid invoices)
-- [ ] Outstanding invoices (count + total of sent/unpaid)
-- [ ] Overdue invoices (count + total past due date)
+## Phase 4: Dashboard ✅ COMPLETE
+- [x] Active timer card (project/client name + elapsed time)
+- [x] Uninvoiced hours per client cards
+- [x] This month's total income (sum of paid invoices)
+- [x] Outstanding invoices (count + total of sent/unpaid)
+- [x] Overdue invoices (count + total past due date)
 
 **Verify:** Dashboard shows live data for all 5 summary cards
 
-## Phase 5: Invoice Builder
-- [ ] Creation wizard: client → mode (date range/project/all uninvoiced) → entries → review
-- [ ] Detailed breakdown mode (group by date) vs summary mode (single line)
-- [ ] Manual line items, tax calculation, late fee calculation
-- [ ] Invoice numbering (auto-increment), due date auto-calc from payment terms
-- [ ] Status management: Draft → Sent → Paid → Overdue
-- [ ] Payment recording (method: ACH/Stripe/Other, amount, partial support)
-- [ ] Mark entries as invoiced in same transaction
+## Phase 5: Invoice Builder ✅ COMPLETE
+- [x] Creation wizard: client → mode (date range/project/all uninvoiced) → entries → review
+- [x] Detailed breakdown mode (group by date) vs summary mode (single line)
+- [x] Manual line items, tax calculation, late fee calculation
+- [x] Invoice numbering (auto-increment), due date auto-calc from payment terms
+- [x] Status management: Draft → Sent → Paid → Overdue
+- [x] Payment recording (method: ACH/Stripe/Other, amount, partial support)
+- [x] Mark entries as invoiced in same transaction
 
 **Verify:** Invoice generates, numbering increments, payment recording works
 

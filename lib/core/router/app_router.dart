@@ -9,6 +9,11 @@ import '../../features/projects/presentation/pages/project_form_page.dart';
 import '../../features/time_tracking/presentation/pages/time_tracking_page.dart';
 import '../../features/time_tracking/presentation/pages/clock_in_page.dart';
 import '../../features/time_tracking/presentation/pages/manual_entry_page.dart';
+import '../../features/invoices/presentation/pages/invoices_list_page.dart';
+import '../../features/invoices/presentation/pages/invoice_detail_page.dart';
+import '../../features/invoices/presentation/pages/invoice_wizard_client_page.dart';
+import '../../features/invoices/presentation/pages/invoice_wizard_entries_page.dart';
+import '../../features/invoices/presentation/pages/invoice_wizard_review_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -91,6 +96,41 @@ final appRouter = GoRouter(
           path: 'manual',
           name: 'manualEntry',
           builder: (context, state) => const ManualEntryPage(),
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/invoices',
+      name: 'invoices',
+      builder: (context, state) => const InvoicesListPage(),
+      routes: [
+        GoRoute(
+          path: 'create',
+          name: 'invoiceCreate',
+          builder: (context, state) => const InvoiceWizardClientPage(),
+          routes: [
+            GoRoute(
+              path: 'entries',
+              name: 'invoiceCreateEntries',
+              builder: (context, state) =>
+                  const InvoiceWizardEntriesPage(),
+            ),
+            GoRoute(
+              path: 'review',
+              name: 'invoiceCreateReview',
+              builder: (context, state) =>
+                  const InvoiceWizardReviewPage(),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: ':invoiceId',
+          name: 'invoiceDetail',
+          builder: (context, state) {
+            final invoiceId =
+                int.parse(state.pathParameters['invoiceId']!);
+            return InvoiceDetailPage(invoiceId: invoiceId);
+          },
         ),
       ],
     ),
