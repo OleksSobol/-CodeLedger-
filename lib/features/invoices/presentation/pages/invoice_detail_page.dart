@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../providers/invoice_providers.dart';
@@ -8,6 +10,10 @@ import '../widgets/invoice_status_badge.dart';
 import '../widgets/record_payment_dialog.dart';
 import '../pages/invoices_list_page.dart';
 import '../../../pdf_generation/presentation/pages/pdf_preview_page.dart';
+import '../../../pdf_generation/presentation/providers/pdf_providers.dart';
+import '../../../email/presentation/providers/email_providers.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../../clients/presentation/providers/client_providers.dart';
 
 class InvoiceDetailPage extends ConsumerWidget {
   final int invoiceId;
@@ -36,6 +42,11 @@ class InvoiceDetailPage extends ConsumerWidget {
               );
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.send_outlined),
+            tooltip: 'Email / Share',
+            onPressed: () => _sendInvoice(context, ref, invoiceAsync.value),
+          ),
         ],
       ),
       body: invoiceAsync.when(
@@ -47,6 +58,52 @@ class InvoiceDetailPage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _sendInvoice(
+      BuildContext context, WidgetRef ref, Invoice? invoice) async {
+    if (invoice == null) return;
+
+    try {
+      // Generate PDF
+      final doc = await ref.read(invoicePdfProvider(invoiceId).future);
+      final bytes = await doc.save();
+
+      // Save to temp file
+      final dir = await getTemporaryDirectory();
+      final file = File(
+          '${dir.path}/${invoice.invoiceNumber.replaceAll(RegExp(r'[^\w]'), '_')}.pdf');
+      await file.writeAsBytes(bytes);
+
+      // Build email subject from profile format
+      final profile = await ref.read(userProfileDaoProvider).getProfile();
+      final subject = profile.defaultEmailSubjectFormat
+          .replaceAll('{number}', invoice.invoiceNumber)
+          .replaceAll('{client}', '')
+          .replaceAll('{period}', invoice.periodStart != null
+              ? '${DateFormat.yMMMd().format(invoice.periodStart!)} – ${DateFormat.yMMMd().format(invoice.periodEnd!)}'
+              : '');
+
+      // Get client email
+      final clientDao = ref.read(clientDaoProvider);
+      final client = await clientDao.getClient(invoice.clientId);
+      final recipients = <String>[if (client.email != null) client.email!];
+
+      // Send
+      final emailService = ref.read(emailServiceProvider);
+      await emailService.sendInvoice(
+        file: file,
+        subject: subject,
+        body: 'Please find attached invoice ${invoice.invoiceNumber}.',
+        recipients: recipients,
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 }
 
