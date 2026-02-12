@@ -29,7 +29,8 @@ class PdfPreviewPage extends ConsumerWidget {
   }
 
   Future<Uint8List> _generatePdf(WidgetRef ref, dynamic format) async {
-    final doc = await ref.read(invoicePdfProvider(invoiceId).future);
+    // Always refresh to pick up any template/profile changes
+    final doc = await ref.refresh(invoicePdfProvider(invoiceId).future);
     return doc.save();
   }
 }

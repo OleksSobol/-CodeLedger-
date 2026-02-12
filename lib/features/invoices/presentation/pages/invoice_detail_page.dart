@@ -65,8 +65,8 @@ class InvoiceDetailPage extends ConsumerWidget {
     if (invoice == null) return;
 
     try {
-      // Generate PDF
-      final doc = await ref.read(invoicePdfProvider(invoiceId).future);
+      // Generate PDF (refresh to pick up template/profile changes)
+      final doc = await ref.refresh(invoicePdfProvider(invoiceId).future);
       final bytes = await doc.save();
 
       // Save to temp file

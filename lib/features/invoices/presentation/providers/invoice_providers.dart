@@ -264,10 +264,10 @@ class InvoiceNotifier extends AsyncNotifier<void> {
       ));
     }
 
-    // Resolve template: wizard override -> client default -> profile default
-    final templateId = wizard.templateId ??
-        client.defaultTemplateId ??
-        profile.defaultTemplateId;
+    // Only store templateId if the user explicitly chose one in the wizard.
+    // Otherwise leave null so the PDF provider resolves it at render time
+    // using the cascade: invoice -> client -> profile -> default.
+    final templateId = wizard.templateId;
 
     final invoiceId = await _invoiceDao.createInvoice(
       invoice: InvoicesCompanion.insert(
