@@ -4,6 +4,7 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import '../../../core/constants/app_constants.dart';
+import '../../../core/constants/google_credentials.dart';
 
 /// Google Drive backup integration.
 ///
@@ -20,8 +21,8 @@ class DriveBackupService {
   Future<String?> signIn() async {
     final signIn = GoogleSignIn.instance;
 
-    // Initialize (safe to call multiple times)
-    await signIn.initialize();
+    // Initialize with serverClientId (required on Android)
+    await signIn.initialize(serverClientId: googleServerClientId);
 
     // Listen for the next authentication event
     final user = await _authenticateAndWait(signIn);
@@ -34,7 +35,7 @@ class DriveBackupService {
   /// Attempts lightweight (silent) sign-in for returning users.
   Future<String?> trySilentSignIn() async {
     final signIn = GoogleSignIn.instance;
-    await signIn.initialize();
+    await signIn.initialize(serverClientId: googleServerClientId);
 
     final result = signIn.attemptLightweightAuthentication();
     if (result == null) return null;

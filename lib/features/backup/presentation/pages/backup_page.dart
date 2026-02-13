@@ -1,7 +1,15 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../../shared/widgets/app_page_body.dart';
+import '../../../../shared/widgets/app_page_scaffold.dart';
+import '../../../../shared/widgets/app_section_card.dart';
+import '../../../../shared/widgets/confirm_destructive.dart';
+import '../../../../shared/widgets/passphrase_bottom_sheet.dart';
+import '../../../../shared/widgets/spacing.dart';
 import '../../application/drive_backup_service.dart';
 import '../providers/backup_providers.dart';
 
@@ -13,13 +21,9 @@ class BackupPage extends ConsumerStatefulWidget {
 }
 
 class _BackupPageState extends ConsumerState<BackupPage> {
-  bool _isWorking = false;
-  String? _statusMessage;
-
   @override
   void initState() {
     super.initState();
-    // Try silent sign-in on page load
     _trySilentSignIn();
   }
 
@@ -32,205 +36,99 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final isSignedIn = ref.watch(driveSignedInProvider);
-    final email = ref.watch(driveEmailProvider);
-    final theme = Theme.of(context);
+  // -- Helpers --
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Backup & Restore')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Status message
-          if (_statusMessage != null)
-            Card(
-              color: theme.colorScheme.primaryContainer,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    if (_isWorking)
-                      const Padding(
-                        padding: EdgeInsets.only(right: 12),
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                    Expanded(child: Text(_statusMessage!)),
-                  ],
-                ),
-              ),
-            ),
-          if (_statusMessage != null) const SizedBox(height: 16),
+  void _setState(BackupUiState state) {
+    if (!mounted) return;
+    ref.read(backupUiStateProvider.notifier).state = state;
+  }
 
-          // -- Local Backup Section --
-          Text('Local Backup', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.backup),
-                  title: const Text('Create Backup'),
-                  subtitle:
-                      const Text('Encrypt and save database to a file'),
-                  trailing: _isWorking
-                      ? null
-                      : const Icon(Icons.chevron_right),
-                  onTap: _isWorking ? null : _createLocalBackup,
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.restore),
-                  title: const Text('Restore from File'),
-                  subtitle:
-                      const Text('Import an encrypted backup file'),
-                  trailing: _isWorking
-                      ? null
-                      : const Icon(Icons.chevron_right),
-                  onTap: _isWorking ? null : _restoreLocalBackup,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // -- Google Drive Section --
-          Text('Google Drive', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.cloud),
-                  title: isSignedIn
-                      ? Text('Signed in as $email')
-                      : const Text('Sign in to Google Drive'),
-                  subtitle: isSignedIn
-                      ? null
-                      : const Text(
-                          'Back up your data to the cloud'),
-                  trailing: isSignedIn
-                      ? TextButton(
-                          onPressed: _isWorking ? null : _signOut,
-                          child: const Text('Sign Out'),
-                        )
-                      : null,
-                  onTap: isSignedIn || _isWorking
-                      ? null
-                      : _signInToDrive,
-                ),
-                if (isSignedIn) ...[
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.cloud_upload),
-                    title: const Text('Backup to Drive'),
-                    subtitle: const Text(
-                        'Encrypt and upload to /CodeLedger/'),
-                    trailing: _isWorking
-                        ? null
-                        : const Icon(Icons.chevron_right),
-                    onTap: _isWorking ? null : _backupToDrive,
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.cloud_download),
-                    title: const Text('Restore from Drive'),
-                    subtitle: const Text(
-                        'Download and decrypt a backup'),
-                    trailing: _isWorking
-                        ? null
-                        : const Icon(Icons.chevron_right),
-                    onTap: _isWorking ? null : _restoreFromDrive,
-                  ),
-                ],
-              ],
-            ),
-          ),
-
-          // -- Drive Backups List --
-          if (isSignedIn) ...[
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Text('Drive Backups',
-                    style: theme.textTheme.titleMedium),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: _isWorking
-                      ? null
-                      : () => ref.invalidate(driveBackupsProvider),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _DriveBackupsList(
-              onRestore: _isWorking ? null : _restoreFromDriveEntry,
-              onDelete: _isWorking ? null : _deleteDriveBackup,
-            ),
-          ],
-        ],
-      ),
-    );
+  void _showSnack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   // -- Actions --
 
   Future<void> _createLocalBackup() async {
-    final passphrase = await _askPassphrase('Create Backup');
+    final passphrase = await askPassphrase(context, requireConfirmation: true);
     if (passphrase == null) return;
 
-    _setWorking(true, 'Creating encrypted backup...');
+    _setState(const BackupWorking('Encrypting...'));
     try {
       final backup = ref.read(backupServiceProvider);
       final file = await backup.createBackup(passphrase);
 
-      // Share the file so user can save it wherever
+      _setState(const BackupIdle());
       await SharePlus.instance.share(
         ShareParams(files: [XFile(file.path)]),
       );
-
-      _setWorking(false, 'Backup created successfully');
+      _showSnack('Backup created');
     } catch (e) {
-      _setWorking(false, 'Backup failed: $e');
+      _setState(const BackupIdle());
+      _showSnack('Backup failed: $e');
     }
   }
 
   Future<void> _restoreLocalBackup() async {
-    // Show warning dialog
-    final confirmed = await _confirmRestore();
+    // Pick file
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final filePath = result.files.single.path;
+    if (filePath == null) return;
+
+    // Confirm destructive
+    if (!mounted) return;
+    final confirmed = await confirmDestructive(
+      context,
+      title: 'Restore Backup?',
+      message:
+          "This will replace all your current data with this backup. This can't be undone.",
+      confirmLabel: 'Restore',
+    );
     if (!confirmed) return;
 
-    final passphrase = await _askPassphrase('Restore Backup');
+    // Passphrase
+    if (!mounted) return;
+    final passphrase = await askPassphrase(context);
     if (passphrase == null) return;
 
-    _setWorking(true, 'Restoring from backup...');
+    _setState(const BackupWorking('Decrypting...'));
     try {
-      // For local restore, user needs to pick a file.
-      // On mobile we'd use file_picker, but for now show instructions.
+      final backup = ref.read(backupServiceProvider);
+      await backup.restoreBackup(File(filePath), passphrase);
+
+      _setState(const BackupIdle());
       if (mounted) {
-        _setWorking(false, null);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Place your .enc backup file in the app temp directory, '
-              'then use Drive restore. Local file picker coming soon.',
-            ),
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Restore Complete'),
+            content: const Text(
+                'Restore complete. Restart the app to load your data.'),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
           ),
         );
       }
     } catch (e) {
-      _setWorking(false, 'Restore failed: $e');
+      _setState(const BackupIdle());
+      _showSnack('Restore failed: $e');
     }
   }
 
   Future<void> _signInToDrive() async {
-    _setWorking(true, 'Signing in to Google...');
+    _setState(const BackupWorking('Signing in to Google...'));
     try {
       final drive = ref.read(driveBackupServiceProvider);
       final email = await drive.signIn();
@@ -238,23 +136,24 @@ class _BackupPageState extends ConsumerState<BackupPage> {
         ref.read(driveSignedInProvider.notifier).state = true;
         ref.read(driveEmailProvider.notifier).state = email;
         ref.invalidate(driveBackupsProvider);
-        _setWorking(false, 'Signed in as $email');
+        _setState(const BackupIdle());
+        _showSnack('Signed in as $email');
       } else {
-        _setWorking(false, 'Sign-in cancelled');
+        _setState(const BackupIdle());
+        _showSnack('Sign-in cancelled');
       }
     } catch (e) {
+      _setState(const BackupIdle());
       final msg = e.toString();
       if (msg.contains('10') ||
           msg.contains('DEVELOPER_ERROR') ||
           msg.contains('PlatformException')) {
-        _setWorking(
-          false,
+        _showSnack(
           'Google Sign-In not configured. Add google-services.json '
-          'to android/app/ from Google Cloud Console '
-          '(OAuth 2.0 credentials for com.osobol.code_ledger).',
+          'to android/app/ from Google Cloud Console.',
         );
       } else {
-        _setWorking(false, 'Sign-in failed: $msg');
+        _showSnack('Sign-in failed: $msg');
       }
     }
   }
@@ -264,288 +163,492 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     await drive.signOut();
     ref.read(driveSignedInProvider.notifier).state = false;
     ref.read(driveEmailProvider.notifier).state = null;
-    setState(() => _statusMessage = null);
+    _setState(const BackupIdle());
   }
 
   Future<void> _backupToDrive() async {
-    final passphrase = await _askPassphrase('Backup to Drive');
+    final passphrase = await askPassphrase(context, requireConfirmation: true);
     if (passphrase == null) return;
 
-    _setWorking(true, 'Creating encrypted backup...');
+    _setState(const BackupWorking('Encrypting...'));
     try {
       final backup = ref.read(backupServiceProvider);
       final file = await backup.createBackup(passphrase);
 
-      _setWorking(true, 'Uploading to Google Drive...');
+      _setState(const BackupWorking('Uploading to Drive...'));
       final drive = ref.read(driveBackupServiceProvider);
       await drive.uploadBackup(file);
-
-      // Clean up temp file
       await file.delete();
 
       ref.invalidate(driveBackupsProvider);
-      _setWorking(false, 'Backup uploaded to Drive successfully');
+      _setState(const BackupIdle());
+      _showSnack('Backup uploaded');
     } catch (e) {
-      _setWorking(false, 'Drive backup failed: $e');
+      _setState(const BackupIdle());
+      _showSnack('Drive backup failed: $e');
     }
   }
 
   Future<void> _restoreFromDrive() async {
-    // Show drive backups picker
     final drive = ref.read(driveBackupServiceProvider);
+
+    _setState(const BackupWorking('Loading backups...'));
     final backups = await drive.listBackups();
+    _setState(const BackupIdle());
 
     if (backups.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No backups found on Drive')),
-        );
-      }
+      _showSnack('No backups found on Google Drive');
       return;
     }
 
-    // Let user pick from list
     if (!mounted) return;
-    final selected = await showDialog<DriveBackupEntry>(
+    final selected = await showModalBottomSheet<DriveBackupEntry>(
       context: context,
-      builder: (ctx) => SimpleDialog(
-        title: const Text('Select Backup'),
-        children: backups.map((b) {
-          return SimpleDialogOption(
-            onPressed: () => Navigator.pop(ctx, b),
-            child: ListTile(
-              title: Text(b.name),
-              subtitle: Text(
-                '${b.formattedSize} - ${b.createdAt != null ? DateFormat.yMMMd().add_jm().format(b.createdAt!) : "Unknown date"}',
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+      isScrollControlled: true,
+      builder: (ctx) => _BackupPickerSheet(backups: backups),
     );
 
-    if (selected != null) {
-      await _restoreFromDriveEntry(selected);
-    }
+    if (selected == null) return;
+    await _restoreFromDriveEntry(selected);
   }
 
   Future<void> _restoreFromDriveEntry(DriveBackupEntry entry) async {
-    final confirmed = await _confirmRestore();
+    if (!mounted) return;
+    final confirmed = await confirmDestructive(
+      context,
+      title: 'Restore Backup?',
+      message:
+          "This will replace all your current data with this backup. This can't be undone.",
+      confirmLabel: 'Restore',
+    );
     if (!confirmed) return;
 
-    final passphrase = await _askPassphrase('Restore Backup');
+    if (!mounted) return;
+    final passphrase = await askPassphrase(context);
     if (passphrase == null) return;
 
-    _setWorking(true, 'Downloading backup from Drive...');
+    _setState(const BackupWorking('Downloading...'));
     try {
       final drive = ref.read(driveBackupServiceProvider);
       final file = await drive.downloadBackup(entry.id, entry.name);
 
-      _setWorking(true, 'Decrypting and restoring...');
+      _setState(const BackupWorking('Decrypting...'));
       final backup = ref.read(backupServiceProvider);
       await backup.restoreBackup(file, passphrase);
-
-      // Clean up
       await file.delete();
 
-      _setWorking(false, 'Restore complete! Please restart the app.');
+      _setState(const BackupIdle());
+      if (mounted) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Restore Complete'),
+            content: const Text(
+                'Restore complete. Restart the app to load your data.'),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     } catch (e) {
-      _setWorking(false, 'Restore failed: $e');
+      _setState(const BackupIdle());
+      _showSnack('Restore failed: $e');
     }
   }
 
   Future<void> _deleteDriveBackup(DriveBackupEntry entry) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Backup?'),
-        content: Text('Delete "${entry.name}" from Google Drive?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await confirmDestructive(
+      context,
+      title: 'Delete Backup?',
+      message: 'Delete "${entry.name}" from Google Drive?',
     );
+    if (!confirmed) return;
 
-    if (confirmed != true) return;
-
-    _setWorking(true, 'Deleting backup...');
+    _setState(const BackupWorking('Deleting...'));
     try {
       final drive = ref.read(driveBackupServiceProvider);
       await drive.deleteBackup(entry.id);
       ref.invalidate(driveBackupsProvider);
-      _setWorking(false, 'Backup deleted');
+      _setState(const BackupIdle());
+      _showSnack('Backup deleted');
     } catch (e) {
-      _setWorking(false, 'Delete failed: $e');
+      _setState(const BackupIdle());
+      _showSnack('Delete failed: $e');
     }
   }
 
-  // -- Helpers --
+  // -- Build --
 
-  void _setWorking(bool working, String? message) {
-    if (!mounted) return;
-    setState(() {
-      _isWorking = working;
-      _statusMessage = message;
-    });
-  }
+  @override
+  Widget build(BuildContext context) {
+    final uiState = ref.watch(backupUiStateProvider);
+    final isSignedIn = ref.watch(driveSignedInProvider);
+    final isWorking = uiState is BackupWorking;
 
-  Future<String?> _askPassphrase(String title) async {
-    final controller = TextEditingController();
-    final confirmController = TextEditingController();
-    final isCreate = title.contains('Create') || title.contains('Backup');
+    return AppPageScaffold(
+      title: 'Backup & Restore',
+      body: AppPageBody(
+        children: [
+          // -- Local Section --
+          _LocalBackupSection(
+            isWorking: isWorking,
+            onCreateBackup: _createLocalBackup,
+            onRestoreBackup: _restoreLocalBackup,
+          ),
+          const SizedBox(height: Spacing.lg),
 
-    return showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Enter an encryption passphrase. You will need this '
-              'to restore the backup.',
+          // -- Google Drive Section --
+          _GoogleDriveSection(
+            isSignedIn: isSignedIn,
+            isWorking: isWorking,
+            email: ref.watch(driveEmailProvider),
+            uiState: uiState,
+            onSignIn: _signInToDrive,
+            onSignOut: _signOut,
+            onBackup: _backupToDrive,
+            onRestore: _restoreFromDrive,
+          ),
+
+          // -- Drive Backups List --
+          if (isSignedIn) ...[
+            const SizedBox(height: Spacing.lg),
+            _DriveBackupsList(
+              isWorking: isWorking,
+              onRestore: _restoreFromDriveEntry,
+              onDelete: _deleteDriveBackup,
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Passphrase',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            if (isCreate) ...[
-              const SizedBox(height: 8),
-              TextField(
-                controller: confirmController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Confirm Passphrase',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final pass = controller.text.trim();
-              if (pass.isEmpty) return;
-              if (isCreate && pass != confirmController.text.trim()) {
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(
-                      content: Text('Passphrases do not match')),
-                );
-                return;
-              }
-              Navigator.pop(ctx, pass);
-            },
-            child: const Text('OK'),
-          ),
         ],
       ),
     );
-  }
-
-  Future<bool> _confirmRestore() async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Restore Backup?'),
-        content: const Text(
-          'This will replace ALL current data with the backup. '
-          'This cannot be undone. Are you sure?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-                foregroundColor: Theme.of(ctx).colorScheme.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Restore'),
-          ),
-        ],
-      ),
-    );
-    return result == true;
   }
 }
 
-/// Displays the list of backups on Google Drive.
-class _DriveBackupsList extends ConsumerWidget {
-  final void Function(DriveBackupEntry)? onRestore;
-  final void Function(DriveBackupEntry)? onDelete;
+// ============================================================
+// Section Widgets
+// ============================================================
 
-  const _DriveBackupsList({this.onRestore, this.onDelete});
+class _LocalBackupSection extends StatelessWidget {
+  final bool isWorking;
+  final VoidCallback onCreateBackup;
+  final VoidCallback onRestoreBackup;
+
+  const _LocalBackupSection({
+    required this.isWorking,
+    required this.onCreateBackup,
+    required this.onRestoreBackup,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSectionCard(
+      title: 'Local',
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(Spacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FilledButton.tonalIcon(
+                onPressed: isWorking ? null : onCreateBackup,
+                icon: const Icon(Icons.share_outlined),
+                label: const Text('Create & Share Backup'),
+              ),
+              const SizedBox(height: Spacing.sm),
+              OutlinedButton.icon(
+                onPressed: isWorking ? null : onRestoreBackup,
+                icon: const Icon(Icons.file_open_outlined),
+                label: const Text('Restore from File'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GoogleDriveSection extends StatelessWidget {
+  final bool isSignedIn;
+  final bool isWorking;
+  final String? email;
+  final BackupUiState uiState;
+  final VoidCallback onSignIn;
+  final VoidCallback onSignOut;
+  final VoidCallback onBackup;
+  final VoidCallback onRestore;
+
+  const _GoogleDriveSection({
+    required this.isSignedIn,
+    required this.isWorking,
+    required this.email,
+    required this.uiState,
+    required this.onSignIn,
+    required this.onSignOut,
+    required this.onBackup,
+    required this.onRestore,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AppSectionCard(
+      title: 'Google Drive',
+      trailing: isSignedIn
+          ? Chip(
+              label: const Text('Connected'),
+              labelStyle: theme.textTheme.labelSmall,
+              visualDensity: VisualDensity.compact,
+            )
+          : null,
+      children: [
+        if (!isSignedIn) _buildSignInPrompt(theme) else _buildSignedIn(theme),
+      ],
+    );
+  }
+
+  Widget _buildSignInPrompt(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(Spacing.lg),
+      child: Column(
+        children: [
+          Icon(
+            Icons.cloud_outlined,
+            size: 48,
+            color: theme.colorScheme.outline,
+          ),
+          const SizedBox(height: Spacing.md),
+          Text(
+            'Back up your data securely to Google Drive',
+            style: theme.textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: Spacing.md),
+          FilledButton.icon(
+            onPressed: isWorking ? null : onSignIn,
+            icon: isWorking
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.login),
+            label: Text(isWorking ? 'Signing in...' : 'Sign in with Google'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSignedIn(ThemeData theme) {
+    final workingMessage =
+        uiState is BackupWorking ? (uiState as BackupWorking).message : null;
+
+    return Padding(
+      padding: const EdgeInsets.all(Spacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Account row
+          Row(
+            children: [
+              Icon(Icons.account_circle,
+                  color: theme.colorScheme.onSurfaceVariant),
+              const SizedBox(width: Spacing.sm),
+              Expanded(
+                child: Text(
+                  email ?? 'Signed in',
+                  style: theme.textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              TextButton(
+                onPressed: isWorking ? null : onSignOut,
+                child: const Text('Sign out'),
+              ),
+            ],
+          ),
+          const Divider(height: Spacing.lg),
+
+          // Backup button (primary action)
+          FilledButton.icon(
+            onPressed: isWorking ? null : onBackup,
+            icon: isWorking && workingMessage != null
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.cloud_upload_outlined),
+            label: Text(workingMessage ?? 'Backup to Drive'),
+          ),
+          const SizedBox(height: Spacing.sm),
+
+          // Restore button
+          OutlinedButton.icon(
+            onPressed: isWorking ? null : onRestore,
+            icon: const Icon(Icons.cloud_download_outlined),
+            label: const Text('Restore from Drive'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DriveBackupsList extends ConsumerWidget {
+  final bool isWorking;
+  final void Function(DriveBackupEntry) onRestore;
+  final void Function(DriveBackupEntry) onDelete;
+
+  const _DriveBackupsList({
+    required this.isWorking,
+    required this.onRestore,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final backupsAsync = ref.watch(driveBackupsProvider);
+    final theme = Theme.of(context);
 
-    return backupsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text('Error loading backups: $e'),
-        ),
+    return AppSectionCard(
+      title: 'Your Backups',
+      trailing: IconButton(
+        icon: const Icon(Icons.refresh),
+        tooltip: 'Refresh backups',
+        onPressed: isWorking
+            ? null
+            : () => ref.invalidate(driveBackupsProvider),
       ),
-      data: (backups) {
-        if (backups.isEmpty) {
-          return const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('No backups found on Google Drive'),
-            ),
-          );
-        }
-
-        return Card(
-          child: Column(
-            children: backups.map((b) {
-              return ListTile(
-                title: Text(b.name),
-                subtitle: Text(
-                  '${b.formattedSize}'
-                  '${b.createdAt != null ? ' - ${DateFormat.yMMMd().add_jm().format(b.createdAt!)}' : ''}',
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
+      children: [
+        backupsAsync.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.all(Spacing.lg),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (e, _) => Padding(
+            padding: const EdgeInsets.all(Spacing.md),
+            child: Text('Error loading backups: $e',
+                style: TextStyle(color: theme.colorScheme.error)),
+          ),
+          data: (backups) {
+            if (backups.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(Spacing.lg),
+                child: Column(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.restore),
-                      tooltip: 'Restore',
-                      onPressed:
-                          onRestore != null ? () => onRestore!(b) : null,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      tooltip: 'Delete',
-                      onPressed:
-                          onDelete != null ? () => onDelete!(b) : null,
-                    ),
+                    Icon(Icons.cloud_off_outlined,
+                        size: 48, color: theme.colorScheme.outline),
+                    const SizedBox(height: Spacing.sm),
+                    Text('No backups yet',
+                        style: theme.textTheme.bodyMedium),
                   ],
                 ),
               );
-            }).toList(),
+            }
+
+            return Column(
+              children: backups.map((b) {
+                final dateStr = b.createdAt != null
+                    ? DateFormat.yMMMd().add_jm().format(b.createdAt!)
+                    : 'Unknown date';
+
+                return ListTile(
+                  leading: Icon(Icons.lock_outline,
+                      color: theme.colorScheme.onSurfaceVariant),
+                  title: Text(b.name, overflow: TextOverflow.ellipsis),
+                  subtitle: Text('$dateStr - ${b.formattedSize}'),
+                  trailing: PopupMenuButton<String>(
+                    tooltip: 'Backup options',
+                    onSelected: (value) {
+                      if (value == 'restore') onRestore(b);
+                      if (value == 'delete') onDelete(b);
+                    },
+                    itemBuilder: (_) => [
+                      const PopupMenuItem(
+                        value: 'restore',
+                        child: ListTile(
+                          leading: Icon(Icons.restore),
+                          title: Text('Restore'),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: ListTile(
+                          leading: Icon(Icons.delete_outline),
+                          title: Text('Delete'),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================================
+// Backup Picker Bottom Sheet
+// ============================================================
+
+class _BackupPickerSheet extends StatelessWidget {
+  final List<DriveBackupEntry> backups;
+
+  const _BackupPickerSheet({required this.backups});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.lg, Spacing.lg, Spacing.lg, Spacing.sm),
+            child: Text('Select Backup',
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
           ),
-        );
-      },
+          const Divider(height: 1),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.5,
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: backups.length,
+              itemBuilder: (ctx, i) {
+                final b = backups[i];
+                final dateStr = b.createdAt != null
+                    ? DateFormat.yMMMd().add_jm().format(b.createdAt!)
+                    : 'Unknown date';
+
+                return ListTile(
+                  leading: const Icon(Icons.lock_outline),
+                  title: Text(b.name, overflow: TextOverflow.ellipsis),
+                  subtitle: Text('$dateStr - ${b.formattedSize}'),
+                  onTap: () => Navigator.pop(ctx, b),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
