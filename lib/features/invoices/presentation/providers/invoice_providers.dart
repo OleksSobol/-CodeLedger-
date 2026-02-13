@@ -41,8 +41,10 @@ final invoiceLineItemsProvider =
 });
 
 // ── Uninvoiced entries for a client ────────────────────────────────
-final uninvoicedEntriesProvider =
-    FutureProvider.family<List<TimeEntry>, int>((ref, clientId) async {
+// Using autoDispose so this re-fetches each time the wizard opens,
+// picking up any recently-added manual entries.
+final uninvoicedEntriesProvider = FutureProvider.autoDispose
+    .family<List<TimeEntry>, int>((ref, clientId) async {
   return ref.watch(timeEntryDaoProvider).getUninvoicedForClient(clientId);
 });
 

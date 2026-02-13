@@ -50,11 +50,10 @@ class _InvoiceWizardReviewPageState
     }
 
     try {
-      final invoiceId =
-          await ref.read(invoiceNotifierProvider.notifier).createInvoice();
+      await ref.read(invoiceNotifierProvider.notifier).createInvoice();
       if (mounted) {
-        // Navigate to the new invoice detail, clearing wizard from stack
-        context.go('/invoices/$invoiceId');
+        // Navigate to invoices list, clearing wizard from stack
+        context.go('/invoices');
       }
     } catch (e) {
       if (mounted) {
