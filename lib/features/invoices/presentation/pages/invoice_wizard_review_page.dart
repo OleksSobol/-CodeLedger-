@@ -5,7 +5,7 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/duration_formatter.dart';
 import '../providers/invoice_providers.dart';
 import '../providers/template_providers.dart';
-import '../pages/invoices_list_page.dart';
+import '../../../clients/presentation/providers/client_providers.dart';
 
 /// Wizard Step 3: Review and create the invoice.
 class InvoiceWizardReviewPage extends ConsumerStatefulWidget {

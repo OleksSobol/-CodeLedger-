@@ -8,12 +8,11 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../providers/invoice_providers.dart';
 import '../widgets/invoice_status_badge.dart';
 import '../widgets/record_payment_dialog.dart';
-import '../pages/invoices_list_page.dart';
+import '../../../clients/presentation/providers/client_providers.dart';
 import '../../../pdf_generation/presentation/pages/pdf_preview_page.dart';
 import '../../../pdf_generation/presentation/providers/pdf_providers.dart';
 import '../../../email/presentation/providers/email_providers.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
-import '../../../clients/presentation/providers/client_providers.dart';
 
 class InvoiceDetailPage extends ConsumerWidget {
   final int invoiceId;

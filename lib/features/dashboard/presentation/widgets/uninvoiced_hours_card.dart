@@ -14,7 +14,16 @@ class UninvoicedHoursCard extends ConsumerWidget {
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
       data: (items) {
-        if (items.isEmpty) return const SizedBox.shrink();
+        if (items.isEmpty) {
+          return Card(
+            child: ListTile(
+              leading: Icon(Icons.check_circle_outline,
+                  color: theme.colorScheme.tertiary),
+              title: const Text('All hours invoiced'),
+              subtitle: const Text('No uninvoiced time entries'),
+            ),
+          );
+        }
 
         final totalHours =
             items.fold<double>(0, (sum, i) => sum + i.hours);

@@ -150,9 +150,3 @@ class _InvoiceListView extends ConsumerWidget {
     );
   }
 }
-
-/// Provider to fetch a client by ID for display in the list.
-final clientByIdProvider =
-    FutureProvider.family<Client, int>((ref, clientId) async {
-  return ref.watch(clientDaoProvider).getClient(clientId);
-});

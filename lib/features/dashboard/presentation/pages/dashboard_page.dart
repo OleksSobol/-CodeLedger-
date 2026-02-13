@@ -1,20 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../widgets/active_timer_card.dart';
 import '../widgets/uninvoiced_hours_card.dart';
 import '../widgets/monthly_income_card.dart';
 import '../widgets/outstanding_invoices_card.dart';
 import '../widgets/overdue_invoices_card.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
+  static IconData _themeIcon(ThemeMode mode) => switch (mode) {
+        ThemeMode.system => Icons.brightness_auto,
+        ThemeMode.light => Icons.light_mode,
+        ThemeMode.dark => Icons.dark_mode,
+      };
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode =
+        ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('CodeLedger'),
         actions: [
+          IconButton(
+            icon: Icon(_themeIcon(themeMode)),
+            tooltip: 'Theme: ${themeMode.name}',
+            onPressed: () {
+              final next = switch (themeMode) {
+                ThemeMode.system => ThemeMode.light,
+                ThemeMode.light => ThemeMode.dark,
+                ThemeMode.dark => ThemeMode.system,
+              };
+              ref.read(themeModeProvider.notifier).setThemeMode(next);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.person_outline),
             tooltip: 'Business Profile',
@@ -28,7 +51,9 @@ class DashboardPage extends StatelessWidget {
           await Future.delayed(const Duration(milliseconds: 300));
         },
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(
+            16, 16, 16, 16 + MediaQuery.of(context).padding.bottom,
+          ),
           children: [
             // 1. Active timer
             const ActiveTimerCard(),

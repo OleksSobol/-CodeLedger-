@@ -125,6 +125,16 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
         .get();
   }
 
+  /// Get the most recent completed entry (for quick clock-in repeat).
+  Future<TimeEntry?> getMostRecentCompleted() async {
+    final results = await (select(timeEntries)
+          ..where((t) => t.endTime.isNotNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.startTime)])
+          ..limit(1))
+        .get();
+    return results.isEmpty ? null : results.first;
+  }
+
   /// Mark entries as invoiced.
   Future<void> markAsInvoiced(List<int> entryIds, int invoiceId) {
     return (update(timeEntries)..where((t) => t.id.isIn(entryIds))).write(

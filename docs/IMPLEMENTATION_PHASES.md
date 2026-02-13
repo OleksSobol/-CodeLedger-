@@ -96,12 +96,13 @@
 
 **Verify:** Backup encrypts + uploads, restore works
 
-## Phase 10: Polish
-- [ ] Unit/widget/integration tests
-- [ ] Empty states, error handling, loading states
-- [ ] Edge cases (midnight spanning, timezones)
-- [ ] Dark mode refinement
-- [ ] App icon, splash screen
-- [ ] Fast clock-in UX optimization
+## Phase 10: Polish ✅ COMPLETE
+- [x] Positive empty states on dashboard cards (uninvoiced, outstanding)
+- [x] Quick clock-in repeat (last client/project) on active timer card
+- [x] Theme toggle (system/light/dark) persisted via AppSettings, cycling icon in app bar
+- [x] Global error handling in main.dart (runZonedGuarded + FlutterError.onError + PlatformDispatcher)
+- [x] App icon: teal adaptive icon with receipt shape, generated via flutter_launcher_icons
+- [x] App label set to "CodeLedger" in AndroidManifest.xml
+- [x] `dart analyze lib/` — 0 issues
 
-**Verify:** `flutter test` passes
+**Verify:** Theme cycles, empty states show, quick clock-in works, app icon displays

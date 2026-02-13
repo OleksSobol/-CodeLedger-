@@ -16,6 +16,7 @@ class OverdueInvoicesCard extends ConsumerWidget {
       error: (_, __) => const SizedBox.shrink(),
       data: (summary) {
         if (summary.count == 0) return const SizedBox.shrink();
+        // Only show when there ARE overdue invoices (warning state)
         return Card(
           color: theme.colorScheme.errorContainer,
           child: Padding(

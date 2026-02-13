@@ -17,6 +17,11 @@ final runningEntryProvider = StreamProvider<TimeEntry?>((ref) {
   return ref.watch(timeEntryDaoProvider).watchRunningEntry();
 });
 
+/// Most recent completed entry (for quick clock-in repeat).
+final lastCompletedEntryProvider = FutureProvider<TimeEntry?>((ref) {
+  return ref.watch(timeEntryDaoProvider).getMostRecentCompleted();
+});
+
 /// Date range filter state for the entries list.
 class DateRangeFilter {
   final DateTime start;

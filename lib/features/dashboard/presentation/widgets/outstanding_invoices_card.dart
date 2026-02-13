@@ -15,7 +15,16 @@ class OutstandingInvoicesCard extends ConsumerWidget {
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
       data: (summary) {
-        if (summary.count == 0) return const SizedBox.shrink();
+        if (summary.count == 0) {
+          return Card(
+            child: ListTile(
+              leading: Icon(Icons.check_circle_outline,
+                  color: theme.colorScheme.secondary),
+              title: const Text('No outstanding invoices'),
+              subtitle: const Text('All sent invoices have been paid'),
+            ),
+          );
+        }
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
