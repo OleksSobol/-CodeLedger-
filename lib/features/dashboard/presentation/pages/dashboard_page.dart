@@ -68,8 +68,8 @@ class DashboardPage extends ConsumerWidget {
             const FinancialSummaryRow(),
             const SizedBox(height: Spacing.lg),
 
-            // 4. Navigation grid
-            _NavigationGrid(),
+            // 4. Navigation
+            const _NavigationSection(),
           ],
         ),
       ),
@@ -77,8 +77,11 @@ class DashboardPage extends ConsumerWidget {
   }
 }
 
-/// Compact 2x3 grid of navigation destinations.
-class _NavigationGrid extends StatelessWidget {
+/// Navigation section — Card with ListTile rows.
+/// Uses a single Card instead of a grid to avoid text wrapping issues.
+class _NavigationSection extends StatelessWidget {
+  const _NavigationSection();
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -90,80 +93,76 @@ class _NavigationGrid extends StatelessWidget {
             style: theme.textTheme.titleMedium
                 ?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: Spacing.sm),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: Spacing.sm,
-          crossAxisSpacing: Spacing.sm,
-          childAspectRatio: 2.8,
-          children: [
-            _NavTile(
-              icon: Icons.people_outline,
-              label: 'Clients',
-              onTap: () => context.push('/clients'),
-            ),
-            _NavTile(
-              icon: Icons.access_time_outlined,
-              label: 'Time Tracking',
-              onTap: () => context.push('/time-tracking'),
-            ),
-            _NavTile(
-              icon: Icons.receipt_long_outlined,
-              label: 'Invoices',
-              onTap: () => context.push('/invoices'),
-            ),
-            _NavTile(
-              icon: Icons.summarize_outlined,
-              label: 'Reports',
-              onTap: () => context.push('/reports'),
-            ),
-            _NavTile(
-              icon: Icons.cloud_outlined,
-              label: 'Backup',
-              onTap: () => context.push('/backup'),
-            ),
-          ],
+        Card(
+          child: Column(
+            children: [
+              _NavRow(
+                icon: Icons.people_outline,
+                label: 'Clients',
+                subtitle: 'Manage clients & projects',
+                onTap: () => context.push('/clients'),
+              ),
+              const Divider(height: 1, indent: 56),
+              _NavRow(
+                icon: Icons.access_time_outlined,
+                label: 'Time Tracking',
+                subtitle: 'Entries, summaries, clock in',
+                onTap: () => context.push('/time-tracking'),
+              ),
+              const Divider(height: 1, indent: 56),
+              _NavRow(
+                icon: Icons.receipt_long_outlined,
+                label: 'Invoices',
+                subtitle: 'Create & manage invoices',
+                onTap: () => context.push('/invoices'),
+              ),
+              const Divider(height: 1, indent: 56),
+              _NavRow(
+                icon: Icons.summarize_outlined,
+                label: 'Reports',
+                subtitle: 'Non-financial work reports',
+                onTap: () => context.push('/reports'),
+              ),
+              const Divider(height: 1, indent: 56),
+              _NavRow(
+                icon: Icons.cloud_outlined,
+                label: 'Backup',
+                subtitle: 'Encrypted local & Drive backups',
+                onTap: () => context.push('/backup'),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 }
 
-class _NavTile extends StatelessWidget {
+class _NavRow extends StatelessWidget {
   final IconData icon;
   final String label;
+  final String subtitle;
   final VoidCallback onTap;
 
-  const _NavTile({
+  const _NavRow({
     required this.icon,
     required this.label,
+    required this.subtitle,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: Spacing.md, vertical: Spacing.sm),
-          child: Row(
-            children: [
-              Icon(icon, color: theme.colorScheme.primary),
-              const SizedBox(width: Spacing.sm),
-              Expanded(
-                child: Text(label, style: theme.textTheme.titleSmall),
-              ),
-              Icon(Icons.chevron_right,
-                  size: 20, color: theme.colorScheme.outline),
-            ],
-          ),
-        ),
-      ),
+    return ListTile(
+      leading: Icon(icon, color: theme.colorScheme.primary),
+      title: Text(label, style: theme.textTheme.titleSmall),
+      subtitle: Text(subtitle,
+          style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant)),
+      trailing: Icon(Icons.chevron_right,
+          size: 20, color: theme.colorScheme.outline),
+      onTap: onTap,
     );
   }
 }

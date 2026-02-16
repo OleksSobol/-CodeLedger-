@@ -116,8 +116,41 @@ class TimerNotifier extends AsyncNotifier<void> {
   }
 
   /// Clock out the running entry.
-  Future<bool> clockOut(int entryId, {String? description}) {
-    return _dao.clockOut(entryId, description: description);
+  Future<bool> clockOut(
+    int entryId, {
+    String? description,
+    bool truncateOverlaps = false,
+  }) {
+    return _dao.clockOut(
+      entryId,
+      description: description,
+      truncateOverlaps: truncateOverlaps,
+    );
+  }
+
+  /// Update a time entry's start/end times and details with overlap checking.
+  Future<bool> updateEntryTimes({
+    required int entryId,
+    required DateTime startTime,
+    required DateTime endTime,
+    String? description,
+    String? issueReference,
+    String? repository,
+    String? tags,
+  }) async {
+    final duration = endTime.difference(startTime).inMinutes;
+    return _dao.updateWithOverlapCheck(
+      entryId,
+      TimeEntriesCompanion(
+        startTime: Value(startTime),
+        endTime: Value(endTime),
+        durationMinutes: Value(duration),
+        description: Value(description),
+        issueReference: Value(issueReference),
+        repository: Value(repository),
+        tags: Value(tags),
+      ),
+    );
   }
 
   /// Add a manual time entry (already has start + end).

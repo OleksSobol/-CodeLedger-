@@ -42,7 +42,13 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
   }
 
   /// Clock out the running entry.
-  Future<bool> clockOut(int entryId, {String? description}) {
+  /// If [truncateOverlaps] is true, overlapping entries will be adjusted
+  /// (shortened or deleted) instead of throwing an exception.
+  Future<bool> clockOut(
+    int entryId, {
+    String? description,
+    bool truncateOverlaps = false,
+  }) {
     final now = DateTime.now();
     return transaction(() async {
       final entry =
@@ -54,7 +60,11 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
       final overlapping =
           await _findOverlapping(entry.startTime, now, excludeId: entryId);
       if (overlapping.isNotEmpty) {
-        throw OverlappingTimeEntryException(overlapping.first);
+        if (!truncateOverlaps) {
+          throw OverlappingTimeEntryException(overlapping.first);
+        }
+        // Resolve overlaps by adjusting or deleting conflicting entries
+        await _resolveOverlaps(overlapping, entry.startTime, now);
       }
 
       return (update(timeEntries)..where((t) => t.id.equals(entryId)))
@@ -65,6 +75,62 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
                 description != null ? Value(description) : const Value.absent(),
             updatedAt: Value(now),
           ))
+          .then((rows) => rows > 0);
+    });
+  }
+
+  /// Update a time entry's times/details with overlap check.
+  Future<bool> updateWithOverlapCheck(
+    int entryId,
+    TimeEntriesCompanion companion,
+  ) {
+    return transaction(() async {
+      final start = companion.startTime;
+      final end = companion.endTime;
+
+      // If both start and end are being set, check overlaps
+      if (start.present && end.present && end.value != null) {
+        final overlapping = await _findOverlapping(
+          start.value,
+          end.value!,
+          excludeId: entryId,
+        );
+        if (overlapping.isNotEmpty) {
+          throw OverlappingTimeEntryException(overlapping.first);
+        }
+      } else if (end.present && end.value != null) {
+        // Only end is changing — fetch existing start
+        final existing =
+            await (select(timeEntries)..where((t) => t.id.equals(entryId)))
+                .getSingle();
+        final overlapping = await _findOverlapping(
+          existing.startTime,
+          end.value!,
+          excludeId: entryId,
+        );
+        if (overlapping.isNotEmpty) {
+          throw OverlappingTimeEntryException(overlapping.first);
+        }
+      } else if (start.present) {
+        // Only start is changing — fetch existing end
+        final existing =
+            await (select(timeEntries)..where((t) => t.id.equals(entryId)))
+                .getSingle();
+        if (existing.endTime != null) {
+          final overlapping = await _findOverlapping(
+            start.value,
+            existing.endTime!,
+            excludeId: entryId,
+          );
+          if (overlapping.isNotEmpty) {
+            throw OverlappingTimeEntryException(overlapping.first);
+          }
+        }
+      }
+
+      final updated = companion.copyWith(updatedAt: Value(DateTime.now()));
+      return (update(timeEntries)..where((t) => t.id.equals(entryId)))
+          .write(updated)
           .then((rows) => rows > 0);
     });
   }
@@ -88,6 +154,46 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
         return condition;
       });
     return query.get();
+  }
+
+  /// Resolve overlapping entries by truncating or deleting them.
+  /// - If an overlapping entry is fully contained within [start, end], delete it.
+  /// - If it starts before [start], truncate its end to [start].
+  /// - If it ends after [end], move its start to [end].
+  Future<void> _resolveOverlaps(
+    List<TimeEntry> overlapping,
+    DateTime start,
+    DateTime end,
+  ) async {
+    for (final entry in overlapping) {
+      final eStart = entry.startTime;
+      final eEnd = entry.endTime!;
+
+      if (eStart.compareTo(start) >= 0 && eEnd.compareTo(end) <= 0) {
+        // Fully contained — delete it
+        await (delete(timeEntries)..where((t) => t.id.equals(entry.id))).go();
+      } else if (eStart.isBefore(start)) {
+        // Overlaps on the left — truncate end to our start
+        final newDuration = start.difference(eStart).inMinutes;
+        await (update(timeEntries)..where((t) => t.id.equals(entry.id))).write(
+          TimeEntriesCompanion(
+            endTime: Value(start),
+            durationMinutes: Value(newDuration),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+      } else {
+        // Overlaps on the right — move start to our end
+        final newDuration = eEnd.difference(end).inMinutes;
+        await (update(timeEntries)..where((t) => t.id.equals(entry.id))).write(
+          TimeEntriesCompanion(
+            startTime: Value(end),
+            durationMinutes: Value(newDuration),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+      }
+    }
   }
 
   /// Get entries for a date range.

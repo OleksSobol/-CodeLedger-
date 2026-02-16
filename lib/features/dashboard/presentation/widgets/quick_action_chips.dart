@@ -29,6 +29,7 @@ class QuickActionChips extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.edit_outlined, size: 18),
                 tooltip: 'Edit quick actions',
+                visualDensity: VisualDensity.compact,
                 onPressed: () =>
                     _showEditSheet(context, ref, actionsAsync.valueOrNull ?? []),
               ),
@@ -43,22 +44,30 @@ class QuickActionChips extends ConsumerWidget {
             data: (actions) => ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                ...actions.asMap().entries.map((entry) {
-                  final action = entry.value;
+                ...actions.map((action) {
                   return Padding(
                     padding: const EdgeInsets.only(right: Spacing.sm),
                     child: ActionChip(
-                      avatar: const Icon(Icons.play_arrow, size: 18),
+                      avatar: Icon(Icons.play_arrow,
+                          size: 18, color: theme.colorScheme.primary),
                       label: Text(action.label),
                       tooltip: 'Clock in: ${action.label}',
+                      side: BorderSide(
+                          color: theme.colorScheme.primary
+                              .withValues(alpha: 0.3)),
                       onPressed: () => _clockIn(context, ref, action),
                     ),
                   );
                 }),
+                // "Add" chip — outlined/secondary style to differentiate
                 ActionChip(
-                  avatar: const Icon(Icons.add, size: 18),
-                  label: const Text('Add'),
+                  avatar: Icon(Icons.add, size: 18,
+                      color: theme.colorScheme.outline),
+                  label: Text('Add',
+                      style: TextStyle(color: theme.colorScheme.outline)),
                   tooltip: 'Add quick action',
+                  side: BorderSide(
+                      color: theme.colorScheme.outlineVariant),
                   onPressed: () => _showAddSheet(context, ref),
                 ),
               ],

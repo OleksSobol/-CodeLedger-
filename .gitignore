@@ -49,3 +49,5 @@ app.*.map.json
 lib/core/constants/google_credentials.dart
 
 pubspec.lock
+pubspec.lock
+nul

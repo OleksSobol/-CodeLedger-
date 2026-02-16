@@ -1,6 +1,6 @@
 abstract class AppConstants {
   static const String appName = 'CodeLedger';
-  static const String dbFileName = 'code_ledger.db';
+  static const String dbFileName = 'code_ledger.sqlite';
 
   // Payment terms options
   static const Map<String, int> paymentTerms = {

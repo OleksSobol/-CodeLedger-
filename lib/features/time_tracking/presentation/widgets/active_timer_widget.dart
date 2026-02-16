@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../core/database/daos/time_entry_dao.dart';
 import '../../../../core/utils/duration_formatter.dart';
 import '../providers/time_entry_providers.dart';
 
@@ -44,6 +46,45 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget> {
       await ref
           .read(timerNotifierProvider.notifier)
           .clockOut(widget.entry.id);
+    } on OverlappingTimeEntryException catch (e) {
+      if (!mounted) return;
+      final timeFmt = DateFormat.jm();
+      final overlap = e.existing;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Overlapping Entry'),
+          content: Text(
+            'Clocking out now overlaps with an entry from '
+            '${timeFmt.format(overlap.startTime)} – '
+            '${timeFmt.format(overlap.endTime!)}.\n\n'
+            'Adjust the conflicting entry to make room?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Adjust & Clock Out'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed == true && mounted) {
+        try {
+          await ref
+              .read(timerNotifierProvider.notifier)
+              .clockOut(widget.entry.id, truncateOverlaps: true);
+        } catch (e2) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: $e2')),
+            );
+          }
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

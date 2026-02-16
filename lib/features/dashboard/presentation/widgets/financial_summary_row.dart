@@ -5,7 +5,7 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../../shared/widgets/spacing.dart';
 import '../providers/dashboard_provider.dart';
 
-/// Compact financial summary: monthly income, outstanding, and overdue.
+/// Compact financial summary: monthly income, outstanding, overdue, uninvoiced.
 ///
 /// Loads lazily — shows placeholder text while loading, never blocks the frame.
 class FinancialSummaryRow extends ConsumerWidget {
@@ -117,9 +117,7 @@ class FinancialSummaryRow extends ConsumerWidget {
                     icon: totalHours > 0
                         ? Icons.hourglass_empty
                         : Icons.check_circle_outline,
-                    color: totalHours > 0
-                        ? theme.colorScheme.tertiary
-                        : theme.colorScheme.tertiary,
+                    color: theme.colorScheme.tertiary,
                   );
                 },
               ),
@@ -154,26 +152,28 @@ class _SummaryTile extends StatelessWidget {
     return Card(
       color: isAlert ? theme.colorScheme.errorContainer : null,
       child: Padding(
-        padding: const EdgeInsets.all(Spacing.md),
+        padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.md, vertical: Spacing.sm + 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, size: 18, color: color),
+                Icon(icon, size: 16, color: color),
                 const SizedBox(width: Spacing.xs),
                 Expanded(
                   child: Text(label,
-                      style: theme.textTheme.labelMedium?.copyWith(
+                      style: theme.textTheme.labelSmall?.copyWith(
                         color: isAlert
                             ? theme.colorScheme.onErrorContainer
-                            : null,
+                            : theme.colorScheme.onSurfaceVariant,
+                        letterSpacing: 0.3,
                       )),
                 ),
                 if (badge != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
+                        horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
                       color: isAlert
                           ? theme.colorScheme.error
@@ -183,6 +183,7 @@ class _SummaryTile extends StatelessWidget {
                     child: Text(
                       badge!,
                       style: theme.textTheme.labelSmall?.copyWith(
+                        fontSize: 10,
                         color: isAlert
                             ? theme.colorScheme.onError
                             : theme.colorScheme.onSecondaryContainer,
@@ -196,6 +197,7 @@ class _SummaryTile extends StatelessWidget {
               value,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
+                fontFeatures: [const FontFeature.tabularFigures()],
                 color:
                     isAlert ? theme.colorScheme.onErrorContainer : null,
               ),

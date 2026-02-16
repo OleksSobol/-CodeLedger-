@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../database/app_database.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/clients/presentation/pages/clients_list_page.dart';
@@ -9,6 +10,7 @@ import '../../features/projects/presentation/pages/project_form_page.dart';
 import '../../features/time_tracking/presentation/pages/time_tracking_page.dart';
 import '../../features/time_tracking/presentation/pages/clock_in_page.dart';
 import '../../features/time_tracking/presentation/pages/manual_entry_page.dart';
+import '../../features/time_tracking/presentation/pages/edit_time_entry_page.dart';
 import '../../features/invoices/presentation/pages/invoices_list_page.dart';
 import '../../features/invoices/presentation/pages/invoice_detail_page.dart';
 import '../../features/invoices/presentation/pages/invoice_wizard_client_page.dart';
@@ -98,6 +100,14 @@ final appRouter = GoRouter(
           path: 'manual',
           name: 'manualEntry',
           builder: (context, state) => const ManualEntryPage(),
+        ),
+        GoRoute(
+          path: 'edit',
+          name: 'editTimeEntry',
+          builder: (context, state) {
+            final entry = state.extra as TimeEntry;
+            return EditTimeEntryPage(entry: entry);
+          },
         ),
       ],
     ),
