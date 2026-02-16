@@ -11,8 +11,8 @@ import '../../../clients/presentation/providers/client_providers.dart';
 class InvoicesListPage extends ConsumerWidget {
   const InvoicesListPage({super.key});
 
-  static const _statuses = [null, 'draft', 'sent', 'paid', 'overdue'];
-  static const _labels = ['All', 'Draft', 'Sent', 'Paid', 'Overdue'];
+  static const _statuses = [null, 'draft', 'sent', 'paid', 'overdue', 'archived'];
+  static const _labels = ['All', 'Draft', 'Sent', 'Paid', 'Overdue', 'Archived'];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

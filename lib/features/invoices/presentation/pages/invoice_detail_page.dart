@@ -379,15 +379,111 @@ class _InvoiceDetailBody extends ConsumerWidget {
             ),
           ],
         ),
-      'paid' => Center(
-          child: Chip(
-            avatar: const Icon(Icons.check_circle, color: Colors.green),
-            label: Text(
-                'Paid on ${DateFormat.yMMMd().format(inv.paidDate ?? inv.updatedAt)}'),
-          ),
+      'paid' => Column(
+          children: [
+            Chip(
+              avatar: const Icon(Icons.check_circle, color: Colors.green),
+              label: Text(
+                  'Paid on ${DateFormat.yMMMd().format(inv.paidDate ?? inv.updatedAt)}'),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _confirmDelete(context, notifier, inv),
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Delete'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: () async {
+                      await notifier.archiveInvoice(inv.id);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Invoice archived')),
+                        );
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    icon: const Icon(Icons.archive_outlined),
+                    label: const Text('Archive'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      'archived' => Column(
+          children: [
+            Chip(
+              avatar: const Icon(Icons.archive, color: Colors.grey),
+              label: const Text('Archived'),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _confirmDelete(context, notifier, inv),
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Delete'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: () async {
+                      await notifier.unarchiveInvoice(inv.id);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Invoice restored')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.unarchive_outlined),
+                    label: const Text('Unarchive'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       _ => const SizedBox.shrink(),
     };
+  }
+
+  Future<void> _confirmDelete(
+      BuildContext context, InvoiceNotifier notifier, Invoice inv) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Invoice'),
+        content: Text(
+          'Permanently delete ${inv.invoiceNumber}? '
+          'Linked time entries will be unmarked.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && context.mounted) {
+      await notifier.deleteInvoice(inv.id);
+      if (context.mounted) Navigator.of(context).pop();
+    }
   }
 }
 

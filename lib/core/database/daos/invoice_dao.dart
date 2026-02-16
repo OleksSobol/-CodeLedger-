@@ -135,6 +135,47 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
+  /// Archive a paid/cancelled invoice (keeps data, hides from default list).
+  Future<bool> archiveInvoice(int invoiceId) {
+    return (update(invoices)..where((t) => t.id.equals(invoiceId)))
+        .write(InvoicesCompanion(
+          status: const Value('archived'),
+          updatedAt: Value(DateTime.now()),
+        ))
+        .then((rows) => rows > 0);
+  }
+
+  /// Unarchive an invoice back to its paid status.
+  Future<bool> unarchiveInvoice(int invoiceId) {
+    return (update(invoices)..where((t) => t.id.equals(invoiceId)))
+        .write(InvoicesCompanion(
+          status: const Value('paid'),
+          updatedAt: Value(DateTime.now()),
+        ))
+        .then((rows) => rows > 0);
+  }
+
+  /// Permanently delete any invoice and unmark its time entries.
+  Future<void> deleteInvoice(int invoiceId) {
+    return transaction(() async {
+      // Unmark time entries
+      await (update(timeEntries)
+            ..where((t) => t.invoiceId.equals(invoiceId)))
+          .write(const TimeEntriesCompanion(
+            isInvoiced: Value(false),
+            invoiceId: Value(null),
+          ));
+
+      // Delete line items
+      await (delete(invoiceLineItems)
+            ..where((t) => t.invoiceId.equals(invoiceId)))
+          .go();
+
+      // Delete invoice
+      await (delete(invoices)..where((t) => t.id.equals(invoiceId))).go();
+    });
+  }
+
   /// Get invoices by status (for dashboard).
   Future<List<Invoice>> getByStatus(String status) {
     return (select(invoices)

@@ -31,6 +31,7 @@ class InvoiceStatusBadge extends StatelessWidget {
       'paid' => ('Paid', Colors.green),
       'overdue' => ('Overdue', Colors.red),
       'cancelled' => ('Cancelled', Colors.orange),
+      'archived' => ('Archived', Colors.blueGrey),
       _ => (status, Colors.grey),
     };
   }

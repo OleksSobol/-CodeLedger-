@@ -130,11 +130,15 @@ class ProfileNotifier extends AsyncNotifier<UserProfile> {
     required String invoiceNumberPrefix,
     required String defaultEmailSubjectFormat,
     int? defaultTemplateId,
+    int? nextInvoiceNumber,
   }) {
     return updateProfile(UserProfilesCompanion(
       invoiceNumberPrefix: Value(invoiceNumberPrefix),
       defaultEmailSubjectFormat: Value(defaultEmailSubjectFormat),
       defaultTemplateId: Value(defaultTemplateId),
+      nextInvoiceNumber: nextInvoiceNumber != null
+          ? Value(nextInvoiceNumber)
+          : const Value.absent(),
     ));
   }
 }

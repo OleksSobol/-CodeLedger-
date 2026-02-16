@@ -17,6 +17,7 @@ class InvoiceSettingsSection extends ConsumerStatefulWidget {
 class _InvoiceSettingsSectionState
     extends ConsumerState<InvoiceSettingsSection> {
   late final TextEditingController _prefixCtrl;
+  late final TextEditingController _counterCtrl;
   late final TextEditingController _emailSubjectCtrl;
   int? _selectedTemplateId;
 
@@ -25,6 +26,8 @@ class _InvoiceSettingsSectionState
     super.initState();
     _prefixCtrl =
         TextEditingController(text: widget.profile.invoiceNumberPrefix);
+    _counterCtrl = TextEditingController(
+        text: widget.profile.nextInvoiceNumber.toString());
     _emailSubjectCtrl = TextEditingController(
         text: widget.profile.defaultEmailSubjectFormat);
     _selectedTemplateId = widget.profile.defaultTemplateId;
@@ -33,15 +36,24 @@ class _InvoiceSettingsSectionState
   @override
   void dispose() {
     _prefixCtrl.dispose();
+    _counterCtrl.dispose();
     _emailSubjectCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
+    final counterValue = int.tryParse(_counterCtrl.text.trim());
+    if (counterValue == null || counterValue < 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Next invoice number must be at least 1')),
+      );
+      return;
+    }
     await ref.read(profileNotifierProvider.notifier).updateInvoiceSettings(
           invoiceNumberPrefix: _prefixCtrl.text.trim(),
           defaultEmailSubjectFormat: _emailSubjectCtrl.text.trim(),
           defaultTemplateId: _selectedTemplateId,
+          nextInvoiceNumber: counterValue,
         );
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -69,11 +81,18 @@ class _InvoiceSettingsSectionState
                 labelText: 'Invoice Number Prefix',
                 hintText: 'INV-',
               ),
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 12),
-            Text(
-              'Next invoice: ${widget.profile.invoiceNumberPrefix}${widget.profile.nextInvoiceNumber.toString().padLeft(4, '0')}',
-              style: theme.textTheme.bodySmall,
+            TextFormField(
+              controller: _counterCtrl,
+              decoration: InputDecoration(
+                labelText: 'Next Invoice Number',
+                helperText:
+                    'Preview: ${_prefixCtrl.text}${(int.tryParse(_counterCtrl.text) ?? 1).toString().padLeft(4, '0')}',
+              ),
+              keyboardType: TextInputType.number,
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 12),
             TextFormField(

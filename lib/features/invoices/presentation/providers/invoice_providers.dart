@@ -23,7 +23,10 @@ final filteredInvoicesProvider = Provider<AsyncValue<List<Invoice>>>((ref) {
   final statusFilter = ref.watch(invoiceStatusFilterProvider);
 
   return allAsync.whenData((invoices) {
-    if (statusFilter == null) return invoices;
+    if (statusFilter == null) {
+      // "All" hides archived invoices
+      return invoices.where((i) => i.status != 'archived').toList();
+    }
     return invoices.where((i) => i.status == statusFilter).toList();
   });
 });
@@ -334,5 +337,27 @@ class InvoiceNotifier extends AsyncNotifier<void> {
     await _invoiceDao.deleteDraftInvoice(invoiceId);
     ref.invalidate(allInvoicesProvider);
     ref.invalidate(uninvoicedByClientProvider);
+  }
+
+  /// Archive a paid invoice.
+  Future<void> archiveInvoice(int invoiceId) async {
+    await _invoiceDao.archiveInvoice(invoiceId);
+    ref.invalidate(allInvoicesProvider);
+    ref.invalidate(invoiceDetailProvider(invoiceId));
+  }
+
+  /// Unarchive an invoice.
+  Future<void> unarchiveInvoice(int invoiceId) async {
+    await _invoiceDao.unarchiveInvoice(invoiceId);
+    ref.invalidate(allInvoicesProvider);
+    ref.invalidate(invoiceDetailProvider(invoiceId));
+  }
+
+  /// Permanently delete any invoice.
+  Future<void> deleteInvoice(int invoiceId) async {
+    await _invoiceDao.deleteInvoice(invoiceId);
+    ref.invalidate(allInvoicesProvider);
+    ref.invalidate(uninvoicedByClientProvider);
+    ref.invalidate(monthlyIncomeProvider);
   }
 }
