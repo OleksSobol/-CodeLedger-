@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../features/time_tracking/presentation/providers/time_entry_providers.dart';
+import '../../../features/time_tracking/presentation/widgets/clock_in_sheet.dart';
 
 class ShellScaffold extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -71,8 +72,24 @@ class ShellScaffold extends ConsumerWidget {
           label: const Text('Start Timer'),
         );
       case 1:
-        // Time tab: Clock In (handled by the page itself)
-        return null;
+        // Time tab: context-aware — Clock Out if running, Clock In if idle
+        final timeRunning = ref.watch(runningEntryProvider);
+        final timeRunningEntry = timeRunning.valueOrNull;
+        if (timeRunningEntry != null) {
+          return FloatingActionButton.extended(
+            onPressed: () =>
+                _clockOut(context, ref, timeRunningEntry.id),
+            icon: const Icon(Icons.stop),
+            label: const Text('Clock Out'),
+            backgroundColor: theme.colorScheme.error,
+            foregroundColor: theme.colorScheme.onError,
+          );
+        }
+        return FloatingActionButton.extended(
+          onPressed: () => ClockInSheet.show(context),
+          icon: const Icon(Icons.play_arrow),
+          label: const Text('Clock In'),
+        );
       case 2:
         // Invoices: New Invoice
         return FloatingActionButton.extended(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/duration_formatter.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../shared/widgets/spacing.dart';
 import '../providers/time_entry_providers.dart';
 
 class TimeSummaryBar extends ConsumerWidget {
@@ -12,7 +13,7 @@ class TimeSummaryBar extends ConsumerWidget {
     final entriesAsync = ref.watch(filteredEntriesProvider);
 
     return entriesAsync.when(
-      loading: () => const SizedBox.shrink(),
+      loading: () => const SizedBox(height: 80),
       error: (_, __) => const SizedBox.shrink(),
       data: (entries) {
         final completed = entries.where((e) => e.endTime != null);
@@ -26,38 +27,48 @@ class TimeSummaryBar extends ConsumerWidget {
         final uninvoicedCount =
             completed.where((e) => !e.isInvoiced).length;
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.5),
+        final theme = Theme.of(context);
+
+        final tiles = <_TileData>[
+          _TileData(
+            label: 'Total',
+            value: formatDuration(totalMinutes),
+            accent: theme.colorScheme.primary,
           ),
-          child: Row(
-            children: [
-              _SummaryItem(
-                label: 'Total',
-                value: formatDuration(totalMinutes),
-              ),
-              const SizedBox(width: 24),
-              _SummaryItem(
-                label: 'Earnings',
-                value: formatCurrency(totalEarnings),
-              ),
-              const SizedBox(width: 24),
-              _SummaryItem(
-                label: 'Entries',
-                value: '${completed.length}',
-              ),
-              if (uninvoicedCount > 0) ...[
-                const SizedBox(width: 24),
-                _SummaryItem(
-                  label: 'Uninvoiced',
-                  value: '$uninvoicedCount',
-                ),
-              ],
-            ],
+          _TileData(
+            label: 'Earnings',
+            value: formatCurrency(totalEarnings),
+            accent: theme.colorScheme.tertiary,
+          ),
+          _TileData(
+            label: 'Entries',
+            value: '${completed.length}',
+            accent: theme.colorScheme.secondary,
+          ),
+          if (uninvoicedCount > 0)
+            _TileData(
+              label: 'Uninvoiced',
+              value: '$uninvoicedCount',
+              accent: theme.colorScheme.error,
+            ),
+        ];
+
+        return SizedBox(
+          height: 80,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding:
+                const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 4),
+            itemCount: tiles.length,
+            separatorBuilder: (_, __) => const SizedBox(width: Spacing.sm),
+            itemBuilder: (context, index) {
+              final tile = tiles[index];
+              return _InsightTile(
+                label: tile.label,
+                value: tile.value,
+                accent: tile.accent,
+              );
+            },
           ),
         );
       },
@@ -65,25 +76,70 @@ class TimeSummaryBar extends ConsumerWidget {
   }
 }
 
-class _SummaryItem extends StatelessWidget {
+class _TileData {
   final String label;
   final String value;
+  final Color accent;
 
-  const _SummaryItem({required this.label, required this.value});
+  const _TileData({
+    required this.label,
+    required this.value,
+    required this.accent,
+  });
+}
+
+class _InsightTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color accent;
+
+  const _InsightTile({
+    required this.label,
+    required this.value,
+    required this.accent,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.labelSmall),
-        Text(value,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold)),
-      ],
+    final theme = Theme.of(context);
+
+    return SizedBox(
+      width: 130,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        margin: EdgeInsets.zero,
+        child: Row(
+          children: [
+            Container(width: 4, color: accent),
+            Expanded(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      label,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontFeatures: [const FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

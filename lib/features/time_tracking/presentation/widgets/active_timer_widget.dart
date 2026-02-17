@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/database/daos/time_entry_dao.dart';
-import '../../../../core/utils/duration_formatter.dart';
+import '../../../../shared/widgets/spacing.dart';
+import '../../../clients/presentation/providers/client_providers.dart';
 import '../providers/time_entry_providers.dart';
 
 class ActiveTimerWidget extends ConsumerStatefulWidget {
@@ -13,31 +14,48 @@ class ActiveTimerWidget extends ConsumerStatefulWidget {
   const ActiveTimerWidget({super.key, required this.entry});
 
   @override
-  ConsumerState<ActiveTimerWidget> createState() => _ActiveTimerWidgetState();
+  ConsumerState<ActiveTimerWidget> createState() =>
+      _ActiveTimerWidgetState();
 }
 
-class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget> {
-  late Timer _ticker;
-  Duration _elapsed = Duration.zero;
+class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
+    with SingleTickerProviderStateMixin {
+  Timer? _ticker;
+  final _elapsed = ValueNotifier<Duration>(Duration.zero);
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
-    _updateElapsed();
+    _elapsed.value = DateTime.now().difference(widget.entry.startTime);
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      _updateElapsed();
+      _elapsed.value = DateTime.now().difference(widget.entry.startTime);
     });
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
   }
 
-  void _updateElapsed() {
-    setState(() {
-      _elapsed = DateTime.now().difference(widget.entry.startTime);
-    });
+  @override
+  void didUpdateWidget(covariant ActiveTimerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.entry.id != widget.entry.id) {
+      _elapsed.value = DateTime.now().difference(widget.entry.startTime);
+    }
   }
 
   @override
   void dispose() {
-    _ticker.cancel();
+    _ticker?.cancel();
+    _elapsed.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -97,46 +115,97 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final clientAsync =
+        ref.watch(clientByIdProvider(widget.entry.clientId));
+    final clientName = clientAsync.valueOrNull?.name;
+    final rate = widget.entry.hourlyRateSnapshot;
 
     return Card(
       color: theme.colorScheme.primaryContainer,
-      margin: const EdgeInsets.all(16),
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+        padding: const EdgeInsets.all(Spacing.md),
+        child: Row(
           children: [
-            Row(
-              children: [
-                Icon(Icons.circle, color: Colors.red, size: 12),
-                const SizedBox(width: 8),
-                Text('Timer Running',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              formatDuration(_elapsed.inMinutes),
-              style: theme.textTheme.headlineLarge?.copyWith(
-                color: theme.colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.bold,
+            // Pulsing dot
+            AnimatedBuilder(
+              animation: _pulseAnimation,
+              builder: (_, __) => Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.colorScheme.error
+                      .withValues(alpha: _pulseAnimation.value),
+                ),
               ),
             ),
-            if (widget.entry.description != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                widget.entry.description!,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            const SizedBox(width: Spacing.sm + 4),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Isolated ticker — only this rebuilds every second
+                  ValueListenableBuilder<Duration>(
+                    valueListenable: _elapsed,
+                    builder: (_, elapsed, __) {
+                      final h = elapsed.inHours;
+                      final m = elapsed.inMinutes.remainder(60);
+                      final s = elapsed.inSeconds.remainder(60);
+                      final display = h > 0
+                          ? '${h}h ${m.toString().padLeft(2, '0')}m ${s.toString().padLeft(2, '0')}s'
+                          : '${m}m ${s.toString().padLeft(2, '0')}s';
+                      final earnings =
+                          elapsed.inSeconds / 3600.0 * rate;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            display,
+                            style:
+                                theme.textTheme.headlineLarge?.copyWith(
+                              color: theme
+                                  .colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                              fontFeatures: [
+                                const FontFeature.tabularFigures()
+                              ],
+                            ),
+                          ),
+                          Text(
+                            '\$${earnings.toStringAsFixed(2)} earned',
+                            style:
+                                theme.textTheme.bodySmall?.copyWith(
+                              color: theme
+                                  .colorScheme.onPrimaryContainer
+                                  .withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  if (clientName != null ||
+                      widget.entry.description != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      clientName ?? widget.entry.description ?? '',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
               ),
-            ],
-            const SizedBox(height: 16),
-            FilledButton.tonalIcon(
+            ),
+            FilledButton(
               onPressed: _clockOut,
-              icon: const Icon(Icons.stop),
-              label: const Text('Clock Out'),
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.colorScheme.error,
+                foregroundColor: theme.colorScheme.onError,
+              ),
+              child: const Text('Clock Out'),
             ),
           ],
         ),

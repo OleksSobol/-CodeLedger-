@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../../core/utils/duration_formatter.dart';
+import '../../../../shared/widgets/spacing.dart';
 import '../providers/time_entry_providers.dart';
 import '../widgets/active_timer_widget.dart';
 import '../widgets/time_entries_list.dart';
 import '../widgets/date_range_selector.dart';
 import '../widgets/time_summary_bar.dart';
+import '../widgets/manual_entry_sheet.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
 import '../../../projects/presentation/providers/project_providers.dart';
 import '../../../export/presentation/providers/export_providers.dart';
@@ -16,54 +19,107 @@ class TimeTrackingPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final runningAsync = ref.watch(runningEntryProvider);
+    final filter = ref.watch(dateRangeFilterProvider);
+
+    final entriesAsync = ref.watch(filteredEntriesProvider);
+    final totalMinutes = entriesAsync.whenOrNull(
+            data: (entries) => entries
+                .where((e) => e.endTime != null)
+                .fold<int>(
+                    0, (sum, e) => sum + (e.durationMinutes ?? 0))) ??
+        0;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Time Tracking'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Time Tracking'),
+            Text(
+              '${_filterLabel(filter)} · ${formatDuration(totalMinutes)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.file_download_outlined),
-            tooltip: 'Export CSV',
-            onPressed: () => _exportCsv(context, ref),
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit_note),
-            tooltip: 'Manual Entry',
-            onPressed: () => context.push('/time-tracking/manual'),
-          ),
-        ],
-      ),
-      floatingActionButton: runningAsync.whenOrNull(
-        data: (running) {
-          if (running != null) return null; // Timer already running
-          return FloatingActionButton.extended(
-            onPressed: () => context.push('/time-tracking/clock-in'),
-            icon: const Icon(Icons.play_arrow),
-            label: const Text('Clock In'),
-          );
-        },
-      ),
-      body: Column(
-        children: [
-          // Active timer (if running)
-          runningAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (running) {
-              if (running == null) return const SizedBox.shrink();
-              return ActiveTimerWidget(entry: running);
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value == 'export') _exportCsv(context, ref);
+              if (value == 'manual') ManualEntrySheet.show(context);
             },
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                  value: 'export',
+                  child: ListTile(
+                    leading: Icon(Icons.file_download_outlined),
+                    title: Text('Export CSV'),
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  )),
+              PopupMenuItem(
+                  value: 'manual',
+                  child: ListTile(
+                    leading: Icon(Icons.edit_note),
+                    title: Text('Manual Entry'),
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  )),
+            ],
           ),
-          // Date range selector
-          const DateRangeSelector(),
-          // Summary bar
-          const TimeSummaryBar(),
-          // Entries list
-          const Expanded(child: TimeEntriesList()),
         ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(filteredEntriesProvider);
+          ref.invalidate(runningEntryProvider);
+          await Future.delayed(const Duration(milliseconds: 300));
+        },
+        child: CustomScrollView(
+          slivers: [
+            // Active Timer (if running)
+            if (runningAsync.valueOrNull != null)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(Spacing.md),
+                  child:
+                      ActiveTimerWidget(entry: runningAsync.valueOrNull!),
+                ),
+              ),
+
+            // Date Filter
+            SliverToBoxAdapter(
+              child: DateRangeSelector(),
+            ),
+
+            // Insight Strip
+            const SliverToBoxAdapter(child: TimeSummaryBar()),
+
+            // Entries Timeline
+            const TimeEntriesSliver(),
+
+            // Bottom padding for FAB
+            const SliverToBoxAdapter(
+                child: SizedBox(height: Spacing.xl + 80)),
+          ],
+        ),
       ),
     );
+  }
+
+  String _filterLabel(DateRangeFilter f) {
+    final today = DateRangeFilter.today();
+    if (f.start == today.start && f.end == today.end) return 'Today';
+    final week = DateRangeFilter.thisWeek();
+    if (f.start == week.start && f.end == week.end) return 'This Week';
+    final month = DateRangeFilter.thisMonth();
+    if (f.start == month.start && f.end == month.end) return 'This Month';
+    final fmt = DateFormat.MMMd();
+    return '${fmt.format(f.start)} – ${fmt.format(f.end)}';
   }
 
   Future<void> _exportCsv(BuildContext context, WidgetRef ref) async {
