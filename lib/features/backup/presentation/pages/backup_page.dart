@@ -10,7 +10,7 @@ import '../../../../shared/widgets/app_section_card.dart';
 import '../../../../shared/widgets/confirm_destructive.dart';
 import '../../../../shared/widgets/passphrase_bottom_sheet.dart';
 import '../../../../shared/widgets/spacing.dart';
-import '../../../profile/presentation/widgets/backup_settings_section.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
 import '../../application/drive_backup_service.dart';
 import '../providers/backup_providers.dart';
 
