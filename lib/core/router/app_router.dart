@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../database/app_database.dart';
 import 'shell_scaffold.dart';
+import '../database/app_database.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/clients/presentation/pages/clients_list_page.dart';
@@ -47,7 +47,7 @@ final appRouter = GoRouter(
           ],
         ),
 
-        // Branch 1: Time Tracking
+        // Branch 1: Time Tracking (list only — clock-in/manual/edit push full-screen)
         StatefulShellBranch(
           navigatorKey: _timeNavigatorKey,
           routes: [
@@ -55,31 +55,11 @@ final appRouter = GoRouter(
               path: '/time-tracking',
               name: 'timeTracking',
               builder: (context, state) => const TimeTrackingPage(),
-              routes: [
-                GoRoute(
-                  path: 'clock-in',
-                  name: 'clockIn',
-                  builder: (context, state) => const ClockInPage(),
-                ),
-                GoRoute(
-                  path: 'manual',
-                  name: 'manualEntry',
-                  builder: (context, state) => const ManualEntryPage(),
-                ),
-                GoRoute(
-                  path: 'edit',
-                  name: 'editTimeEntry',
-                  builder: (context, state) {
-                    final entry = state.extra as TimeEntry;
-                    return EditTimeEntryPage(entry: entry);
-                  },
-                ),
-              ],
             ),
           ],
         ),
 
-        // Branch 2: Invoices
+        // Branch 2: Invoices (list only — wizard & detail push full-screen)
         StatefulShellBranch(
           navigatorKey: _invoicesNavigatorKey,
           routes: [
@@ -87,37 +67,6 @@ final appRouter = GoRouter(
               path: '/invoices',
               name: 'invoices',
               builder: (context, state) => const InvoicesListPage(),
-              routes: [
-                GoRoute(
-                  path: 'create',
-                  name: 'invoiceCreate',
-                  builder: (context, state) =>
-                      const InvoiceWizardClientPage(),
-                  routes: [
-                    GoRoute(
-                      path: 'entries',
-                      name: 'invoiceCreateEntries',
-                      builder: (context, state) =>
-                          const InvoiceWizardEntriesPage(),
-                    ),
-                    GoRoute(
-                      path: 'review',
-                      name: 'invoiceCreateReview',
-                      builder: (context, state) =>
-                          const InvoiceWizardReviewPage(),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: ':invoiceId',
-                  name: 'invoiceDetail',
-                  builder: (context, state) {
-                    final invoiceId =
-                        int.parse(state.pathParameters['invoiceId']!);
-                    return InvoiceDetailPage(invoiceId: invoiceId);
-                  },
-                ),
-              ],
             ),
           ],
         ),
@@ -137,6 +86,62 @@ final appRouter = GoRouter(
     ),
 
     // Full-screen routes (pushed on root navigator, no bottom nav)
+
+    // Time tracking sub-pages
+    GoRoute(
+      path: '/time-tracking/clock-in',
+      name: 'clockIn',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const ClockInPage(),
+    ),
+    GoRoute(
+      path: '/time-tracking/manual',
+      name: 'manualEntry',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const ManualEntryPage(),
+    ),
+    GoRoute(
+      path: '/time-tracking/edit',
+      name: 'editTimeEntry',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final entry = state.extra as TimeEntry;
+        return EditTimeEntryPage(entry: entry);
+      },
+    ),
+
+    // Invoice wizard & detail
+    GoRoute(
+      path: '/invoices/create',
+      name: 'invoiceCreate',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const InvoiceWizardClientPage(),
+      routes: [
+        GoRoute(
+          path: 'entries',
+          name: 'invoiceCreateEntries',
+          parentNavigatorKey: _rootNavigatorKey,
+          builder: (context, state) => const InvoiceWizardEntriesPage(),
+        ),
+        GoRoute(
+          path: 'review',
+          name: 'invoiceCreateReview',
+          parentNavigatorKey: _rootNavigatorKey,
+          builder: (context, state) => const InvoiceWizardReviewPage(),
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/invoices/:invoiceId',
+      name: 'invoiceDetail',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final invoiceId =
+            int.parse(state.pathParameters['invoiceId']!);
+        return InvoiceDetailPage(invoiceId: invoiceId);
+      },
+    ),
+
     GoRoute(
       path: '/profile',
       name: 'profile',

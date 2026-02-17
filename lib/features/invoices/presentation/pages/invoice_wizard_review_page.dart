@@ -52,7 +52,10 @@ class _InvoiceWizardReviewPageState
     try {
       await ref.read(invoiceNotifierProvider.notifier).createInvoice();
       if (mounted) {
-        // Navigate to invoices list, clearing wizard from stack
+        // Reset wizard state so re-entering starts fresh
+        ref.read(invoiceWizardProvider.notifier).reset();
+        // Navigate to invoices tab — go() replaces the root stack and
+        // activates the correct StatefulShellRoute branch
         context.go('/invoices');
       }
     } catch (e) {

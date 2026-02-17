@@ -61,3 +61,60 @@ final invoicePdfProvider =
 
   return PdfGenerator.generateInvoice(data);
 });
+
+/// Same as [invoicePdfProvider] but allows overriding the template at preview time.
+final invoicePdfWithTemplateProvider = FutureProvider.family<pw.Document,
+    ({int invoiceId, int? templateId})>((ref, params) async {
+  final invoiceDao = ref.watch(invoiceDaoProvider);
+  final invoice = await invoiceDao.getInvoice(params.invoiceId);
+  final lineItems = await invoiceDao.getLineItems(params.invoiceId);
+
+  final client =
+      await ref.watch(clientDaoProvider).getClient(invoice.clientId);
+  final profile = await ref.watch(userProfileDaoProvider).getProfile();
+
+  final templateDao = ref.watch(invoiceTemplateDaoProvider);
+  InvoiceTemplate? template;
+
+  // If a template override was provided, use it
+  if (params.templateId != null) {
+    template = await templateDao.getById(params.templateId!);
+  }
+
+  // Otherwise fall back to the normal resolution chain
+  if (template == null && invoice.templateId != null) {
+    template = await templateDao.getById(invoice.templateId!);
+  }
+  if (template == null && client.defaultTemplateId != null) {
+    template = await templateDao.getById(client.defaultTemplateId!);
+  }
+  if (template == null && profile.defaultTemplateId != null) {
+    template = await templateDao.getById(profile.defaultTemplateId!);
+  }
+  template ??= await templateDao.getDefault();
+  template ??= (await templateDao.getAll()).first;
+
+  final projectIds = lineItems
+      .where((li) => li.projectId != null)
+      .map((li) => li.projectId!)
+      .toSet();
+  final projectNames = <int, String>{};
+  final projectDao = ref.watch(projectDaoProvider);
+  for (final pid in projectIds) {
+    try {
+      final project = await projectDao.getProject(pid);
+      projectNames[pid] = project.name;
+    } catch (_) {}
+  }
+
+  final data = PdfInvoiceData(
+    invoice: invoice,
+    client: client,
+    profile: profile,
+    template: template,
+    lineItems: lineItems,
+    projectNames: projectNames,
+  );
+
+  return PdfGenerator.generateInvoice(data);
+});
