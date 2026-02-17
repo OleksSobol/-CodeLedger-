@@ -39,6 +39,12 @@ class SettingsPage extends ConsumerWidget {
             onTap: () => context.push('/profile'),
           ),
           _SettingsTile(
+            icon: Icons.palette_outlined,
+            title: 'Invoice Templates',
+            subtitle: 'Customize invoice appearance',
+            onTap: () => context.push('/settings/templates'),
+          ),
+          _SettingsTile(
             icon: Icons.people_outline,
             title: 'Clients',
             subtitle: 'Manage clients & projects',

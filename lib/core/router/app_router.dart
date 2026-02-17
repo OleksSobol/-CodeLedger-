@@ -18,6 +18,8 @@ import '../../features/invoices/presentation/pages/invoice_wizard_page.dart';
 import '../../features/reports/presentation/pages/reports_page.dart';
 import '../../features/backup/presentation/pages/backup_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/invoices/presentation/pages/template_list_page.dart';
+import '../../features/invoices/presentation/pages/template_designer_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
@@ -189,6 +191,23 @@ final appRouter = GoRouter(
         ),
       ],
     ),
+    // Invoice template designer
+    GoRoute(
+      path: '/settings/templates',
+      name: 'templateList',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const TemplateListPage(),
+    ),
+    GoRoute(
+      path: '/settings/templates/edit',
+      name: 'templateDesigner',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final template = state.extra as InvoiceTemplate;
+        return TemplateDesignerPage(template: template);
+      },
+    ),
+
     GoRoute(
       path: '/reports',
       name: 'reports',
