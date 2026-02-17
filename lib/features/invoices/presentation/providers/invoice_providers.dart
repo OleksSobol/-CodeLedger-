@@ -267,7 +267,7 @@ class InvoiceNotifier extends AsyncNotifier<void> {
       final descriptions = entries
           .map((e) => e.description ?? 'Work session')
           .join('; ');
-      final desc = '$dateStr – $descriptions';
+      final desc = '$dateStr | $descriptions';
 
       // Use shared project if all entries are the same, otherwise null
       final projectIds = entries.map((e) => e.projectId).toSet();

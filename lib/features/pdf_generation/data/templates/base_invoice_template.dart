@@ -134,7 +134,7 @@ abstract class BaseInvoiceTemplate {
               if (data.invoice.periodStart != null &&
                   data.invoice.periodEnd != null)
                 _dateRow('Period',
-                    '${fmtDate(data.invoice.periodStart!)} – ${fmtDate(data.invoice.periodEnd!)}'),
+                    '${fmtDate(data.invoice.periodStart!)} - ${fmtDate(data.invoice.periodEnd!)}'),
               pw.SizedBox(height: 8),
               pw.Container(
                 padding:

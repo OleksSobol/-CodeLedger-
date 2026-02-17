@@ -58,13 +58,17 @@ class DetailedBreakdownTemplate extends BaseInvoiceTemplate {
     // For time-based items, we use the sort order (which was chronological)
     // and show project name if available
     for (final item in timeItems) {
+      final parts = item.description.split(' | ');
+      final date = parts.length > 1 ? parts.first : '';
+      final rawDesc = parts.length > 1 ? parts.skip(1).join(' | ') : item.description;
       final projectName = item.projectId != null
           ? data.projectNames[item.projectId] ?? ''
           : '';
       final desc = projectName.isNotEmpty
-          ? '$projectName — ${item.description}'
-          : item.description;
+          ? '$projectName - $rawDesc'
+          : rawDesc;
       allRows.add([
+        date,
         desc,
         '${item.quantity.toStringAsFixed(2)}h',
         fmtCurrency(item.unitPrice),
@@ -73,11 +77,12 @@ class DetailedBreakdownTemplate extends BaseInvoiceTemplate {
     }
 
     if (manualItems.isNotEmpty && timeItems.isNotEmpty) {
-      allRows.add(['Other Items', '', '', '']);
+      allRows.add(['', 'Other Items', '', '', '']);
     }
 
     for (final item in manualItems) {
       allRows.add([
+        '',
         item.description,
         item.quantity.toStringAsFixed(2),
         fmtCurrency(item.unitPrice),
@@ -95,12 +100,13 @@ class DetailedBreakdownTemplate extends BaseInvoiceTemplate {
       cellStyle: const pw.TextStyle(fontSize: 9),
       cellAlignment: pw.Alignment.centerLeft,
       columnWidths: {
-        0: const pw.FlexColumnWidth(4),
-        1: const pw.FlexColumnWidth(1),
-        2: const pw.FlexColumnWidth(1.2),
+        0: const pw.FlexColumnWidth(1.8),
+        1: const pw.FlexColumnWidth(3.5),
+        2: const pw.FlexColumnWidth(1),
         3: const pw.FlexColumnWidth(1.2),
+        4: const pw.FlexColumnWidth(1.2),
       },
-      headers: ['Description', 'Hours', 'Rate', 'Amount'],
+      headers: ['Date', 'Description', 'Hours', 'Rate', 'Amount'],
       data: allRows,
     );
   }

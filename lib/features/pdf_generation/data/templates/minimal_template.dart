@@ -125,7 +125,7 @@ class MinimalTemplate extends BaseInvoiceTemplate {
         if (inv.periodStart != null && inv.periodEnd != null) ...[
           pw.SizedBox(width: 24),
           _labelValue('Period:',
-              '${fmtDate(inv.periodStart!)} – ${fmtDate(inv.periodEnd!)}'),
+              '${fmtDate(inv.periodStart!)} - ${fmtDate(inv.periodEnd!)}'),
         ],
       ],
     );
@@ -158,21 +158,26 @@ class MinimalTemplate extends BaseInvoiceTemplate {
       cellAlignment: pw.Alignment.centerLeft,
       cellPadding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 2),
       columnWidths: {
-        0: const pw.FlexColumnWidth(5),
-        1: const pw.FlexColumnWidth(1),
-        2: const pw.FlexColumnWidth(1.2),
+        0: const pw.FlexColumnWidth(1.8),
+        1: const pw.FlexColumnWidth(4),
+        2: const pw.FlexColumnWidth(1),
         3: const pw.FlexColumnWidth(1.2),
+        4: const pw.FlexColumnWidth(1.2),
       },
       headerAlignment: pw.Alignment.centerLeft,
-      headers: ['Description', 'Qty', 'Rate', 'Amount'],
-      data: data.lineItems
-          .map((item) => [
-                item.description,
-                item.quantity.toStringAsFixed(2),
-                fmtCurrency(item.unitPrice),
-                fmtCurrency(item.total),
-              ])
-          .toList(),
+      headers: ['Date', 'Description', 'Qty', 'Rate', 'Amount'],
+      data: data.lineItems.map((item) {
+        final parts = item.description.split(' | ');
+        final date = parts.length > 1 ? parts.first : '';
+        final desc = parts.length > 1 ? parts.skip(1).join(' | ') : item.description;
+        return [
+          date,
+          desc,
+          item.quantity.toStringAsFixed(2),
+          fmtCurrency(item.unitPrice),
+          fmtCurrency(item.total),
+        ];
+      }).toList(),
     );
   }
 
