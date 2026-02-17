@@ -14,9 +14,7 @@ import '../../features/time_tracking/presentation/pages/manual_entry_page.dart';
 import '../../features/time_tracking/presentation/pages/edit_time_entry_page.dart';
 import '../../features/invoices/presentation/pages/invoices_list_page.dart';
 import '../../features/invoices/presentation/pages/invoice_detail_page.dart';
-import '../../features/invoices/presentation/pages/invoice_wizard_client_page.dart';
-import '../../features/invoices/presentation/pages/invoice_wizard_entries_page.dart';
-import '../../features/invoices/presentation/pages/invoice_wizard_review_page.dart';
+import '../../features/invoices/presentation/pages/invoice_wizard_page.dart';
 import '../../features/reports/presentation/pages/reports_page.dart';
 import '../../features/backup/presentation/pages/backup_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
@@ -110,26 +108,12 @@ final appRouter = GoRouter(
       },
     ),
 
-    // Invoice wizard & detail
+    // Invoice wizard (single page with internal PageView steps)
     GoRoute(
       path: '/invoices/create',
       name: 'invoiceCreate',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const InvoiceWizardClientPage(),
-      routes: [
-        GoRoute(
-          path: 'entries',
-          name: 'invoiceCreateEntries',
-          parentNavigatorKey: _rootNavigatorKey,
-          builder: (context, state) => const InvoiceWizardEntriesPage(),
-        ),
-        GoRoute(
-          path: 'review',
-          name: 'invoiceCreateReview',
-          parentNavigatorKey: _rootNavigatorKey,
-          builder: (context, state) => const InvoiceWizardReviewPage(),
-        ),
-      ],
+      builder: (context, state) => const InvoiceWizardPage(),
     ),
     GoRoute(
       path: '/invoices/:invoiceId',
