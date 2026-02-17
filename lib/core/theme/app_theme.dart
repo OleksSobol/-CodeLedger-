@@ -24,6 +24,11 @@ abstract class AppTheme {
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
           elevation: 2,
         ),
+        navigationBarTheme: const NavigationBarThemeData(
+          height: 64,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          indicatorShape: StadiumBorder(),
+        ),
       );
 
   static ThemeData get dark => ThemeData(
@@ -46,6 +51,11 @@ abstract class AppTheme {
         ),
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
           elevation: 2,
+        ),
+        navigationBarTheme: const NavigationBarThemeData(
+          height: 64,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          indicatorShape: StadiumBorder(),
         ),
       );
 }

@@ -169,20 +169,27 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellAlignment: pw.Alignment.centerLeft,
               columnWidths: {
-                0: const pw.FlexColumnWidth(4),
-                1: const pw.FlexColumnWidth(1),
-                2: const pw.FlexColumnWidth(1.2),
+                0: const pw.FlexColumnWidth(1.8),
+                1: const pw.FlexColumnWidth(3.5),
+                2: const pw.FlexColumnWidth(1),
                 3: const pw.FlexColumnWidth(1.2),
+                4: const pw.FlexColumnWidth(1.2),
               },
               headers: null,
-              data: items
-                  .map((item) => [
-                        item.description,
-                        '${item.quantity.toStringAsFixed(2)}h',
-                        fmtCurrency(item.unitPrice),
-                        fmtCurrency(item.total),
-                      ])
-                  .toList(),
+              data: items.map((item) {
+                final parts = item.description.split(' | ');
+                final date = parts.length > 1 ? parts.first : '';
+                final desc = parts.length > 1
+                    ? parts.skip(1).join(' | ')
+                    : item.description;
+                return [
+                  date,
+                  desc,
+                  '${item.quantity.toStringAsFixed(2)}h',
+                  fmtCurrency(item.unitPrice),
+                  fmtCurrency(item.total),
+                ];
+              }).toList(),
             ),
           ],
         ),
@@ -218,14 +225,16 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellAlignment: pw.Alignment.centerLeft,
               columnWidths: {
-                0: const pw.FlexColumnWidth(4),
-                1: const pw.FlexColumnWidth(1),
-                2: const pw.FlexColumnWidth(1.2),
+                0: const pw.FlexColumnWidth(1.8),
+                1: const pw.FlexColumnWidth(3.5),
+                2: const pw.FlexColumnWidth(1),
                 3: const pw.FlexColumnWidth(1.2),
+                4: const pw.FlexColumnWidth(1.2),
               },
               headers: null,
               data: manualItems
                   .map((item) => [
+                        '',
                         item.description,
                         item.quantity.toStringAsFixed(2),
                         fmtCurrency(item.unitPrice),

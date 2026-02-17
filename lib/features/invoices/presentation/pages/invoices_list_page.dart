@@ -24,11 +24,6 @@ class InvoicesListPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Invoices'),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/invoices/create'),
-        icon: const Icon(Icons.add),
-        label: const Text('New Invoice'),
-      ),
       body: Column(
         children: [
           // Status filter chips
