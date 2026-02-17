@@ -50,16 +50,25 @@ class ShellScaffold extends ConsumerWidget {
   }
 
   Widget? _buildFab(BuildContext context, WidgetRef ref, int index) {
+    final theme = Theme.of(context);
     switch (index) {
       case 0:
-        // Home: show Clock In if no active timer
+        // Home: context-aware — Clock Out if running, Start Timer if idle
         final running = ref.watch(runningEntryProvider);
-        final hasTimer = running.valueOrNull != null;
-        if (hasTimer) return null;
+        final runningEntry = running.valueOrNull;
+        if (runningEntry != null) {
+          return FloatingActionButton.extended(
+            onPressed: () => _clockOut(context, ref, runningEntry.id),
+            icon: const Icon(Icons.stop),
+            label: const Text('Clock Out'),
+            backgroundColor: theme.colorScheme.error,
+            foregroundColor: theme.colorScheme.onError,
+          );
+        }
         return FloatingActionButton.extended(
           onPressed: () => context.push('/time-tracking/clock-in'),
           icon: const Icon(Icons.play_arrow),
-          label: const Text('Clock In'),
+          label: const Text('Start Timer'),
         );
       case 1:
         // Time tab: Clock In (handled by the page itself)
@@ -73,6 +82,19 @@ class ShellScaffold extends ConsumerWidget {
         );
       default:
         return null;
+    }
+  }
+
+  Future<void> _clockOut(
+      BuildContext context, WidgetRef ref, int entryId) async {
+    try {
+      await ref.read(timerNotifierProvider.notifier).clockOut(entryId);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
   }
 }

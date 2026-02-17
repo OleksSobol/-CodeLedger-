@@ -3,6 +3,7 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/database/daos/invoice_dao.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
+import '../../../time_tracking/presentation/providers/time_entry_providers.dart';
 
 final invoiceDaoProvider = Provider<InvoiceDao>((ref) {
   return InvoiceDao(ref.watch(databaseProvider));
@@ -61,6 +62,21 @@ final outstandingInvoicesProvider =
     count: sent.length,
     total: sent.fold<double>(0, (sum, i) => sum + i.total - i.amountPaid),
   );
+});
+
+/// Total tracked hours this week (Mon–Sun).
+final weeklyHoursProvider = FutureProvider<double>((ref) async {
+  final dao = ref.watch(timeEntryDaoProvider);
+  final now = DateTime.now();
+  final weekday = now.weekday;
+  final weekStart = DateTime(now.year, now.month, now.day - (weekday - 1));
+  final weekEnd = weekStart.add(const Duration(days: 7));
+  final entries = await dao
+      .watchEntriesForDateRange(weekStart, weekEnd)
+      .first;
+  return entries
+      .where((e) => e.endTime != null)
+      .fold<double>(0, (sum, e) => sum + (e.durationMinutes ?? 0) / 60.0);
 });
 
 /// Overdue invoices — sent + past due date.

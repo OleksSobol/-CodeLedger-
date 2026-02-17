@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/database/daos/time_entry_dao.dart';
-import '../../../../core/utils/duration_formatter.dart';
 import '../../../../shared/widgets/spacing.dart';
 import '../../../time_tracking/presentation/providers/time_entry_providers.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
@@ -20,15 +19,15 @@ class ActiveTimerCard extends ConsumerStatefulWidget {
 class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
     with SingleTickerProviderStateMixin {
   Timer? _ticker;
+  final _elapsed = ValueNotifier<Duration>(Duration.zero);
+  DateTime? _startTime;
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {});
-    });
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -38,9 +37,27 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
     );
   }
 
+  void _startTicker(DateTime startTime) {
+    if (_startTime == startTime) return;
+    _startTime = startTime;
+    _elapsed.value = DateTime.now().difference(startTime);
+    _ticker?.cancel();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      _elapsed.value = DateTime.now().difference(startTime);
+    });
+  }
+
+  void _stopTicker() {
+    _ticker?.cancel();
+    _ticker = null;
+    _startTime = null;
+    _elapsed.value = Duration.zero;
+  }
+
   @override
   void dispose() {
     _ticker?.cancel();
+    _elapsed.dispose();
     _pulseController.dispose();
     super.dispose();
   }
@@ -55,8 +72,10 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
       error: (_, __) => const SizedBox.shrink(),
       data: (running) {
         if (running == null) {
+          _stopTicker();
           return _buildIdleCard(context, theme);
         }
+        _startTicker(running.startTime);
         return _buildRunningCard(context, theme, running);
       },
     );
@@ -64,6 +83,7 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
 
   Widget _buildIdleCard(BuildContext context, ThemeData theme) {
     final lastEntryAsync = ref.watch(lastCompletedEntryProvider);
+    final lastEntry = lastEntryAsync.valueOrNull;
 
     return Card(
       child: Padding(
@@ -71,83 +91,122 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Start tracking your time',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: Spacing.sm),
             Row(
               children: [
-                Icon(Icons.timer_outlined,
-                    size: 24, color: theme.colorScheme.onSurfaceVariant),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () =>
+                        context.push('/time-tracking/clock-in'),
+                    icon: const Icon(Icons.play_arrow, size: 20),
+                    label: const Text('Start Timer'),
+                  ),
+                ),
                 const SizedBox(width: Spacing.sm),
                 Expanded(
-                  child: Text('No active timer',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant)),
-                ),
-                FilledButton.icon(
-                  onPressed: () => context.push('/time-tracking/clock-in'),
-                  icon: const Icon(Icons.play_arrow, size: 20),
-                  label: const Text('Clock In'),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: Spacing.md, vertical: Spacing.sm),
-                  ),
+                  child: lastEntry != null
+                      ? _QuickRepeatButton(
+                          entry: lastEntry,
+                          onTap: () => _quickClockIn(lastEntry),
+                        )
+                      : OutlinedButton.icon(
+                          onPressed: null,
+                          icon:
+                              const Icon(Icons.replay, size: 20),
+                          label: const Text('Quick Repeat'),
+                        ),
                 ),
               ],
             ),
-            // Quick repeat last entry
-            lastEntryAsync.whenOrNull(
-                  data: (lastEntry) {
-                    if (lastEntry == null) return null;
-                    return _buildQuickRepeat(context, theme, lastEntry);
-                  },
-                ) ??
-                const SizedBox.shrink(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildQuickRepeat(
-      BuildContext context, ThemeData theme, TimeEntry lastEntry) {
-    final clientAsync = ref.watch(clientByIdProvider(lastEntry.clientId));
+  Widget _buildRunningCard(
+      BuildContext context, ThemeData theme, TimeEntry running) {
+    final clientAsync = ref.watch(clientByIdProvider(running.clientId));
+    final clientName = clientAsync.valueOrNull?.name;
 
-    return clientAsync.when(
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (client) {
-        return Padding(
-          padding: const EdgeInsets.only(top: Spacing.sm),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(8),
-            onTap: () => _quickClockIn(lastEntry),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: Spacing.sm + 4, vertical: Spacing.sm),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
+    return Card(
+      color: theme.colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(Spacing.md),
+        child: Row(
+          children: [
+            // Pulsing recording dot
+            AnimatedBuilder(
+              animation: _pulseAnimation,
+              builder: (_, __) => Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.colorScheme.error
+                      .withValues(alpha: _pulseAnimation.value),
+                ),
               ),
-              child: Row(
+            ),
+            const SizedBox(width: Spacing.sm + 4),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.replay, size: 16,
-                      color: theme.colorScheme.primary),
-                  const SizedBox(width: Spacing.sm),
-                  Expanded(
-                    child: Text(
-                      'Repeat: ${client.name}',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.primary),
+                  // Isolated ticker — only this Text rebuilds every second
+                  ValueListenableBuilder<Duration>(
+                    valueListenable: _elapsed,
+                    builder: (_, elapsed, __) {
+                      final h = elapsed.inHours;
+                      final m = elapsed.inMinutes.remainder(60);
+                      final s = elapsed.inSeconds.remainder(60);
+                      final display = h > 0
+                          ? '${h}h ${m.toString().padLeft(2, '0')}m ${s.toString().padLeft(2, '0')}s'
+                          : '${m}m ${s.toString().padLeft(2, '0')}s';
+                      return Text(
+                        display,
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          color:
+                              theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                          fontFeatures: [
+                            const FontFeature.tabularFigures()
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  if (clientName != null ||
+                      running.description != null)
+                    Text(
+                      clientName ?? running.description ?? '',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color:
+                            theme.colorScheme.onPrimaryContainer,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Icon(Icons.play_arrow, size: 16,
-                      color: theme.colorScheme.primary),
                 ],
               ),
             ),
-          ),
-        );
-      },
+            FilledButton(
+              onPressed: () => _clockOut(context, running.id),
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.colorScheme.error,
+                foregroundColor: theme.colorScheme.onError,
+              ),
+              child: const Text('Clock Out'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -219,63 +278,28 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
       }
     }
   }
+}
 
-  Widget _buildRunningCard(
-      BuildContext context, ThemeData theme, TimeEntry running) {
-    final elapsed = DateTime.now().difference(running.startTime);
-    final clientAsync = ref.watch(clientByIdProvider(running.clientId));
-    final clientName = clientAsync.valueOrNull?.name;
+/// Quick Repeat button that shows the client name.
+class _QuickRepeatButton extends ConsumerWidget {
+  final TimeEntry entry;
+  final VoidCallback onTap;
 
-    return Card(
-      color: theme.colorScheme.primaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(Spacing.md),
-        child: Row(
-          children: [
-            // Pulsing recording dot
-            AnimatedBuilder(
-              animation: _pulseAnimation,
-              builder: (_, __) => Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: theme.colorScheme.error
-                      .withValues(alpha: _pulseAnimation.value),
-                ),
-              ),
-            ),
-            const SizedBox(width: Spacing.sm + 4),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    formatDuration(elapsed.inMinutes),
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      color: theme.colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                      fontFeatures: [const FontFeature.tabularFigures()],
-                    ),
-                  ),
-                  if (clientName != null || running.description != null)
-                    Text(
-                      clientName ?? running.description ?? '',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                ],
-              ),
-            ),
-            FilledButton.tonalIcon(
-              onPressed: () => _clockOut(context, running.id),
-              icon: const Icon(Icons.stop),
-              label: const Text('Stop'),
-            ),
-          ],
-        ),
+  const _QuickRepeatButton({required this.entry, required this.onTap});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final clientAsync = ref.watch(clientByIdProvider(entry.clientId));
+    final clientName =
+        clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
+
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      icon: const Icon(Icons.replay, size: 20),
+      label: Text(
+        'Repeat: $clientName',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
