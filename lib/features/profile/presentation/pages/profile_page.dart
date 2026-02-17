@@ -7,6 +7,7 @@ import '../widgets/bank_details_section.dart';
 import '../widgets/payment_links_section.dart';
 import '../widgets/defaults_section.dart';
 import '../widgets/invoice_settings_section.dart';
+import '../widgets/backup_settings_section.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -31,6 +32,7 @@ class ProfilePage extends ConsumerWidget {
             PaymentLinksSection(profile: profile),
             DefaultsSection(profile: profile),
             InvoiceSettingsSection(profile: profile),
+            const BackupSettingsSection(),
           ],
         ),
       ),

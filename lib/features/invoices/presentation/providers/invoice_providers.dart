@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/database/daos/invoice_dao.dart';
 import '../../../../core/database/daos/user_profile_dao.dart';
@@ -239,22 +240,48 @@ class InvoiceNotifier extends AsyncNotifier<void> {
     final now = DateTime.now();
     final dueDate = now.add(Duration(days: termsDays));
 
-    // Build line items from time entries
+    // Build line items from time entries, grouping same-day + same-rate
     final lineItems = <InvoiceLineItemsCompanion>[];
     var sortOrder = 0;
+    final dateFmt = DateFormat.yMMMd();
 
+    // Group entries by (date string, hourly rate)
+    final groups = <(String, double), List<TimeEntry>>{};
     for (final entry in wizard.selectedEntries) {
-      final hours = (entry.durationMinutes ?? 0) / 60.0;
-      final desc = entry.description ?? 'Work session';
+      final key = (dateFmt.format(entry.startTime), entry.hourlyRateSnapshot);
+      (groups[key] ??= []).add(entry);
+    }
+
+    // Sort groups by earliest start time
+    final sortedKeys = groups.keys.toList()
+      ..sort((a, b) => groups[a]!.first.startTime
+          .compareTo(groups[b]!.first.startTime));
+
+    for (final key in sortedKeys) {
+      final entries = groups[key]!;
+      final dateStr = key.$1;
+      final rate = key.$2;
+
+      final totalHours = entries.fold<double>(
+          0, (sum, e) => sum + (e.durationMinutes ?? 0) / 60.0);
+      final descriptions = entries
+          .map((e) => e.description ?? 'Work session')
+          .join('; ');
+      final desc = '$dateStr – $descriptions';
+
+      // Use shared project if all entries are the same, otherwise null
+      final projectIds = entries.map((e) => e.projectId).toSet();
+      final sharedProject =
+          projectIds.length == 1 ? projectIds.first : null;
+
       lineItems.add(InvoiceLineItemsCompanion.insert(
         invoiceId: 0, // will be set by DAO
         description: desc,
-        quantity: hours,
-        unitPrice: entry.hourlyRateSnapshot,
-        total: hours * entry.hourlyRateSnapshot,
+        quantity: totalHours,
+        unitPrice: rate,
+        total: totalHours * rate,
         sortOrder: Value(sortOrder++),
-        timeEntryId: Value(entry.id),
-        projectId: Value(entry.projectId),
+        projectId: Value(sharedProject),
       ));
     }
 

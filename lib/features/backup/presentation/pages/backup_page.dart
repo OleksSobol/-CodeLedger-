@@ -10,6 +10,7 @@ import '../../../../shared/widgets/app_section_card.dart';
 import '../../../../shared/widgets/confirm_destructive.dart';
 import '../../../../shared/widgets/passphrase_bottom_sheet.dart';
 import '../../../../shared/widgets/spacing.dart';
+import '../../../profile/presentation/widgets/backup_settings_section.dart';
 import '../../application/drive_backup_service.dart';
 import '../providers/backup_providers.dart';
 
@@ -50,10 +51,20 @@ class _BackupPageState extends ConsumerState<BackupPage> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  // -- Passphrase resolution --
+
+  /// Returns the stored passphrase if set, otherwise prompts the user.
+  Future<String?> _resolvePassphrase({bool requireConfirmation = false}) async {
+    final stored = await ref.read(backupPassphraseProvider.future);
+    if (stored != null && stored.isNotEmpty) return stored;
+    if (!mounted) return null;
+    return askPassphrase(context, requireConfirmation: requireConfirmation);
+  }
+
   // -- Actions --
 
   Future<void> _createLocalBackup() async {
-    final passphrase = await askPassphrase(context, requireConfirmation: true);
+    final passphrase = await _resolvePassphrase(requireConfirmation: true);
     if (passphrase == null) return;
 
     _setState(const BackupWorking('Encrypting...'));
@@ -95,7 +106,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
 
     // Passphrase
     if (!mounted) return;
-    final passphrase = await askPassphrase(context);
+    final passphrase = await _resolvePassphrase();
     if (passphrase == null) return;
 
     _setState(const BackupWorking('Decrypting...'));
@@ -167,7 +178,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
   }
 
   Future<void> _backupToDrive() async {
-    final passphrase = await askPassphrase(context, requireConfirmation: true);
+    final passphrase = await _resolvePassphrase(requireConfirmation: true);
     if (passphrase == null) return;
 
     _setState(const BackupWorking('Encrypting...'));
@@ -224,7 +235,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     if (!confirmed) return;
 
     if (!mounted) return;
-    final passphrase = await askPassphrase(context);
+    final passphrase = await _resolvePassphrase();
     if (passphrase == null) return;
 
     _setState(const BackupWorking('Downloading...'));
