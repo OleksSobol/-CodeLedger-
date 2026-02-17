@@ -12,7 +12,7 @@ class QuickActionsRow extends StatelessWidget {
         Expanded(
           child: _ActionChip(
             icon: Icons.receipt_long_outlined,
-            label: 'New Invoice',
+            label: 'Invoice',
             onTap: () => context.push('/invoices/create'),
           ),
         ),
@@ -20,7 +20,7 @@ class QuickActionsRow extends StatelessWidget {
         Expanded(
           child: _ActionChip(
             icon: Icons.edit_note,
-            label: 'Manual Entry',
+            label: 'Manual',
             onTap: () => context.push('/time-tracking/manual'),
           ),
         ),

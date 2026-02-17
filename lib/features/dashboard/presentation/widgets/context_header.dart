@@ -43,9 +43,10 @@ class ContextHeader extends ConsumerWidget {
     final dateStr = DateFormat('EEEE, MMM d, yyyy').format(DateTime.now());
 
     return SliverAppBar(
-      expandedHeight: 140,
+      expandedHeight: 160,
       pinned: true,
       floating: false,
+      title: const Text('CodeLedger'),
       actions: [
         IconButton(
           icon: Icon(_themeIcon(themeMode)),
@@ -83,22 +84,13 @@ class ContextHeader extends ConsumerWidget {
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding:
-            const EdgeInsetsDirectional.only(start: 16, bottom: 14),
-        title: Text(
-          'CodeLedger',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
         background: SafeArea(
           child: Padding(
-            padding:
-                const EdgeInsets.only(left: 16, right: 16, top: 12),
+            padding: const EdgeInsets.only(
+                left: 16, right: 16, top: 60),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 4),
                 Text(
                   name != null && name.isNotEmpty
                       ? '${_greeting()}, $name'
