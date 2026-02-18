@@ -14,6 +14,102 @@ import '../../../pdf_generation/presentation/providers/pdf_providers.dart';
 import '../../../email/presentation/providers/email_providers.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 
+// ── Edit Line Item Bottom Sheet ────────────────────────────────────
+
+Future<void> showEditLineItemSheet(
+  BuildContext context,
+  WidgetRef ref,
+  InvoiceLineItem item,
+  int invoiceId,
+) async {
+  final descCtrl = TextEditingController(text: item.description);
+  final qtyCtrl =
+      TextEditingController(text: item.quantity.toStringAsFixed(2));
+  final rateCtrl =
+      TextEditingController(text: item.unitPrice.toStringAsFixed(2));
+  final formKey = GlobalKey<FormState>();
+
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (ctx) => Padding(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 24,
+        bottom: MediaQuery.viewInsetsOf(ctx).bottom + 24,
+      ),
+      child: Form(
+        key: formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Edit Line Item',
+                style: Theme.of(ctx).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: descCtrl,
+              decoration: const InputDecoration(labelText: 'Description'),
+              maxLines: 2,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: qtyCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'Quantity (hrs)'),
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true),
+                    validator: (v) =>
+                        double.tryParse(v ?? '') == null ? 'Invalid' : null,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: rateCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'Unit Price (\$)'),
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true),
+                    validator: (v) =>
+                        double.tryParse(v ?? '') == null ? 'Invalid' : null,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+                Navigator.of(ctx).pop();
+                await ref.read(invoiceNotifierProvider.notifier).editLineItem(
+                      lineItemId: item.id,
+                      invoiceId: invoiceId,
+                      description: descCtrl.text.trim(),
+                      quantity: double.parse(qtyCtrl.text),
+                      unitPrice: double.parse(rateCtrl.text),
+                    );
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  descCtrl.dispose();
+  qtyCtrl.dispose();
+  rateCtrl.dispose();
+}
+
 class InvoiceDetailPage extends ConsumerWidget {
   final int invoiceId;
   const InvoiceDetailPage({super.key, required this.invoiceId});
@@ -214,10 +310,23 @@ class _InvoiceDetailBody extends ConsumerWidget {
                     ],
                   ),
                 ),
-                ...items.map((item) => _LineItemRow(
-                      item: item,
-                      currency: invoice.currency,
+                ...items.map((item) => InkWell(
+                      onTap: () => showEditLineItemSheet(
+                          context, ref, item, invoice.id),
+                      child: _LineItemRow(
+                        item: item,
+                        currency: invoice.currency,
+                      ),
                     )),
+                if (items.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Text(
+                      'Tap a line item to edit',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -342,40 +451,74 @@ class _InvoiceDetailBody extends ConsumerWidget {
             ),
           ],
         ),
-      'sent' => Row(
+      'sent' => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  final result = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => RecordPaymentDialog(
-                      invoiceId: inv.id,
-                      balanceDue: balanceDue,
-                      currency: inv.currency,
-                    ),
-                  );
-                  if (result == true) {
-                    // Providers auto-invalidate
-                  }
-                },
-                icon: const Icon(Icons.payment),
-                label: const Text('Record Payment'),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final result = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => RecordPaymentDialog(
+                          invoiceId: inv.id,
+                          balanceDue: balanceDue,
+                          currency: inv.currency,
+                        ),
+                      );
+                      if (result == true) {
+                        // Providers auto-invalidate
+                      }
+                    },
+                    icon: const Icon(Icons.payment),
+                    label: const Text('Record Payment'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () async {
+                      await notifier.recordPayment(
+                        invoiceId: inv.id,
+                        amount: balanceDue,
+                        method: 'Other',
+                      );
+                    },
+                    icon: const Icon(Icons.check_circle),
+                    label: const Text('Mark Paid'),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: () async {
-                  await notifier.recordPayment(
-                    invoiceId: inv.id,
-                    amount: balanceDue,
-                    method: 'Other',
-                  );
-                },
-                icon: const Icon(Icons.check_circle),
-                label: const Text('Mark Paid'),
-              ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Reopen as Draft?'),
+                    content: const Text(
+                      'This will revert the invoice back to draft so you '
+                      'can edit line items and resend it. The sent date '
+                      'will be cleared.',
+                    ),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancel')),
+                      FilledButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('Reopen')),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  await notifier.revertToDraft(inv.id);
+                }
+              },
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('Reopen as Draft'),
             ),
           ],
         ),

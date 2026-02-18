@@ -380,6 +380,36 @@ class InvoiceNotifier extends AsyncNotifier<void> {
     ref.invalidate(invoiceDetailProvider(invoiceId));
   }
 
+  /// Edit a single line item and recalculate invoice totals.
+  Future<void> editLineItem({
+    required int lineItemId,
+    required int invoiceId,
+    required String description,
+    required double quantity,
+    required double unitPrice,
+  }) async {
+    await _invoiceDao.updateLineItem(
+      lineItemId: lineItemId,
+      invoiceId: invoiceId,
+      description: description,
+      quantity: quantity,
+      unitPrice: unitPrice,
+    );
+    ref.invalidate(invoiceDetailProvider(invoiceId));
+    ref.invalidate(invoiceLineItemsProvider(invoiceId));
+    ref.invalidate(allInvoicesProvider);
+    ref.invalidate(monthlyIncomeProvider);
+  }
+
+  /// Revert a sent invoice back to draft so it can be edited / resent.
+  Future<void> revertToDraft(int invoiceId) async {
+    await _invoiceDao.revertToDraft(invoiceId);
+    ref.invalidate(allInvoicesProvider);
+    ref.invalidate(invoiceDetailProvider(invoiceId));
+    ref.invalidate(outstandingInvoicesProvider);
+    ref.invalidate(overdueInvoicesProvider);
+  }
+
   /// Permanently delete any invoice.
   Future<void> deleteInvoice(int invoiceId) async {
     await _invoiceDao.deleteInvoice(invoiceId);

@@ -176,6 +176,55 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
+  /// Update a single line item and recalculate invoice totals in a transaction.
+  Future<void> updateLineItem({
+    required int lineItemId,
+    required int invoiceId,
+    required String description,
+    required double quantity,
+    required double unitPrice,
+  }) {
+    return transaction(() async {
+      final itemTotal = quantity * unitPrice;
+
+      // Update line item
+      await (update(invoiceLineItems)
+            ..where((t) => t.id.equals(lineItemId)))
+          .write(InvoiceLineItemsCompanion(
+        description: Value(description),
+        quantity: Value(quantity),
+        unitPrice: Value(unitPrice),
+        total: Value(itemTotal),
+      ));
+
+      // Recalculate invoice totals from all line items
+      final items = await getLineItems(invoiceId);
+      final subtotal = items.fold<double>(0, (sum, i) => sum + i.total);
+      final inv = await getInvoice(invoiceId);
+      final taxAmount = subtotal * (inv.taxRate / 100);
+      final total = subtotal + taxAmount + inv.lateFeeAmount;
+
+      await (update(invoices)..where((t) => t.id.equals(invoiceId)))
+          .write(InvoicesCompanion(
+        subtotal: Value(subtotal),
+        taxAmount: Value(taxAmount),
+        total: Value(total),
+        updatedAt: Value(DateTime.now()),
+      ));
+    });
+  }
+
+  /// Revert a sent invoice back to draft status.
+  Future<bool> revertToDraft(int invoiceId) {
+    return (update(invoices)..where((t) => t.id.equals(invoiceId)))
+        .write(InvoicesCompanion(
+          status: const Value('draft'),
+          sentDate: const Value(null),
+          updatedAt: Value(DateTime.now()),
+        ))
+        .then((rows) => rows > 0);
+  }
+
   /// Get invoices by status (for dashboard).
   Future<List<Invoice>> getByStatus(String status) {
     return (select(invoices)
