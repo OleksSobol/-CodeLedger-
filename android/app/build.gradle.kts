@@ -5,6 +5,27 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Auto-increment build number in pubspec.yaml on each build
+tasks.register("incrementBuildNumber") {
+    doLast {
+        val pubspec = file("../../pubspec.yaml")
+        val content = pubspec.readText()
+        val regex = Regex("""(version:\s*\d+\.\d+\.\d+\+)(\d+)""")
+        val match = regex.find(content)
+        if (match != null) {
+            val oldBuild = match.groupValues[2].toInt()
+            val newBuild = oldBuild + 1
+            val updated = content.replaceFirst(regex, "${match.groupValues[1]}$newBuild")
+            pubspec.writeText(updated)
+            println("Build number incremented: $oldBuild → $newBuild")
+        }
+    }
+}
+
+tasks.matching { it.name.startsWith("assemble") }.configureEach {
+    dependsOn("incrementBuildNumber")
+}
+
 android {
     namespace = "com.osobol.code_ledger"
     compileSdk = flutter.compileSdkVersion

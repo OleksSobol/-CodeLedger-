@@ -21,6 +21,7 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
   late final TextEditingController _issueRefCtrl;
   late final TextEditingController _repoCtrl;
   late final TextEditingController _tagsCtrl;
+  late final TextEditingController _rateCtrl;
   late DateTime _date;
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
@@ -34,6 +35,8 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
     _issueRefCtrl = TextEditingController(text: e.issueReference ?? '');
     _repoCtrl = TextEditingController(text: e.repository ?? '');
     _tagsCtrl = TextEditingController(text: _parseTags(e.tags));
+    _rateCtrl = TextEditingController(
+        text: e.hourlyRateSnapshot.toStringAsFixed(2));
     _date = DateTime(e.startTime.year, e.startTime.month, e.startTime.day);
     _startTime = TimeOfDay.fromDateTime(e.startTime);
     _endTime = e.endTime != null
@@ -57,6 +60,7 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
     _issueRefCtrl.dispose();
     _repoCtrl.dispose();
     _tagsCtrl.dispose();
+    _rateCtrl.dispose();
     super.dispose();
   }
 
@@ -118,6 +122,7 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
         tagsJson = '[${tagList.map((t) => '"$t"').join(',')}]';
       }
 
+      final parsedRate = double.tryParse(_rateCtrl.text);
       await ref.read(timerNotifierProvider.notifier).updateEntryTimes(
             entryId: widget.entry.id,
             startTime: start,
@@ -126,6 +131,7 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             issueReference: _trimOrNull(_issueRefCtrl.text),
             repository: _trimOrNull(_repoCtrl.text),
             tags: tagsJson,
+            hourlyRateSnapshot: parsedRate,
           );
       if (mounted) context.pop(true);
     } on OverlappingTimeEntryException catch (e) {
@@ -276,6 +282,17 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             ),
 
           const SizedBox(height: 8),
+          TextFormField(
+            controller: _rateCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Hourly Rate (\$)',
+              hintText: 'e.g. 30.00',
+            ),
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            enabled: !widget.entry.isInvoiced,
+          ),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _descriptionCtrl,
             decoration: const InputDecoration(

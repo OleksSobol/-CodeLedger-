@@ -137,6 +137,7 @@ class TimerNotifier extends AsyncNotifier<void> {
     String? issueReference,
     String? repository,
     String? tags,
+    double? hourlyRateSnapshot,
   }) async {
     final duration = endTime.difference(startTime).inMinutes;
     return _dao.updateWithOverlapCheck(
@@ -149,6 +150,9 @@ class TimerNotifier extends AsyncNotifier<void> {
         issueReference: Value(issueReference),
         repository: Value(repository),
         tags: Value(tags),
+        hourlyRateSnapshot: hourlyRateSnapshot != null
+            ? Value(hourlyRateSnapshot)
+            : const Value.absent(),
       ),
     );
   }

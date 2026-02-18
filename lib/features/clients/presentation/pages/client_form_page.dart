@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../../../core/database/app_database.dart';
 import '../../../../core/constants/payment_terms.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../time_tracking/presentation/providers/time_entry_providers.dart';
 import '../providers/client_providers.dart';
 
 class ClientFormPage extends ConsumerStatefulWidget {
@@ -100,6 +102,11 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
       final customDays = int.tryParse(_customDaysCtrl.text);
 
       if (_isEditing) {
+        final oldRate = widget.client!.hourlyRate;
+        final rateChanged = hourlyRate != null &&
+            oldRate != null &&
+            hourlyRate != oldRate;
+
         await notifier.updateClient(
           widget.client!.id,
           ClientsCompanion(
@@ -123,6 +130,44 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
             notes: Value(_trimOrNull(_notesCtrl.text)),
           ),
         );
+
+        // If rate changed, offer to update uninvoiced entries
+        if (rateChanged && mounted) {
+          final dao = ref.read(timeEntryDaoProvider);
+          final count =
+              await dao.countUninvoicedAtRate(widget.client!.id, oldRate);
+          if (count > 0 && mounted) {
+            final update = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Update Existing Entries?'),
+                content: Text(
+                  'You have $count uninvoiced entr${count == 1 ? 'y' : 'ies'} '
+                  'recorded at ${formatCurrency(oldRate)}/hr.\n\n'
+                  'Update ${count == 1 ? 'it' : 'them'} to '
+                  '${formatCurrency(hourlyRate)}/hr?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Keep Old Rate'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('Update'),
+                  ),
+                ],
+              ),
+            );
+            if (update == true) {
+              await dao.updateRateForClient(
+                  widget.client!.id, hourlyRate);
+              if (mounted) {
+                ref.invalidate(filteredEntriesProvider);
+              }
+            }
+          }
+        }
       } else {
         await notifier.addClient(
           name: _nameCtrl.text.trim(),
@@ -317,16 +362,19 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
               maxLines: 3,
             ),
             const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _saving ? null : _save,
-              child: _saving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(_isEditing ? 'Save Changes' : 'Add Client'),
+            SafeArea(
+              child: FilledButton(
+                onPressed: _saving ? null : _save,
+                child: _saving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(_isEditing ? 'Save Changes' : 'Add Client'),
+              ),
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

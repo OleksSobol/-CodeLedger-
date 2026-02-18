@@ -241,6 +241,31 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
     return results.isEmpty ? null : results.first;
   }
 
+  /// Update hourly rate on all uninvoiced entries for a client.
+  /// Returns the number of affected rows.
+  Future<int> updateRateForClient(int clientId, double newRate) {
+    return (update(timeEntries)
+          ..where((t) =>
+              t.clientId.equals(clientId) &
+              t.isInvoiced.equals(false)))
+        .write(TimeEntriesCompanion(
+          hourlyRateSnapshot: Value(newRate),
+          updatedAt: Value(DateTime.now()),
+        ));
+  }
+
+  /// Count uninvoiced entries for a client at a specific rate.
+  Future<int> countUninvoicedAtRate(int clientId, double rate) async {
+    final entries = await (select(timeEntries)
+          ..where((t) =>
+              t.clientId.equals(clientId) &
+              t.isInvoiced.equals(false) &
+              t.endTime.isNotNull() &
+              t.hourlyRateSnapshot.equals(rate)))
+        .get();
+    return entries.length;
+  }
+
   /// Mark entries as invoiced.
   Future<void> markAsInvoiced(List<int> entryIds, int invoiceId) {
     return (update(timeEntries)..where((t) => t.id.isIn(entryIds))).write(

@@ -42,6 +42,10 @@ class ClientDetailPage extends ConsumerWidget {
                     value: 'archive',
                     child: Text('Archive Client'),
                   ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Text('Delete Client'),
+                  ),
                 ],
                 onSelected: (value) async {
                   if (value == 'archive') {
@@ -67,6 +71,50 @@ class ClientDetailPage extends ConsumerWidget {
                       await ref
                           .read(clientNotifierProvider.notifier)
                           .archiveClient(client.id);
+                      if (context.mounted) context.pop();
+                    }
+                  } else if (value == 'delete') {
+                    final notifier =
+                        ref.read(clientNotifierProvider.notifier);
+                    final hasRecords =
+                        await notifier.hasLinkedRecords(client.id);
+
+                    if (!context.mounted) return;
+
+                    if (hasRecords) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Cannot delete: client has time entries or invoices. Archive instead.'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Delete Client'),
+                        content: Text(
+                            'Permanently delete "${client.name}"? This cannot be undone.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Cancel'),
+                          ),
+                          FilledButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            style: FilledButton.styleFrom(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.error,
+                            ),
+                            child: const Text('Delete'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirm == true && context.mounted) {
+                      await notifier.deleteClient(client.id);
                       if (context.mounted) context.pop();
                     }
                   }

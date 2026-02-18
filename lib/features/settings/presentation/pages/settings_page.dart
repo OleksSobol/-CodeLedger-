@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/providers/app_version_provider.dart';
 import '../../../../core/providers/theme_provider.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -103,10 +104,12 @@ class SettingsPage extends ConsumerWidget {
 
           // --- About section ---
           _SectionHeader(title: 'About'),
-          const ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text('CodeLedger'),
-            subtitle: Text('v1.0.0'),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('CodeLedger'),
+            subtitle: Text(
+              ref.watch(appVersionProvider).valueOrNull ?? '...',
+            ),
           ),
         ],
       ),

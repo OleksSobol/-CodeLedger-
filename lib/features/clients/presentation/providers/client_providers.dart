@@ -102,13 +102,30 @@ class ClientNotifier extends AsyncNotifier<List<Client>> {
 
   Future<bool> updateClient(int id, ClientsCompanion companion) async {
     final result = await _dao.updateClient(id, companion);
-    if (result) ref.invalidateSelf();
+    if (result) {
+      ref.invalidateSelf();
+      ref.invalidate(clientSummaryProvider(id));
+      ref.invalidate(clientByIdProvider(id));
+    }
     return result;
   }
 
   Future<bool> archiveClient(int id) async {
     final result = await _dao.archiveClient(id);
-    if (result) ref.invalidateSelf();
+    if (result) {
+      ref.invalidateSelf();
+      ref.invalidate(clientSummaryProvider(id));
+      ref.invalidate(clientByIdProvider(id));
+    }
     return result;
+  }
+
+  /// Check if client has time entries or invoices.
+  Future<bool> hasLinkedRecords(int id) => _dao.hasLinkedRecords(id);
+
+  /// Permanently delete a client (only if no linked records).
+  Future<void> deleteClient(int id) async {
+    await _dao.deleteClient(id);
+    ref.invalidateSelf();
   }
 }

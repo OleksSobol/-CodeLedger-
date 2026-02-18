@@ -59,6 +59,7 @@ dependencies:
   json_annotation: ^4.9.0
   equatable: ^2.0.8
   collection: ^1.19.1
+  package_info_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:

@@ -52,6 +52,25 @@ class ClientDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  /// Check if a client has any time entries or invoices.
+  Future<bool> hasLinkedRecords(int clientId) async {
+    final entryCount = await (select(timeEntries)
+          ..where((t) => t.clientId.equals(clientId))
+          ..limit(1))
+        .get();
+    if (entryCount.isNotEmpty) return true;
+    final invoiceCount = await (select(invoices)
+          ..where((t) => t.clientId.equals(clientId))
+          ..limit(1))
+        .get();
+    return invoiceCount.isNotEmpty;
+  }
+
+  /// Delete a client (only if no linked records).
+  Future<int> deleteClient(int id) {
+    return (delete(clients)..where((t) => t.id.equals(id))).go();
+  }
+
   /// Get uninvoiced hours for a client.
   Future<double> getUninvoicedHours(int clientId) async {
     final query = select(timeEntries)
