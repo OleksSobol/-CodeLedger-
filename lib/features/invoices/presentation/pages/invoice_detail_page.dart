@@ -21,36 +21,94 @@ Future<void> showEditLineItemSheet(
   WidgetRef ref,
   InvoiceLineItem item,
   int invoiceId,
-) async {
-  final descCtrl = TextEditingController(text: item.description);
-  final qtyCtrl =
-      TextEditingController(text: item.quantity.toStringAsFixed(2));
-  final rateCtrl =
-      TextEditingController(text: item.unitPrice.toStringAsFixed(2));
-  final formKey = GlobalKey<FormState>();
-
-  await showModalBottomSheet(
+) {
+  return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (ctx) => Padding(
+    builder: (ctx) => _EditLineItemSheet(
+      item: item,
+      invoiceId: invoiceId,
+      ref: ref,
+    ),
+  );
+}
+
+class _EditLineItemSheet extends StatefulWidget {
+  final InvoiceLineItem item;
+  final int invoiceId;
+  final WidgetRef ref;
+
+  const _EditLineItemSheet({
+    required this.item,
+    required this.invoiceId,
+    required this.ref,
+  });
+
+  @override
+  State<_EditLineItemSheet> createState() => _EditLineItemSheetState();
+}
+
+class _EditLineItemSheetState extends State<_EditLineItemSheet> {
+  late final TextEditingController _descCtrl;
+  late final TextEditingController _qtyCtrl;
+  late final TextEditingController _rateCtrl;
+  final _formKey = GlobalKey<FormState>();
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _descCtrl = TextEditingController(text: widget.item.description);
+    _qtyCtrl = TextEditingController(
+        text: widget.item.quantity.toStringAsFixed(2));
+    _rateCtrl = TextEditingController(
+        text: widget.item.unitPrice.toStringAsFixed(2));
+  }
+
+  @override
+  void dispose() {
+    _descCtrl.dispose();
+    _qtyCtrl.dispose();
+    _rateCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    Navigator.of(context).pop();
+    await widget.ref
+        .read(invoiceNotifierProvider.notifier)
+        .editLineItem(
+          lineItemId: widget.item.id,
+          invoiceId: widget.invoiceId,
+          description: _descCtrl.text.trim(),
+          quantity: double.parse(_qtyCtrl.text),
+          unitPrice: double.parse(_rateCtrl.text),
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
       padding: EdgeInsets.only(
         left: 16,
         right: 16,
         top: 24,
-        bottom: MediaQuery.viewInsetsOf(ctx).bottom + 24,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + 24,
       ),
       child: Form(
-        key: formKey,
+        key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('Edit Line Item',
-                style: Theme.of(ctx).textTheme.titleLarge),
+                style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             TextFormField(
-              controller: descCtrl,
+              controller: _descCtrl,
               decoration: const InputDecoration(labelText: 'Description'),
               maxLines: 2,
               validator: (v) =>
@@ -61,7 +119,7 @@ Future<void> showEditLineItemSheet(
               children: [
                 Expanded(
                   child: TextFormField(
-                    controller: qtyCtrl,
+                    controller: _qtyCtrl,
                     decoration:
                         const InputDecoration(labelText: 'Quantity (hrs)'),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -73,7 +131,7 @@ Future<void> showEditLineItemSheet(
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
-                    controller: rateCtrl,
+                    controller: _rateCtrl,
                     decoration:
                         const InputDecoration(labelText: 'Unit Price (\$)'),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -86,28 +144,14 @@ Future<void> showEditLineItemSheet(
             ),
             const SizedBox(height: 20),
             FilledButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-                Navigator.of(ctx).pop();
-                await ref.read(invoiceNotifierProvider.notifier).editLineItem(
-                      lineItemId: item.id,
-                      invoiceId: invoiceId,
-                      description: descCtrl.text.trim(),
-                      quantity: double.parse(qtyCtrl.text),
-                      unitPrice: double.parse(rateCtrl.text),
-                    );
-              },
+              onPressed: _saving ? null : _save,
               child: const Text('Save'),
             ),
           ],
         ),
       ),
-    ),
-  );
-
-  descCtrl.dispose();
-  qtyCtrl.dispose();
-  rateCtrl.dispose();
+    );
+  }
 }
 
 class InvoiceDetailPage extends ConsumerWidget {
