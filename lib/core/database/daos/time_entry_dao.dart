@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import '../app_database.dart';
 import '../tables/time_entries_table.dart';
+import '../../utils/tag_utils.dart';
 
 part 'time_entry_dao.g.dart';
 
@@ -30,9 +31,12 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
     return transaction(() async {
       final start = entry.startTime.value;
       final end = entry.endTime.value;
+      final clientId =
+          entry.clientId.present ? entry.clientId.value : null;
 
       if (end != null) {
-        final overlapping = await _findOverlapping(start, end);
+        final overlapping =
+            await _findOverlapping(start, end, clientId: clientId);
         if (overlapping.isNotEmpty) {
           throw OverlappingTimeEntryException(overlapping.first);
         }
@@ -56,9 +60,13 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
               .getSingle();
       final duration = now.difference(entry.startTime).inMinutes;
 
-      // Check for overlaps with the new end time
-      final overlapping =
-          await _findOverlapping(entry.startTime, now, excludeId: entryId);
+      // Check for overlaps with the new end time (same client only)
+      final overlapping = await _findOverlapping(
+        entry.startTime,
+        now,
+        excludeId: entryId,
+        clientId: entry.clientId,
+      );
       if (overlapping.isNotEmpty) {
         if (!truncateOverlaps) {
           throw OverlappingTimeEntryException(overlapping.first);
@@ -88,39 +96,42 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
       final start = companion.startTime;
       final end = companion.endTime;
 
+      // Fetch existing entry once so we always have clientId + current times
+      final existing =
+          await (select(timeEntries)..where((t) => t.id.equals(entryId)))
+              .getSingle();
+      final clientId = existing.clientId;
+
       // If both start and end are being set, check overlaps
       if (start.present && end.present && end.value != null) {
         final overlapping = await _findOverlapping(
           start.value,
           end.value!,
           excludeId: entryId,
+          clientId: clientId,
         );
         if (overlapping.isNotEmpty) {
           throw OverlappingTimeEntryException(overlapping.first);
         }
       } else if (end.present && end.value != null) {
-        // Only end is changing — fetch existing start
-        final existing =
-            await (select(timeEntries)..where((t) => t.id.equals(entryId)))
-                .getSingle();
+        // Only end is changing — use existing start
         final overlapping = await _findOverlapping(
           existing.startTime,
           end.value!,
           excludeId: entryId,
+          clientId: clientId,
         );
         if (overlapping.isNotEmpty) {
           throw OverlappingTimeEntryException(overlapping.first);
         }
       } else if (start.present) {
-        // Only start is changing — fetch existing end
-        final existing =
-            await (select(timeEntries)..where((t) => t.id.equals(entryId)))
-                .getSingle();
+        // Only start is changing — use existing end
         if (existing.endTime != null) {
           final overlapping = await _findOverlapping(
             start.value,
             existing.endTime!,
             excludeId: entryId,
+            clientId: clientId,
           );
           if (overlapping.isNotEmpty) {
             throw OverlappingTimeEntryException(overlapping.first);
@@ -136,10 +147,13 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
   }
 
   /// Find overlapping entries for a given time range.
+  /// Only entries for the same [clientId] are considered overlapping —
+  /// concurrent work for different clients is allowed.
   Future<List<TimeEntry>> _findOverlapping(
     DateTime start,
     DateTime end, {
     int? excludeId,
+    int? clientId,
   }) {
     final query = select(timeEntries)
       ..where((t) {
@@ -150,6 +164,10 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
             t.endTime.isBiggerThanValue(start);
         if (excludeId != null) {
           condition = condition & t.id.equals(excludeId).not();
+        }
+        // Only flag overlaps for the same client
+        if (clientId != null) {
+          condition = condition & t.clientId.equals(clientId);
         }
         return condition;
       });
@@ -264,6 +282,18 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
               t.hourlyRateSnapshot.equals(rate)))
         .get();
     return entries.length;
+  }
+
+  /// Get all unique tags used across all entries.
+  Future<Set<String>> getAllTags() async {
+    final rows = await (select(timeEntries)
+          ..where((t) => t.tags.isNotNull()))
+        .get();
+    final result = <String>{};
+    for (final row in rows) {
+      result.addAll(parseTags(row.tags));
+    }
+    return result;
   }
 
   /// Mark entries as invoiced.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../core/utils/tag_utils.dart';
 import '../../../../shared/widgets/spacing.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
 import '../../../projects/presentation/providers/project_providers.dart';
@@ -27,6 +28,7 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
   final _descriptionCtrl = TextEditingController();
   final _issueRefCtrl = TextEditingController();
   final _repoCtrl = TextEditingController();
+  final _tagsCtrl = TextEditingController();
   Client? _selectedClient;
   Project? _selectedProject;
   bool _saving = false;
@@ -37,6 +39,7 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
     _descriptionCtrl.dispose();
     _issueRefCtrl.dispose();
     _repoCtrl.dispose();
+    _tagsCtrl.dispose();
     super.dispose();
   }
 
@@ -60,6 +63,7 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
             description: _trimOrNull(_descriptionCtrl.text),
             issueReference: _trimOrNull(_issueRefCtrl.text),
             repository: _trimOrNull(_repoCtrl.text),
+            tags: serializeTags(_tagsCtrl.text),
           );
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -239,6 +243,14 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
                   decoration: const InputDecoration(
                     labelText: 'Issue Reference',
                     hintText: 'e.g. org/repo#42',
+                  ),
+                ),
+                const SizedBox(height: Spacing.sm),
+                TextFormField(
+                  controller: _tagsCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Tags (comma separated)',
+                    hintText: 'e.g. bugfix, frontend',
                   ),
                 ),
               ],

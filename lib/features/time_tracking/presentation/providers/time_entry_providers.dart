@@ -4,6 +4,7 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/database/daos/time_entry_dao.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/utils/rate_resolver.dart';
+import '../../../../core/utils/tag_utils.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
 import '../../../projects/presentation/providers/project_providers.dart';
@@ -54,13 +55,28 @@ final dateRangeFilterProvider = StateProvider<DateRangeFilter>((ref) {
   return DateRangeFilter.thisWeek();
 });
 
-/// Watch entries for the selected date range.
+/// Active tag filter — entries must contain ALL selected tags.
+final tagFilterProvider = StateProvider<Set<String>>((ref) => {});
+
+/// All unique tags used across all time entries.
+final allTagsProvider = FutureProvider<Set<String>>((ref) {
+  return ref.watch(timeEntryDaoProvider).getAllTags();
+});
+
+/// Watch entries for the selected date range, filtered by selected tags.
 final filteredEntriesProvider = StreamProvider<List<TimeEntry>>((ref) {
   final filter = ref.watch(dateRangeFilterProvider);
-  return ref.watch(timeEntryDaoProvider).watchEntriesForDateRange(
-        filter.start,
-        filter.end,
-      );
+  final tagFilter = ref.watch(tagFilterProvider);
+  return ref
+      .watch(timeEntryDaoProvider)
+      .watchEntriesForDateRange(filter.start, filter.end)
+      .map((entries) {
+    if (tagFilter.isEmpty) return entries;
+    return entries.where((e) {
+      final entryTags = parseTags(e.tags);
+      return tagFilter.every((t) => entryTags.contains(t));
+    }).toList();
+  });
 });
 
 /// Timer notifier — handles clock in, clock out, manual entry.
@@ -82,6 +98,7 @@ class TimerNotifier extends AsyncNotifier<void> {
     String? description,
     String? issueReference,
     String? repository,
+    String? tags,
   }) async {
     // Resolve the hourly rate
     final profile = await ref.read(userProfileDaoProvider).getProfile();
@@ -110,6 +127,7 @@ class TimerNotifier extends AsyncNotifier<void> {
         description: Value(description),
         issueReference: Value(issueReference),
         repository: Value(repository),
+        tags: Value(tags),
       ),
     );
     return id;
@@ -146,6 +164,29 @@ class TimerNotifier extends AsyncNotifier<void> {
         startTime: Value(startTime),
         endTime: Value(endTime),
         durationMinutes: Value(duration),
+        description: Value(description),
+        issueReference: Value(issueReference),
+        repository: Value(repository),
+        tags: Value(tags),
+        hourlyRateSnapshot: hourlyRateSnapshot != null
+            ? Value(hourlyRateSnapshot)
+            : const Value.absent(),
+      ),
+    );
+  }
+
+  /// Update only metadata on a running (or any) entry without touching times.
+  Future<bool> updateEntryMeta({
+    required int entryId,
+    String? description,
+    String? issueReference,
+    String? repository,
+    String? tags,
+    double? hourlyRateSnapshot,
+  }) async {
+    return _dao.updateWithOverlapCheck(
+      entryId,
+      TimeEntriesCompanion(
         description: Value(description),
         issueReference: Value(issueReference),
         repository: Value(repository),

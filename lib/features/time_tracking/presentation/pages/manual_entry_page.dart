@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../core/utils/tag_utils.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
 import '../../../projects/presentation/providers/project_providers.dart';
 import '../providers/time_entry_providers.dart';
@@ -90,15 +91,6 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
     setState(() => _saving = true);
     try {
-      // Convert tags text to JSON array string
-      final tagsText = _tagsCtrl.text.trim();
-      String? tagsJson;
-      if (tagsText.isNotEmpty) {
-        final tagList =
-            tagsText.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty);
-        tagsJson = '[${tagList.map((t) => '"$t"').join(',')}]';
-      }
-
       await ref.read(timerNotifierProvider.notifier).addManualEntry(
             clientId: _selectedClient!.id,
             projectId: _selectedProject?.id,
@@ -107,7 +99,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
             description: _trimOrNull(_descriptionCtrl.text),
             issueReference: _trimOrNull(_issueRefCtrl.text),
             repository: _trimOrNull(_repoCtrl.text),
-            tags: tagsJson,
+            tags: serializeTags(_tagsCtrl.text),
           );
       if (mounted) context.pop();
     } catch (e) {

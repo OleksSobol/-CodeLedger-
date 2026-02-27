@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/database/daos/time_entry_dao.dart';
 import '../../../../core/utils/duration_formatter.dart';
+import '../../../../core/utils/tag_utils.dart';
 import '../providers/time_entry_providers.dart';
 
 class EditTimeEntryPage extends ConsumerStatefulWidget {
@@ -34,7 +35,7 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
     _descriptionCtrl = TextEditingController(text: e.description ?? '');
     _issueRefCtrl = TextEditingController(text: e.issueReference ?? '');
     _repoCtrl = TextEditingController(text: e.repository ?? '');
-    _tagsCtrl = TextEditingController(text: _parseTags(e.tags));
+    _tagsCtrl = TextEditingController(text: tagsToDisplay(e.tags));
     _rateCtrl = TextEditingController(
         text: e.hourlyRateSnapshot.toStringAsFixed(2));
     _date = DateTime(e.startTime.year, e.startTime.month, e.startTime.day);
@@ -42,16 +43,6 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
     _endTime = e.endTime != null
         ? TimeOfDay.fromDateTime(e.endTime!)
         : TimeOfDay.fromDateTime(DateTime.now());
-  }
-
-  String _parseTags(String? tagsJson) {
-    if (tagsJson == null || tagsJson.isEmpty) return '';
-    // Simple parse: remove brackets and quotes
-    return tagsJson
-        .replaceAll('[', '')
-        .replaceAll(']', '')
-        .replaceAll('"', '')
-        .trim();
   }
 
   @override
@@ -100,39 +91,50 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
   }
 
   Future<void> _save() async {
-    final start = _buildDateTime(_date, _startTime);
-    final end = _buildDateTime(_date, _endTime);
-
-    if (!end.isAfter(start)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('End time must be after start time')),
-      );
-      return;
-    }
-
     setState(() => _saving = true);
-    try {
-      final tagsText = _tagsCtrl.text.trim();
-      String? tagsJson;
-      if (tagsText.isNotEmpty) {
-        final tagList = tagsText
-            .split(',')
-            .map((t) => t.trim())
-            .where((t) => t.isNotEmpty);
-        tagsJson = '[${tagList.map((t) => '"$t"').join(',')}]';
-      }
 
-      final parsedRate = double.tryParse(_rateCtrl.text);
-      await ref.read(timerNotifierProvider.notifier).updateEntryTimes(
-            entryId: widget.entry.id,
-            startTime: start,
-            endTime: end,
-            description: _trimOrNull(_descriptionCtrl.text),
-            issueReference: _trimOrNull(_issueRefCtrl.text),
-            repository: _trimOrNull(_repoCtrl.text),
-            tags: tagsJson,
-            hourlyRateSnapshot: parsedRate,
+    final isRunning = widget.entry.endTime == null;
+
+    final tagsJson = serializeTags(_tagsCtrl.text);
+    final parsedRate = double.tryParse(_rateCtrl.text);
+    final notifier = ref.read(timerNotifierProvider.notifier);
+
+    try {
+      if (isRunning) {
+        // Only update metadata — never write end time on a running timer
+        await notifier.updateEntryMeta(
+          entryId: widget.entry.id,
+          description: _trimOrNull(_descriptionCtrl.text),
+          issueReference: _trimOrNull(_issueRefCtrl.text),
+          repository: _trimOrNull(_repoCtrl.text),
+          tags: tagsJson,
+          hourlyRateSnapshot: parsedRate,
+        );
+      } else {
+        final start = _buildDateTime(_date, _startTime);
+        final end = _buildDateTime(_date, _endTime);
+
+        if (!end.isAfter(start)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('End time must be after start time')),
           );
+          setState(() => _saving = false);
+          return;
+        }
+
+        await notifier.updateEntryTimes(
+          entryId: widget.entry.id,
+          startTime: start,
+          endTime: end,
+          description: _trimOrNull(_descriptionCtrl.text),
+          issueReference: _trimOrNull(_issueRefCtrl.text),
+          repository: _trimOrNull(_repoCtrl.text),
+          tags: tagsJson,
+          hourlyRateSnapshot: parsedRate,
+        );
+      }
+      ref.invalidate(allTagsProvider);
       if (mounted) context.pop(true);
     } on OverlappingTimeEntryException catch (e) {
       if (mounted) {
@@ -239,16 +241,17 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             const SizedBox(height: 16),
           ],
 
-          // Date picker
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.calendar_today),
-            title: Text(dateFmt.format(_date)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: widget.entry.isInvoiced ? null : _pickDate,
-          ),
+          // Date picker — only for completed entries
+          if (isCompleted)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.calendar_today),
+              title: Text(dateFmt.format(_date)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: widget.entry.isInvoiced ? null : _pickDate,
+            ),
 
-          // Time pickers
+          // Time pickers — only shown for completed entries
           if (isCompleted)
             Row(
               children: [

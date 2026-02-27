@@ -10,6 +10,7 @@ import '../widgets/time_entries_list.dart';
 import '../widgets/date_range_selector.dart';
 import '../widgets/time_summary_bar.dart';
 import '../widgets/manual_entry_sheet.dart';
+import '../widgets/tag_filter_bar.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
 import '../../../projects/presentation/providers/project_providers.dart';
 import '../../../export/presentation/providers/export_providers.dart';
@@ -95,6 +96,9 @@ class TimeTrackingPage extends ConsumerWidget {
             SliverToBoxAdapter(
               child: DateRangeSelector(),
             ),
+
+            // Tag Filter Bar
+            const SliverToBoxAdapter(child: TagFilterBar()),
 
             // Insight Strip
             const SliverToBoxAdapter(child: TimeSummaryBar()),

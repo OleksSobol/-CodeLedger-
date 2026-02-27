@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/duration_formatter.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/utils/tag_utils.dart';
 import '../../../../shared/widgets/spacing.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
 import '../providers/time_entry_providers.dart';
@@ -168,6 +169,31 @@ class TimeEntryTile extends ConsumerWidget {
                     ],
                   ),
                 ],
+
+                // Row 5: Tag chips
+                Builder(builder: (context) {
+                  final tags = parseTags(entry.tags);
+                  if (tags.isEmpty) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: tags
+                          .map((t) => Chip(
+                                label: Text(t,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall),
+                                padding: EdgeInsets.zero,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                              ))
+                          .toList(),
+                    ),
+                  );
+                }),
               ],
             ),
           ),
@@ -339,6 +365,40 @@ class TimeEntryTile extends ConsumerWidget {
               // Issue ref
               if (entry.issueReference != null)
                 _DetailRow(icon: Icons.tag, text: entry.issueReference!),
+
+              // Tags
+              Builder(builder: (context) {
+                final tags = parseTags(entry.tags);
+                if (tags.isEmpty) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: Spacing.sm),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.label_outline,
+                          size: 16,
+                          color: theme.colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          children: tags
+                              .map((t) => Chip(
+                                    label: Text(t,
+                                        style: theme.textTheme.labelSmall),
+                                    padding: EdgeInsets.zero,
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    visualDensity: VisualDensity.compact,
+                                  ))
+                              .toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
 
               const SizedBox(height: Spacing.md),
 
