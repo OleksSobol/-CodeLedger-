@@ -135,20 +135,6 @@ abstract class BaseInvoiceTemplate {
                   data.invoice.periodEnd != null)
                 _dateRow('Period',
                     '${fmtDate(data.invoice.periodStart!)} - ${fmtDate(data.invoice.periodEnd!)}'),
-              pw.SizedBox(height: 8),
-              pw.Container(
-                padding:
-                    const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.grey200,
-                  borderRadius: pw.BorderRadius.circular(4),
-                ),
-                child: pw.Text(
-                  data.invoice.status.toUpperCase(),
-                  style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold, fontSize: 10),
-                ),
-              ),
             ],
           ),
         ),

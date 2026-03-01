@@ -36,6 +36,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   bool _showDescription = true;
   bool _showProject = false;
 
+  // Tax report options
+  bool _includeArchived = false;
+
   @override
   void initState() {
     super.initState();
@@ -175,7 +178,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     );
 
     final filtered = allInvoices.where((inv) {
-      if (inv.status != 'paid') return false;
+      final validStatus = inv.status == 'paid' ||
+          (_includeArchived && inv.status == 'archived');
+      if (!validStatus) return false;
       if (inv.issueDate.isBefore(_dateRange!.start)) return false;
       if (inv.issueDate.isAfter(endOfDay)) return false;
       if (_selectedClientId != null && inv.clientId != _selectedClientId) {
@@ -216,8 +221,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       final data = await _fetchTaxReportData();
       if (data == null || !mounted) return;
       if (data.rows.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('No paid invoices in the selected period.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(_includeArchived
+                ? 'No paid or archived invoices in the selected period.'
+                : 'No paid invoices in the selected period.')));
         return;
       }
       final bytes =
@@ -243,8 +250,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       final data = await _fetchTaxReportData();
       if (data == null || !mounted) return;
       if (data.rows.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('No paid invoices in the selected period.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(_includeArchived
+                ? 'No paid or archived invoices in the selected period.'
+                : 'No paid invoices in the selected period.')));
         return;
       }
       final exportService = ref.read(exportServiceProvider);
@@ -459,10 +468,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    FilledButton.icon(
-                      onPressed: _isLoading ? null : _generateTimesheet,
-                      icon: const Icon(Icons.table_chart_outlined),
-                      label: const Text('Generate Timesheet PDF'),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _isLoading ? null : _generateTimesheet,
+                        icon: const Icon(Icons.table_chart_outlined),
+                        label: const Text('Generate Timesheet PDF'),
+                      ),
                     ),
                   ],
                 ),
@@ -486,10 +498,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                           color: theme.colorScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: _isLoading ? null : _generateWorkReport,
-                      icon: const Icon(Icons.picture_as_pdf_outlined),
-                      label: const Text('Generate Work Report PDF'),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _generateWorkReport,
+                        icon: const Icon(Icons.picture_as_pdf_outlined),
+                        label: const Text('Generate Work Report PDF'),
+                      ),
                     ),
                   ],
                 ),
@@ -513,10 +528,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                           color: theme.colorScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: _isLoading ? null : _exportCsv,
-                      icon: const Icon(Icons.download_outlined),
-                      label: const Text('Export CSV'),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _exportCsv,
+                        icon: const Icon(Icons.download_outlined),
+                        label: const Text('Export CSV'),
+                      ),
                     ),
                   ],
                 ),
@@ -536,33 +554,37 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                         style: theme.textTheme.titleMedium),
                     const SizedBox(height: 4),
                     Text(
-                      'Paid invoices only — net income, tax collected, '
-                      'and total paid. Uses the date range and client '
-                      'filter above.',
+                      'Net income, tax collected, and total paid. '
+                      'Uses the date range and client filter above.',
                       style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed:
-                                _isLoading ? null : _generateTaxReport,
-                            icon: const Icon(Icons.receipt_long_outlined),
-                            label: const Text('Generate PDF'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed:
-                                _isLoading ? null : _exportTaxReportCsv,
-                            icon: const Icon(Icons.download_outlined),
-                            label: const Text('Export CSV'),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 8),
+                    CheckboxListTile(
+                      value: _includeArchived,
+                      onChanged: (v) =>
+                          setState(() => _includeArchived = v ?? false),
+                      title: const Text('Include archived invoices'),
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _isLoading ? null : _generateTaxReport,
+                        icon: const Icon(Icons.receipt_long_outlined),
+                        label: const Text('Generate PDF'),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _exportTaxReportCsv,
+                        icon: const Icon(Icons.download_outlined),
+                        label: const Text('Export CSV'),
+                      ),
                     ),
                   ],
                 ),

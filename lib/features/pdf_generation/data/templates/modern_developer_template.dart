@@ -99,20 +99,28 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
     );
   }
 
+  static bool _looksLikeDate(String s) =>
+      RegExp(r'^[A-Za-z]+ \d+, \d{4}$').hasMatch(s.trim());
+
   pw.Widget _buildDevTable(
       PdfInvoiceData data, PdfColor accent, PdfColor primary) {
+    // Determine whether each item is time-based by description format,
+    // not by timeEntryId (grouped items have null timeEntryId).
     final timeItems = <InvoiceLineItem>[];
     final manualItems = <InvoiceLineItem>[];
 
     for (final item in data.lineItems) {
-      if (item.timeEntryId != null) {
+      final parts = item.description.split(' | ');
+      final isTimeBased = item.timeEntryId != null ||
+          (parts.length > 1 && _looksLikeDate(parts.first));
+      if (isTimeBased) {
         timeItems.add(item);
       } else {
         manualItems.add(item);
       }
     }
 
-    // Group by project
+    // Group time items by project
     final byProject = <int?, List<InvoiceLineItem>>{};
     for (final item in timeItems) {
       byProject.putIfAbsent(item.projectId, () => []).add(item);
@@ -125,8 +133,7 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
           ? data.projectNames[entry.key] ?? 'Project'
           : 'General';
       final items = entry.value;
-      final projectTotal =
-          items.fold<double>(0, (sum, i) => sum + i.total);
+      final projectTotal = items.fold<double>(0, (sum, i) => sum + i.total);
 
       widgets.add(pw.Container(
         margin: const pw.EdgeInsets.only(bottom: 12),
@@ -166,6 +173,11 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
                 horizontalInside:
                     pw.BorderSide(color: PdfColors.grey200, width: 0.5),
               ),
+              headerStyle: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 9,
+                  color: PdfColors.grey700),
+              headerAlignment: pw.Alignment.centerLeft,
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellAlignment: pw.Alignment.centerLeft,
               columnWidths: {
@@ -175,11 +187,13 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
                 3: const pw.FlexColumnWidth(1.2),
                 4: const pw.FlexColumnWidth(1.2),
               },
-              headers: null,
+              headers: const ['Date', 'Description', 'Hours', 'Rate', 'Amount'],
               data: items.map((item) {
                 final parts = item.description.split(' | ');
-                final date = parts.length > 1 ? parts.first : '';
-                final desc = parts.length > 1
+                final hasDate =
+                    parts.length > 1 && _looksLikeDate(parts.first);
+                final date = hasDate ? parts.first.trim() : '';
+                final desc = hasDate
                     ? parts.skip(1).join(' | ')
                     : item.description;
                 return [
@@ -196,7 +210,7 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
       ));
     }
 
-    // Manual items
+    // Manual items (no date prefix)
     if (manualItems.isNotEmpty) {
       widgets.add(pw.Container(
         margin: const pw.EdgeInsets.only(bottom: 12),
@@ -222,6 +236,11 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
                 horizontalInside:
                     pw.BorderSide(color: PdfColors.grey200, width: 0.5),
               ),
+              headerStyle: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 9,
+                  color: PdfColors.grey700),
+              headerAlignment: pw.Alignment.centerLeft,
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellAlignment: pw.Alignment.centerLeft,
               columnWidths: {
@@ -231,7 +250,7 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
                 3: const pw.FlexColumnWidth(1.2),
                 4: const pw.FlexColumnWidth(1.2),
               },
-              headers: null,
+              headers: const ['', 'Description', 'Qty', 'Rate', 'Amount'],
               data: manualItems
                   .map((item) => [
                         '',
