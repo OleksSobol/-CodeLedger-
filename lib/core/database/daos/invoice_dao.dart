@@ -252,6 +252,39 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
         .then((rows) => rows > 0);
   }
 
+  /// Update all editable fields of a draft invoice and recalculate totals.
+  Future<bool> updateDraftInvoice({
+    required int invoiceId,
+    required int clientId,
+    required String invoiceNumber,
+    required DateTime issueDate,
+    required DateTime dueDate,
+    required double subtotal,
+    required double taxRate,
+    required String taxLabel,
+    required String currency,
+    String? notes,
+  }) {
+    final taxAmount = subtotal * (taxRate / 100);
+    final total = subtotal + taxAmount;
+    return (update(invoices)..where((t) => t.id.equals(invoiceId)))
+        .write(InvoicesCompanion(
+          clientId: Value(clientId),
+          invoiceNumber: Value(invoiceNumber),
+          issueDate: Value(issueDate),
+          dueDate: Value(dueDate),
+          subtotal: Value(subtotal),
+          taxRate: Value(taxRate),
+          taxLabel: Value(taxLabel),
+          taxAmount: Value(taxAmount),
+          total: Value(total),
+          currency: Value(currency),
+          notes: Value(notes),
+          updatedAt: Value(DateTime.now()),
+        ))
+        .then((rows) => rows > 0);
+  }
+
   /// Update invoice PDF path.
   Future<bool> updatePdfPath(int invoiceId, String path) {
     return (update(invoices)..where((t) => t.id.equals(invoiceId)))

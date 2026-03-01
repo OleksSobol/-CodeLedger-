@@ -16,6 +16,7 @@ import '../../features/invoices/presentation/pages/invoices_list_page.dart';
 import '../../features/invoices/presentation/pages/invoice_detail_page.dart';
 import '../../features/invoices/presentation/pages/invoice_wizard_page.dart';
 import '../../features/invoices/presentation/pages/manual_invoice_page.dart';
+import '../../features/invoices/presentation/pages/edit_draft_invoice_page.dart';
 import '../../features/reports/presentation/pages/reports_page.dart';
 import '../../features/backup/presentation/pages/backup_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
@@ -117,6 +118,17 @@ final appRouter = GoRouter(
       name: 'invoiceManual',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const ManualInvoicePage(),
+    ),
+
+    // Edit draft invoice
+    GoRoute(
+      path: '/invoices/:invoiceId/edit',
+      name: 'invoiceEditDraft',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final invoice = state.extra as Invoice;
+        return EditDraftInvoicePage(invoice: invoice);
+      },
     ),
 
     // Invoice wizard (single page with internal PageView steps)

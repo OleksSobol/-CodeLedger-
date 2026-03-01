@@ -380,6 +380,35 @@ class InvoiceNotifier extends AsyncNotifier<void> {
     ref.invalidate(invoiceDetailProvider(invoiceId));
   }
 
+  /// Update all editable fields of a draft invoice.
+  Future<void> updateDraftInvoice({
+    required int invoiceId,
+    required int clientId,
+    required String invoiceNumber,
+    required DateTime issueDate,
+    required DateTime dueDate,
+    required double subtotal,
+    required double taxRate,
+    required String taxLabel,
+    required String currency,
+    String? notes,
+  }) async {
+    await _invoiceDao.updateDraftInvoice(
+      invoiceId: invoiceId,
+      clientId: clientId,
+      invoiceNumber: invoiceNumber,
+      issueDate: issueDate,
+      dueDate: dueDate,
+      subtotal: subtotal,
+      taxRate: taxRate,
+      taxLabel: taxLabel,
+      currency: currency,
+      notes: notes,
+    );
+    ref.invalidate(allInvoicesProvider);
+    ref.invalidate(invoiceDetailProvider(invoiceId));
+  }
+
   /// Rename an invoice number.
   Future<void> updateInvoiceNumber(int invoiceId, String invoiceNumber) async {
     await _invoiceDao.updateInvoiceNumber(invoiceId, invoiceNumber);

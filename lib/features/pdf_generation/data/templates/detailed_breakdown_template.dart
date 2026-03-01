@@ -1,6 +1,5 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import '../../../../core/database/app_database.dart';
 import 'base_invoice_template.dart';
 import '../models/pdf_invoice_data.dart';
 
@@ -41,50 +40,35 @@ class DetailedBreakdownTemplate extends BaseInvoiceTemplate {
   }
 
   pw.Widget _buildGroupedTable(PdfInvoiceData data, PdfColor accent) {
-    // Group items that have a time_entry_id by date, put manual items at end
-    final timeItems = <InvoiceLineItem>[];
-    final manualItems = <InvoiceLineItem>[];
-
-    for (final item in data.lineItems) {
-      if (item.timeEntryId != null) {
-        timeItems.add(item);
-      } else {
-        manualItems.add(item);
-      }
-    }
-
     final allRows = <List<String>>[];
 
-    // For time-based items, we use the sort order (which was chronological)
-    // and show project name if available
-    for (final item in timeItems) {
+    for (final item in data.lineItems) {
+      // Split on ' | ' — if the first segment looks like a date, use it as
+      // the Date column; otherwise leave Date blank (manual line items).
       final parts = item.description.split(' | ');
-      final date = parts.length > 1 ? parts.first : '';
-      final rawDesc = parts.length > 1 ? parts.skip(1).join(' | ') : item.description;
+      final looksLikeDate = parts.length > 1 &&
+          RegExp(r'^[A-Za-z]+ \d+, \d{4}$').hasMatch(parts.first.trim());
+
+      final date = looksLikeDate ? parts.first.trim() : '';
+      final rawDesc = looksLikeDate
+          ? parts.skip(1).join(' | ')
+          : item.description;
+
       final projectName = item.projectId != null
           ? data.projectNames[item.projectId] ?? ''
           : '';
-      final desc = projectName.isNotEmpty
-          ? '$projectName - $rawDesc'
-          : rawDesc;
+      final desc =
+          projectName.isNotEmpty ? '$projectName - $rawDesc' : rawDesc;
+
+      // Time-based rows show hours; manual rows show quantity as a plain number
+      final qtyStr = looksLikeDate || item.timeEntryId != null
+          ? '${item.quantity.toStringAsFixed(2)}h'
+          : item.quantity.toStringAsFixed(2);
+
       allRows.add([
         date,
         desc,
-        '${item.quantity.toStringAsFixed(2)}h',
-        fmtCurrency(item.unitPrice),
-        fmtCurrency(item.total),
-      ]);
-    }
-
-    if (manualItems.isNotEmpty && timeItems.isNotEmpty) {
-      allRows.add(['', 'Other Items', '', '', '']);
-    }
-
-    for (final item in manualItems) {
-      allRows.add([
-        '',
-        item.description,
-        item.quantity.toStringAsFixed(2),
+        qtyStr,
         fmtCurrency(item.unitPrice),
         fmtCurrency(item.total),
       ]);

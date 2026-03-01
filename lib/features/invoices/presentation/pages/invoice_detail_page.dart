@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../../core/database/app_database.dart';
@@ -167,6 +168,15 @@ class InvoiceDetailPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Invoice'),
         actions: [
+          if (invoiceAsync.value?.status == 'draft')
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit Draft',
+              onPressed: () => context.push(
+                '/invoices/$invoiceId/edit',
+                extra: invoiceAsync.value,
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             tooltip: 'View PDF',
@@ -277,23 +287,10 @@ class _InvoiceDetailBody extends ConsumerWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: InkWell(
-                        onTap: () => _editInvoiceNumber(context, ref, invoice),
-                        borderRadius: BorderRadius.circular(4),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              invoice.invoiceNumber,
-                              style: theme.textTheme.headlineSmall
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(width: 6),
-                            Icon(Icons.edit_outlined,
-                                size: 16,
-                                color: theme.colorScheme.onSurfaceVariant),
-                          ],
-                        ),
+                      child: Text(
+                        invoice.invoiceNumber,
+                        style: theme.textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
                     InvoiceStatusBadge(status: invoice.status),
@@ -458,20 +455,6 @@ class _InvoiceDetailBody extends ConsumerWidget {
         _buildActions(context, ref, invoice, balanceDue),
         const SizedBox(height: 32),
       ],
-    );
-  }
-
-  Future<void> _editInvoiceNumber(
-      BuildContext context, WidgetRef ref, Invoice inv) {
-    return showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => _EditInvoiceNumberSheet(
-        invoiceId: inv.id,
-        current: inv.invoiceNumber,
-        ref: ref,
-      ),
     );
   }
 
@@ -785,86 +768,6 @@ class _LineItemRow extends StatelessWidget {
                     ?.copyWith(fontWeight: FontWeight.w600)),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _EditInvoiceNumberSheet extends StatefulWidget {
-  final int invoiceId;
-  final String current;
-  final WidgetRef ref;
-
-  const _EditInvoiceNumberSheet({
-    required this.invoiceId,
-    required this.current,
-    required this.ref,
-  });
-
-  @override
-  State<_EditInvoiceNumberSheet> createState() =>
-      _EditInvoiceNumberSheetState();
-}
-
-class _EditInvoiceNumberSheetState extends State<_EditInvoiceNumberSheet> {
-  late final TextEditingController _ctrl;
-  final _formKey = GlobalKey<FormState>();
-  bool _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = TextEditingController(text: widget.current);
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _saving = true);
-    final newNumber = _ctrl.text.trim();
-    Navigator.of(context).pop();
-    await widget.ref
-        .read(invoiceNotifierProvider.notifier)
-        .updateInvoiceNumber(widget.invoiceId, newNumber);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-          16, 24, 16, MediaQuery.viewInsetsOf(context).bottom + 24),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Edit Invoice Number',
-                style: Theme.of(context).textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _ctrl,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Invoice Number',
-                border: OutlineInputBorder(),
-              ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: _saving ? null : _save,
-              child: const Text('Save'),
-            ),
-          ],
-        ),
       ),
     );
   }
