@@ -277,10 +277,23 @@ class _InvoiceDetailBody extends ConsumerWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        invoice.invoiceNumber,
-                        style: theme.textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                      child: InkWell(
+                        onTap: () => _editInvoiceNumber(context, ref, invoice),
+                        borderRadius: BorderRadius.circular(4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              invoice.invoiceNumber,
+                              style: theme.textTheme.headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(width: 6),
+                            Icon(Icons.edit_outlined,
+                                size: 16,
+                                color: theme.colorScheme.onSurfaceVariant),
+                          ],
+                        ),
                       ),
                     ),
                     InvoiceStatusBadge(status: invoice.status),
@@ -445,6 +458,20 @@ class _InvoiceDetailBody extends ConsumerWidget {
         _buildActions(context, ref, invoice, balanceDue),
         const SizedBox(height: 32),
       ],
+    );
+  }
+
+  Future<void> _editInvoiceNumber(
+      BuildContext context, WidgetRef ref, Invoice inv) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => _EditInvoiceNumberSheet(
+        invoiceId: inv.id,
+        current: inv.invoiceNumber,
+        ref: ref,
+      ),
     );
   }
 
@@ -758,6 +785,86 @@ class _LineItemRow extends StatelessWidget {
                     ?.copyWith(fontWeight: FontWeight.w600)),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _EditInvoiceNumberSheet extends StatefulWidget {
+  final int invoiceId;
+  final String current;
+  final WidgetRef ref;
+
+  const _EditInvoiceNumberSheet({
+    required this.invoiceId,
+    required this.current,
+    required this.ref,
+  });
+
+  @override
+  State<_EditInvoiceNumberSheet> createState() =>
+      _EditInvoiceNumberSheetState();
+}
+
+class _EditInvoiceNumberSheetState extends State<_EditInvoiceNumberSheet> {
+  late final TextEditingController _ctrl;
+  final _formKey = GlobalKey<FormState>();
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController(text: widget.current);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    final newNumber = _ctrl.text.trim();
+    Navigator.of(context).pop();
+    await widget.ref
+        .read(invoiceNotifierProvider.notifier)
+        .updateInvoiceNumber(widget.invoiceId, newNumber);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          16, 24, 16, MediaQuery.viewInsetsOf(context).bottom + 24),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Edit Invoice Number',
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _ctrl,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Invoice Number',
+                border: OutlineInputBorder(),
+              ),
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: _saving ? null : _save,
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
   }

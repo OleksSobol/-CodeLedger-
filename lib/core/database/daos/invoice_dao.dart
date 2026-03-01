@@ -242,6 +242,16 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
         .get();
   }
 
+  /// Update invoice number.
+  Future<bool> updateInvoiceNumber(int invoiceId, String invoiceNumber) {
+    return (update(invoices)..where((t) => t.id.equals(invoiceId)))
+        .write(InvoicesCompanion(
+          invoiceNumber: Value(invoiceNumber),
+          updatedAt: Value(DateTime.now()),
+        ))
+        .then((rows) => rows > 0);
+  }
+
   /// Update invoice PDF path.
   Future<bool> updatePdfPath(int invoiceId, String path) {
     return (update(invoices)..where((t) => t.id.equals(invoiceId)))

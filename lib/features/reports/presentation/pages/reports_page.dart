@@ -11,7 +11,10 @@ import '../../../export/presentation/providers/export_providers.dart';
 import '../../../projects/presentation/providers/project_providers.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../time_tracking/presentation/providers/time_entry_providers.dart';
+import '../../../invoices/presentation/providers/invoice_providers.dart';
+import '../../data/models/tax_report_data.dart';
 import '../../data/models/work_report_data.dart';
+import '../../data/templates/tax_report_template.dart';
 import '../../data/templates/timesheet_template.dart';
 import 'report_preview_page.dart';
 
@@ -145,6 +148,113 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
           ),
         ),
       );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<TaxReportData?> _fetchTaxReportData() async {
+    if (_dateRange == null) return null;
+
+    final profileDao = ref.read(userProfileDaoProvider);
+    final clientDao = ref.read(clientDaoProvider);
+    final profile = await profileDao.getProfile();
+
+    final allInvoices = ref.read(allInvoicesProvider).valueOrNull ?? [];
+
+    final endOfDay = DateTime(
+      _dateRange!.end.year,
+      _dateRange!.end.month,
+      _dateRange!.end.day,
+      23, 59, 59,
+    );
+
+    final filtered = allInvoices.where((inv) {
+      if (inv.status != 'paid') return false;
+      if (inv.issueDate.isBefore(_dateRange!.start)) return false;
+      if (inv.issueDate.isAfter(endOfDay)) return false;
+      if (_selectedClientId != null && inv.clientId != _selectedClientId) {
+        return false;
+      }
+      return true;
+    }).toList()
+      ..sort((a, b) => a.issueDate.compareTo(b.issueDate));
+
+    final names = <int, String>{};
+    for (final inv in filtered) {
+      if (!names.containsKey(inv.clientId)) {
+        try {
+          names[inv.clientId] =
+              (await clientDao.getClient(inv.clientId)).name;
+        } catch (_) {
+          names[inv.clientId] = 'Unknown Client';
+        }
+      }
+    }
+
+    return TaxReportData(
+      profile: profile,
+      startDate: _dateRange!.start,
+      endDate: _dateRange!.end,
+      rows: filtered
+          .map((inv) =>
+              TaxReportRow(invoice: inv, clientName: names[inv.clientId]!))
+          .toList(),
+      clientFilterName:
+          _selectedClientId != null ? names[_selectedClientId] : null,
+    );
+  }
+
+  Future<void> _generateTaxReport() async {
+    setState(() => _isLoading = true);
+    try {
+      final data = await _fetchTaxReportData();
+      if (data == null || !mounted) return;
+      if (data.rows.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('No paid invoices in the selected period.')));
+        return;
+      }
+      final bytes =
+          await (await const TaxReportTemplate().build(data)).save();
+      if (!mounted) return;
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) =>
+            _TimesheetPreviewPage(pdfBytes: bytes, title: 'Tax Report'),
+      ));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _exportTaxReportCsv() async {
+    setState(() => _isLoading = true);
+    try {
+      final data = await _fetchTaxReportData();
+      if (data == null || !mounted) return;
+      if (data.rows.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('No paid invoices in the selected period.')));
+        return;
+      }
+      final exportService = ref.read(exportServiceProvider);
+      final file =
+          await exportService.generateTaxReportCsv(rows: data.rows);
+      if (!mounted) return;
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile(file.path, mimeType: 'text/csv')],
+        subject: 'Tax Report',
+      ));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -407,6 +517,52 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                       onPressed: _isLoading ? null : _exportCsv,
                       icon: const Icon(Icons.download_outlined),
                       label: const Text('Export CSV'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ── Tax / Income Report ────────────────────────────────
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Tax / Income Report',
+                        style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Paid invoices only — net income, tax collected, '
+                      'and total paid. Uses the date range and client '
+                      'filter above.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed:
+                                _isLoading ? null : _generateTaxReport,
+                            icon: const Icon(Icons.receipt_long_outlined),
+                            label: const Text('Generate PDF'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed:
+                                _isLoading ? null : _exportTaxReportCsv,
+                            icon: const Icon(Icons.download_outlined),
+                            label: const Text('Export CSV'),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

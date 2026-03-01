@@ -24,6 +24,7 @@ class InvoicesListPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Invoices'),
       ),
+      floatingActionButton: _NewInvoiceFab(),
       body: Column(
         children: [
           // Status filter chips
@@ -142,6 +143,58 @@ class _InvoiceListView extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _NewInvoiceFab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton.extended(
+      onPressed: () => _showMenu(context),
+      icon: const Icon(Icons.add),
+      label: const Text('New Invoice'),
+      tooltip: 'New Invoice',
+    );
+  }
+
+  void _showMenu(BuildContext context) {
+    final theme = Theme.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text('New Invoice',
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long_outlined),
+              title: const Text('From time entries'),
+              subtitle: const Text('Select billable hours to invoice'),
+              onTap: () {
+                Navigator.pop(ctx);
+                context.push('/invoices/create');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_note),
+              title: const Text('Manual entry'),
+              subtitle: const Text('Enter invoice details directly'),
+              onTap: () {
+                Navigator.pop(ctx);
+                context.push('/invoices/manual');
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
     );
   }
 }

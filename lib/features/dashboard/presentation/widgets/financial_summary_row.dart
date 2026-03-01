@@ -132,7 +132,7 @@ class _InsightTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: Spacing.sm),
       child: SizedBox(
-        width: 160,
+        width: 175,
         child: Card(
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -182,14 +182,18 @@ class _InsightTile extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: Spacing.xs),
-                        Text(
-                          value,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontFeatures: [const FontFeature.tabularFigures()],
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            value,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontFeatures: [
+                                const FontFeature.tabularFigures()
+                              ],
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),

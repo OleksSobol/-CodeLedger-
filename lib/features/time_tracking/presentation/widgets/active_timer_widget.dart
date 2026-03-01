@@ -124,70 +124,28 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
       color: theme.colorScheme.primaryContainer,
       child: Padding(
         padding: const EdgeInsets.all(Spacing.md),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Pulsing dot
-            AnimatedBuilder(
-              animation: _pulseAnimation,
-              builder: (_, __) => Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: theme.colorScheme.error
-                      .withValues(alpha: _pulseAnimation.value),
-                ),
-              ),
-            ),
-            const SizedBox(width: Spacing.sm + 4),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Isolated ticker — only this rebuilds every second
-                  ValueListenableBuilder<Duration>(
-                    valueListenable: _elapsed,
-                    builder: (_, elapsed, __) {
-                      final h = elapsed.inHours;
-                      final m = elapsed.inMinutes.remainder(60);
-                      final s = elapsed.inSeconds.remainder(60);
-                      final display = h > 0
-                          ? '${h}h ${m.toString().padLeft(2, '0')}m ${s.toString().padLeft(2, '0')}s'
-                          : '${m}m ${s.toString().padLeft(2, '0')}s';
-                      final earnings =
-                          elapsed.inSeconds / 3600.0 * rate;
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            display,
-                            style:
-                                theme.textTheme.headlineLarge?.copyWith(
-                              color: theme
-                                  .colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
-                              fontFeatures: [
-                                const FontFeature.tabularFigures()
-                              ],
-                            ),
-                          ),
-                          Text(
-                            '\$${earnings.toStringAsFixed(2)} earned',
-                            style:
-                                theme.textTheme.bodySmall?.copyWith(
-                              color: theme
-                                  .colorScheme.onPrimaryContainer
-                                  .withValues(alpha: 0.7),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+            // Header row: pulsing dot + client / description
+            Row(
+              children: [
+                AnimatedBuilder(
+                  animation: _pulseAnimation,
+                  builder: (_, __) => Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: theme.colorScheme.error
+                          .withValues(alpha: _pulseAnimation.value),
+                    ),
                   ),
-                  if (clientName != null ||
-                      widget.entry.description != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
+                ),
+                const SizedBox(width: 8),
+                if (clientName != null || widget.entry.description != null)
+                  Expanded(
+                    child: Text(
                       clientName ?? widget.entry.description ?? '',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onPrimaryContainer,
@@ -195,10 +153,49 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ],
-              ),
+                  ),
+              ],
             ),
+            const SizedBox(height: Spacing.sm),
+
+            // Full-width elapsed timer + earnings — isolated ticker
+            ValueListenableBuilder<Duration>(
+              valueListenable: _elapsed,
+              builder: (_, elapsed, __) {
+                final h = elapsed.inHours;
+                final m = elapsed.inMinutes.remainder(60);
+                final s = elapsed.inSeconds.remainder(60);
+                final display = h > 0
+                    ? '${h}h ${m.toString().padLeft(2, '0')}m ${s.toString().padLeft(2, '0')}s'
+                    : '${m}m ${s.toString().padLeft(2, '0')}s';
+                final earnings = elapsed.inSeconds / 3600.0 * rate;
+                return Column(
+                  children: [
+                    Text(
+                      display,
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontFeatures: [const FontFeature.tabularFigures()],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      '\$${earnings.toStringAsFixed(2)} earned',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer
+                            .withValues(alpha: 0.7),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            const SizedBox(height: Spacing.md),
+
+            // Clock Out button — full width
             FilledButton(
               onPressed: _clockOut,
               style: FilledButton.styleFrom(

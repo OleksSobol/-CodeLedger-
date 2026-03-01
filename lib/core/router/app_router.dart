@@ -15,6 +15,7 @@ import '../../features/time_tracking/presentation/pages/edit_time_entry_page.dar
 import '../../features/invoices/presentation/pages/invoices_list_page.dart';
 import '../../features/invoices/presentation/pages/invoice_detail_page.dart';
 import '../../features/invoices/presentation/pages/invoice_wizard_page.dart';
+import '../../features/invoices/presentation/pages/manual_invoice_page.dart';
 import '../../features/reports/presentation/pages/reports_page.dart';
 import '../../features/backup/presentation/pages/backup_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
@@ -108,6 +109,14 @@ final appRouter = GoRouter(
         final entry = state.extra as TimeEntry;
         return EditTimeEntryPage(entry: entry);
       },
+    ),
+
+    // Manual invoice entry
+    GoRoute(
+      path: '/invoices/manual',
+      name: 'invoiceManual',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const ManualInvoicePage(),
     ),
 
     // Invoice wizard (single page with internal PageView steps)

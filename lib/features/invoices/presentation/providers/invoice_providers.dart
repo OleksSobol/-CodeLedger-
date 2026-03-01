@@ -380,6 +380,13 @@ class InvoiceNotifier extends AsyncNotifier<void> {
     ref.invalidate(invoiceDetailProvider(invoiceId));
   }
 
+  /// Rename an invoice number.
+  Future<void> updateInvoiceNumber(int invoiceId, String invoiceNumber) async {
+    await _invoiceDao.updateInvoiceNumber(invoiceId, invoiceNumber);
+    ref.invalidate(allInvoicesProvider);
+    ref.invalidate(invoiceDetailProvider(invoiceId));
+  }
+
   /// Edit a single line item and recalculate invoice totals.
   Future<void> editLineItem({
     required int lineItemId,
