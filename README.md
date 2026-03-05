@@ -2,15 +2,17 @@
 
 Offline-first time tracking and invoicing app for freelance developers. Built with Flutter, backed by local SQLite via Drift, with encrypted Google Drive backups.
 
-## Features (Planned)
-- Clock in/out timer with overlap detection
-- Client & project management
-- Invoice generation with 3 PDF templates (Minimal, Detailed, Modern Developer)
-- ACH + Stripe payment tracking (partial payments supported)
-- GitHub issue reference & repository tracking per time entry
-- CSV/XLSX export, email sending via device client
-- Encrypted Google Drive backup (AES-256-GCM)
-- Dark mode
+> **Latest release:** [v1.1.0](https://github.com/OleksSobol/-CodeLedger-/releases/tag/v1.1.0)
+
+## Features
+- **Time tracking** — Clock in/out timer with overlap detection, GitHub issue references, project tagging
+- **Client & project management** — Archive/restore clients, per-client hourly rate and tax rate
+- **Invoicing** — Create, edit, and send invoices; draft editing; mark paid/archived
+- **PDF templates** — 3 built-in templates: Minimal, Detailed Breakdown, Modern Developer
+- **Reports** — Tax/Income report (PDF + CSV), Timesheet, Work Report; optional archived invoice inclusion
+- **Encrypted backups** — AES-256-GCM encrypted backups to local storage or Google Drive
+- **Data management** — Erase all data with double-confirmation (passphrase preserved)
+- **Dark mode** — System/Light/Dark theme switcher
 
 ## Tech Stack
 - **Flutter** (Android, iOS, Web, Windows)
