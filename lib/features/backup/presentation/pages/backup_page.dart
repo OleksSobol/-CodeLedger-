@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../../core/providers/database_provider.dart';
 import '../../../../shared/widgets/app_page_body.dart';
 import '../../../../shared/widgets/app_page_scaffold.dart';
 import '../../../../shared/widgets/app_section_card.dart';
@@ -272,6 +273,54 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     }
   }
 
+  Future<void> _eraseAllData() async {
+    if (!mounted) return;
+    final confirmed1 = await confirmDestructive(
+      context,
+      title: 'Erase All Data?',
+      message:
+          'This will permanently delete all time entries, invoices, clients, and projects. Your backup passphrase will be kept. This cannot be undone.',
+      confirmLabel: 'Erase',
+    );
+    if (!confirmed1) return;
+
+    if (!mounted) return;
+    final confirmed2 = await confirmDestructive(
+      context,
+      title: 'Are you absolutely sure?',
+      message: 'All your data will be gone. There is no undo.',
+      confirmLabel: 'Yes, erase everything',
+    );
+    if (!confirmed2) return;
+
+    _setState(const BackupWorking('Erasing data...'));
+    try {
+      final db = ref.read(databaseProvider);
+      await db.eraseAllData();
+      _setState(const BackupIdle());
+      if (mounted) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Data Erased'),
+            content: const Text(
+                'All data has been erased. Restart the app to continue.'),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      _setState(const BackupIdle());
+      _showSnack('Erase failed: $e');
+    }
+  }
+
   Future<void> _deleteDriveBackup(DriveBackupEntry entry) async {
     final confirmed = await confirmDestructive(
       context,
@@ -334,6 +383,13 @@ class _BackupPageState extends ConsumerState<BackupPage> {
               onDelete: _deleteDriveBackup,
             ),
           ],
+
+          // -- Danger Zone --
+          const SizedBox(height: Spacing.lg),
+          _DangerZoneSection(
+            isWorking: isWorking,
+            onErase: _eraseAllData,
+          ),
         ],
       ),
     );
@@ -605,6 +661,58 @@ class _DriveBackupsList extends ConsumerWidget {
               }).toList(),
             );
           },
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================================
+// Danger Zone Section
+// ============================================================
+
+class _DangerZoneSection extends StatelessWidget {
+  final bool isWorking;
+  final VoidCallback onErase;
+
+  const _DangerZoneSection({
+    required this.isWorking,
+    required this.onErase,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AppSectionCard(
+      title: 'Danger Zone',
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(Spacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Permanently delete all time entries, invoices, clients, '
+                'and projects. Your backup passphrase is kept. '
+                'This cannot be undone.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: Spacing.md),
+              OutlinedButton.icon(
+                onPressed: isWorking ? null : onErase,
+                icon: Icon(Icons.delete_forever_outlined,
+                    color: theme.colorScheme.error),
+                label: Text(
+                  'Erase All Data',
+                  style: TextStyle(color: theme.colorScheme.error),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: theme.colorScheme.error),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

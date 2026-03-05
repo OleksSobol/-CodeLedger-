@@ -11,6 +11,16 @@ class ClientDao extends DatabaseAccessor<AppDatabase>
     with _$ClientDaoMixin {
   ClientDao(super.db);
 
+  /// Watch all clients including archived.
+  Stream<List<Client>> watchAllClients() {
+    return (select(clients)
+          ..orderBy([
+            (t) => OrderingTerm.asc(t.isArchived),
+            (t) => OrderingTerm.asc(t.name),
+          ]))
+        .watch();
+  }
+
   /// Watch all active (non-archived) clients.
   Stream<List<Client>> watchActiveClients() {
     return (select(clients)

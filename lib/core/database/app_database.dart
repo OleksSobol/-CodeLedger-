@@ -84,6 +84,23 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  /// Deletes all user data and re-seeds defaults.
+  ///
+  /// Preserves app_settings (passphrase etc.) and resets user profile.
+  /// Caller must restart the app after this completes.
+  Future<void> eraseAllData() async {
+    await transaction(() async {
+      await delete(invoiceLineItems).go();
+      await delete(timeEntries).go();
+      await delete(invoices).go();
+      await delete(projects).go();
+      await delete(userProfiles).go();
+      await delete(clients).go();
+      await delete(invoiceTemplates).go();
+      await _seedDefaults();
+    });
+  }
+
   /// Returns the path to the database file (for backup operations).
   static Future<String> get databasePath async {
     final dir = await getApplicationDocumentsDirectory();

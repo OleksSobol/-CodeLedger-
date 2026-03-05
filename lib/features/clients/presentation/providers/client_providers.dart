@@ -12,6 +12,10 @@ final activeClientsProvider = StreamProvider<List<Client>>((ref) {
   return ref.watch(clientDaoProvider).watchActiveClients();
 });
 
+final allClientsProvider = StreamProvider<List<Client>>((ref) {
+  return ref.watch(clientDaoProvider).watchAllClients();
+});
+
 /// Fetches a single client by ID.
 final clientByIdProvider =
     FutureProvider.family<Client, int>((ref, clientId) async {

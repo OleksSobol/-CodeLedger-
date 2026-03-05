@@ -4,16 +4,37 @@ import 'package:go_router/go_router.dart';
 import '../providers/client_providers.dart';
 import '../widgets/client_list_tile.dart';
 
-class ClientsListPage extends ConsumerWidget {
+class ClientsListPage extends ConsumerStatefulWidget {
   const ClientsListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final clientsAsync = ref.watch(activeClientsProvider);
+  ConsumerState<ClientsListPage> createState() => _ClientsListPageState();
+}
+
+class _ClientsListPageState extends ConsumerState<ClientsListPage> {
+  bool _showArchived = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final clientsAsync = _showArchived
+        ? ref.watch(allClientsProvider)
+        : ref.watch(activeClientsProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Clients'),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _showArchived ? Icons.archive : Icons.archive_outlined,
+              color: _showArchived
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
+            ),
+            tooltip: _showArchived ? 'Hide archived' : 'Show archived',
+            onPressed: () => setState(() => _showArchived = !_showArchived),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/clients/add'),
@@ -42,8 +63,13 @@ class ClientsListPage extends ConsumerWidget {
           }
           return ListView.builder(
             itemCount: clients.length,
-            itemBuilder: (context, index) =>
-                ClientListTile(client: clients[index]),
+            itemBuilder: (context, index) {
+              final client = clients[index];
+              return Opacity(
+                opacity: client.isArchived ? 0.5 : 1.0,
+                child: ClientListTile(client: client),
+              );
+            },
           );
         },
       ),
