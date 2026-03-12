@@ -100,13 +100,17 @@ class DateRangeSelector extends ConsumerWidget {
 
   Future<void> _pickCustomRange(
       BuildContext context, WidgetRef ref, DateRangeFilter current) async {
+    final initialEnd = current.end.subtract(const Duration(days: 1));
+    final lastDate = initialEnd.isAfter(DateTime.now())
+        ? initialEnd
+        : DateTime.now().add(const Duration(days: 1));
     final picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 1)),
+      lastDate: lastDate,
       initialDateRange: DateTimeRange(
         start: current.start,
-        end: current.end.subtract(const Duration(days: 1)),
+        end: initialEnd,
       ),
     );
     if (picked != null) {
