@@ -32,6 +32,19 @@ class PdfInvoiceData {
     return parts.join('\n');
   }
 
+  static final _datePattern = RegExp(r'^[A-Za-z]+ \d+, \d{4}$');
+
+  double get totalHours {
+    double total = 0;
+    for (final item in lineItems) {
+      final parts = item.description.split(' | ');
+      final isTimeBased = item.timeEntryId != null ||
+          (parts.length > 1 && _datePattern.hasMatch(parts.first.trim()));
+      if (isTimeBased) total += item.quantity;
+    }
+    return total;
+  }
+
   String get clientAddress {
     final parts = <String>[];
     if (client.addressLine1 != null) parts.add(client.addressLine1!);

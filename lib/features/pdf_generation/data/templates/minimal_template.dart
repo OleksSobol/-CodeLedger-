@@ -183,8 +183,10 @@ class MinimalTemplate extends BaseInvoiceTemplate {
 
   pw.Widget _buildTotals(PdfInvoiceData data) {
     final inv = data.invoice;
+    final hours = data.totalHours;
     final rows = <pw.Widget>[];
 
+    if (hours > 0) rows.add(_totalLine('Total Hours', '${hours.toStringAsFixed(2)}h'));
     rows.add(_totalLine('Subtotal', fmtCurrency(inv.subtotal)));
 
     if (inv.taxRate > 0) {

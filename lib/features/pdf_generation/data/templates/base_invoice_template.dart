@@ -159,7 +159,9 @@ abstract class BaseInvoiceTemplate {
 
   pw.Widget buildTotals(PdfInvoiceData data, {PdfColor? accentColor}) {
     final inv = data.invoice;
+    final hours = data.totalHours;
     final rows = <pw.Widget>[
+      if (hours > 0) _totalRow('Total Hours', '${hours.toStringAsFixed(2)}h'),
       _totalRow('Subtotal', fmtCurrency(inv.subtotal)),
     ];
     if (inv.taxRate > 0) {
