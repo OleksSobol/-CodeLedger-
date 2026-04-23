@@ -7,6 +7,7 @@ import '../../../../core/database/daos/time_entry_dao.dart';
 import '../../../../core/utils/duration_formatter.dart';
 import '../../../../core/utils/tag_utils.dart';
 import '../providers/time_entry_providers.dart';
+import '../../../projects/presentation/providers/project_providers.dart';
 
 class EditTimeEntryPage extends ConsumerStatefulWidget {
   final TimeEntry entry;
@@ -26,6 +27,7 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
   late DateTime _date;
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
+  int? _selectedProjectId;
   bool _saving = false;
 
   @override
@@ -43,6 +45,7 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
     _endTime = e.endTime != null
         ? TimeOfDay.fromDateTime(e.endTime!)
         : TimeOfDay.fromDateTime(DateTime.now());
+    _selectedProjectId = e.projectId;
   }
 
   @override
@@ -104,6 +107,8 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
         // Only update metadata — never write end time on a running timer
         await notifier.updateEntryMeta(
           entryId: widget.entry.id,
+          projectId: _selectedProjectId,
+          clearProject: _selectedProjectId == null,
           description: _trimOrNull(_descriptionCtrl.text),
           issueReference: _trimOrNull(_issueRefCtrl.text),
           repository: _trimOrNull(_repoCtrl.text),
@@ -127,6 +132,8 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
           entryId: widget.entry.id,
           startTime: start,
           endTime: end,
+          projectId: _selectedProjectId,
+          clearProject: _selectedProjectId == null,
           description: _trimOrNull(_descriptionCtrl.text),
           issueReference: _trimOrNull(_issueRefCtrl.text),
           repository: _trimOrNull(_repoCtrl.text),
@@ -168,6 +175,7 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
     final duration = _buildDateTime(_date, _endTime)
         .difference(_buildDateTime(_date, _startTime));
     final isCompleted = widget.entry.endTime != null;
+    final projectsAsync = ref.watch(projectsForClientProvider(widget.entry.clientId));
 
     return Scaffold(
       appBar: AppBar(
@@ -285,6 +293,33 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             ),
 
           const SizedBox(height: 8),
+          projectsAsync.when(
+            data: (projects) {
+              if (projects.isEmpty) return const SizedBox.shrink();
+              return DropdownButtonFormField<int?>(
+                value: projects.any((p) => p.id == _selectedProjectId)
+                    ? _selectedProjectId
+                    : null,
+                decoration: const InputDecoration(labelText: 'Project'),
+                items: [
+                  const DropdownMenuItem<int?>(
+                    value: null,
+                    child: Text('None'),
+                  ),
+                  ...projects.map((p) => DropdownMenuItem<int?>(
+                        value: p.id,
+                        child: Text(p.name),
+                      )),
+                ],
+                onChanged: widget.entry.isInvoiced
+                    ? null
+                    : (v) => setState(() => _selectedProjectId = v),
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _rateCtrl,
             decoration: const InputDecoration(

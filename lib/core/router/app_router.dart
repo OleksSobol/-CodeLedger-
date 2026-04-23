@@ -22,6 +22,9 @@ import '../../features/backup/presentation/pages/backup_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/invoices/presentation/pages/template_list_page.dart';
 import '../../features/invoices/presentation/pages/template_designer_page.dart';
+import '../../features/time_tracking/presentation/pages/time_entry_layout_page.dart';
+import '../../features/settings/presentation/pages/accounts_settings_page.dart';
+import '../../features/reports/presentation/pages/wa_excise_report_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
@@ -214,6 +217,18 @@ final appRouter = GoRouter(
     ),
     // Invoice template designer
     GoRoute(
+      path: '/settings/accounts',
+      name: 'accounts',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const AccountsSettingsPage(),
+    ),
+    GoRoute(
+      path: '/settings/entry-layout',
+      name: 'entryLayout',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const TimeEntryLayoutPage(),
+    ),
+    GoRoute(
       path: '/settings/templates',
       name: 'templateList',
       parentNavigatorKey: _rootNavigatorKey,
@@ -234,6 +249,12 @@ final appRouter = GoRouter(
       name: 'reports',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const ReportsPage(),
+    ),
+    GoRoute(
+      path: '/reports/wa-excise',
+      name: 'waExcise',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const WaExciseReportPage(),
     ),
     GoRoute(
       path: '/backup',

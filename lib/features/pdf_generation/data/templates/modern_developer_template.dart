@@ -104,6 +104,8 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
 
   pw.Widget _buildDevTable(
       PdfInvoiceData data, PdfColor accent, PdfColor primary) {
+    final mode = data.template.lineItemDisplayMode;
+
     // Determine whether each item is time-based by description format,
     // not by timeEntryId (grouped items have null timeEntryId).
     final timeItems = <InvoiceLineItem>[];
@@ -127,6 +129,15 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
     }
 
     final widgets = <pw.Widget>[];
+
+    final tableBorder = pw.TableBorder(
+      bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
+      horizontalInside: pw.BorderSide(color: PdfColors.grey200, width: 0.5),
+    );
+    final headerStyle = pw.TextStyle(
+        fontWeight: pw.FontWeight.bold,
+        fontSize: 9,
+        color: PdfColors.grey700);
 
     for (final entry in byProject.entries) {
       final projectName = entry.key != null
@@ -168,37 +179,22 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
             ),
             // Items
             pw.TableHelper.fromTextArray(
-              border: pw.TableBorder(
-                bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
-                horizontalInside:
-                    pw.BorderSide(color: PdfColors.grey200, width: 0.5),
-              ),
-              headerStyle: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold,
-                  fontSize: 9,
-                  color: PdfColors.grey700),
+              border: tableBorder,
+              headerStyle: headerStyle,
               headerAlignment: pw.Alignment.centerLeft,
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellAlignment: pw.Alignment.centerLeft,
-              columnWidths: {
-                0: const pw.FlexColumnWidth(1.8),
-                1: const pw.FlexColumnWidth(3.5),
-                2: const pw.FlexColumnWidth(1),
-                3: const pw.FlexColumnWidth(1.2),
-                4: const pw.FlexColumnWidth(1.2),
-              },
-              headers: const ['Date', 'Description', 'Hours', 'Rate', 'Amount'],
+              columnWidths: colWidthsForMode(mode),
+              headers: [
+                ...lineItemPrefixHeaders(mode),
+                'Hours',
+                'Rate',
+                'Amount',
+              ],
               data: items.map((item) {
-                final parts = item.description.split(' | ');
-                final hasDate =
-                    parts.length > 1 && _looksLikeDate(parts.first);
-                final date = hasDate ? parts.first.trim() : '';
-                final desc = hasDate
-                    ? parts.skip(1).join(' | ')
-                    : item.description;
+                final prefix = lineItemPrefix(item, mode);
                 return [
-                  date,
-                  desc,
+                  ...prefix,
                   '${item.quantity.toStringAsFixed(2)}h',
                   fmtCurrency(item.unitPrice),
                   fmtCurrency(item.total),
@@ -231,35 +227,28 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
                   )),
             ),
             pw.TableHelper.fromTextArray(
-              border: pw.TableBorder(
-                bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
-                horizontalInside:
-                    pw.BorderSide(color: PdfColors.grey200, width: 0.5),
-              ),
-              headerStyle: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold,
-                  fontSize: 9,
-                  color: PdfColors.grey700),
+              border: tableBorder,
+              headerStyle: headerStyle,
               headerAlignment: pw.Alignment.centerLeft,
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellAlignment: pw.Alignment.centerLeft,
-              columnWidths: {
-                0: const pw.FlexColumnWidth(1.8),
-                1: const pw.FlexColumnWidth(3.5),
-                2: const pw.FlexColumnWidth(1),
-                3: const pw.FlexColumnWidth(1.2),
-                4: const pw.FlexColumnWidth(1.2),
-              },
-              headers: const ['', 'Description', 'Qty', 'Rate', 'Amount'],
-              data: manualItems
-                  .map((item) => [
-                        '',
-                        item.description,
-                        item.quantity.toStringAsFixed(2),
-                        fmtCurrency(item.unitPrice),
-                        fmtCurrency(item.total),
-                      ])
-                  .toList(),
+              columnWidths: colWidthsForMode(mode),
+              headers: [
+                ...lineItemPrefixHeaders(mode),
+                'Qty',
+                'Rate',
+                'Amount',
+              ],
+              data: manualItems.map((item) {
+                // Manual items have no date; use lineItemPrefix for consistency
+                final prefix = lineItemPrefix(item, mode);
+                return [
+                  ...prefix,
+                  item.quantity.toStringAsFixed(2),
+                  fmtCurrency(item.unitPrice),
+                  fmtCurrency(item.total),
+                ];
+              }).toList(),
             ),
           ],
         ),

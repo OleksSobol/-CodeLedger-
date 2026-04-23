@@ -145,6 +145,8 @@ class MinimalTemplate extends BaseInvoiceTemplate {
   }
 
   pw.Widget _buildLineItemsTable(PdfInvoiceData data) {
+    final mode = data.template.lineItemDisplayMode;
+
     return pw.TableHelper.fromTextArray(
       border: null,
       headerStyle: pw.TextStyle(
@@ -157,22 +159,18 @@ class MinimalTemplate extends BaseInvoiceTemplate {
       cellStyle: const pw.TextStyle(fontSize: 9),
       cellAlignment: pw.Alignment.centerLeft,
       cellPadding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-      columnWidths: {
-        0: const pw.FlexColumnWidth(1.8),
-        1: const pw.FlexColumnWidth(4),
-        2: const pw.FlexColumnWidth(1),
-        3: const pw.FlexColumnWidth(1.2),
-        4: const pw.FlexColumnWidth(1.2),
-      },
+      columnWidths: colWidthsForMode(mode),
       headerAlignment: pw.Alignment.centerLeft,
-      headers: ['Date', 'Description', 'Qty', 'Rate', 'Amount'],
+      headers: [
+        ...lineItemPrefixHeaders(mode),
+        'Qty',
+        'Rate',
+        'Amount',
+      ],
       data: data.lineItems.map((item) {
-        final parts = item.description.split(' | ');
-        final date = parts.length > 1 ? parts.first : '';
-        final desc = parts.length > 1 ? parts.skip(1).join(' | ') : item.description;
+        final prefix = lineItemPrefix(item, mode);
         return [
-          date,
-          desc,
+          ...prefix,
           item.quantity.toStringAsFixed(2),
           fmtCurrency(item.unitPrice),
           fmtCurrency(item.total),

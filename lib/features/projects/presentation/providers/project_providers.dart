@@ -35,6 +35,7 @@ class ProjectNotifier extends AsyncNotifier<void> {
     required String name,
     String? description,
     double? hourlyRateOverride,
+    String? githubRepo,
     int color = 0xFF2196F3,
   }) async {
     final id = await _dao.insertProject(ProjectsCompanion.insert(
@@ -42,6 +43,7 @@ class ProjectNotifier extends AsyncNotifier<void> {
       name: name,
       description: Value(description),
       hourlyRateOverride: Value(hourlyRateOverride),
+      githubRepo: Value(githubRepo),
       color: Value(color),
     ));
     // Invalidate the family provider for this client

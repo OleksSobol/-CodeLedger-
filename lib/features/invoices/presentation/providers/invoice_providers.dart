@@ -269,6 +269,14 @@ class InvoiceNotifier extends AsyncNotifier<void> {
           .join('; ');
       final desc = '$dateStr | $descriptions';
 
+      // Aggregate unique issue references from all entries in this group
+      final issueRefs = entries
+          .map((e) => e.issueReference)
+          .whereType<String>()
+          .where((s) => s.isNotEmpty)
+          .toSet()
+          .join(', ');
+
       // Use shared project if all entries are the same, otherwise null
       final projectIds = entries.map((e) => e.projectId).toSet();
       final sharedProject =
@@ -282,6 +290,7 @@ class InvoiceNotifier extends AsyncNotifier<void> {
         total: totalHours * rate,
         sortOrder: Value(sortOrder++),
         projectId: Value(sharedProject),
+        issueReference: Value(issueRefs.isEmpty ? null : issueRefs),
       ));
     }
 

@@ -1,6 +1,7 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
+import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../models/pdf_invoice_data.dart';
 
@@ -362,4 +363,83 @@ abstract class BaseInvoiceTemplate {
   int _resolveTermsDays(PdfInvoiceData data) {
     return data.invoice.dueDate.difference(data.invoice.issueDate).inDays;
   }
+
+  // ── Line-item display mode helpers ──────────────────────────────────
+
+  static final _datePattern = RegExp(r'^[A-Za-z]+ \d+, \d{4}$');
+
+  /// Decodes mode string into independent column visibility flags.
+  ///   'full'       → showDate=true,  showIssue=false
+  ///   'issue_desc' → showDate=false, showIssue=true
+  ///   'date_issue' → showDate=true,  showIssue=true
+  ///   'desc_only'  → showDate=false, showIssue=false
+  ({bool showDate, bool showIssue}) decodeMode(String mode) => (
+        showDate: mode == 'full' || mode == 'date_issue',
+        showIssue: mode == 'issue_desc' || mode == 'date_issue',
+      );
+
+  /// Returns the extra prefix columns (date and/or issue) for a line item,
+  /// followed by the description. Caller appends qty/rate/amount.
+  List<String> lineItemPrefix(InvoiceLineItem item, String mode) {
+    final (:showDate, :showIssue) = decodeMode(mode);
+    final parts = item.description.split(' | ');
+    final hasDate =
+        parts.length > 1 && _datePattern.hasMatch(parts.first.trim());
+    final descText =
+        hasDate ? parts.skip(1).join(' | ') : item.description;
+
+    return [
+      if (showDate) (hasDate ? parts.first.trim() : ''),
+      if (showIssue) (item.issueReference ?? ''),
+      descText,
+    ];
+  }
+
+  /// Returns column header labels for the variable prefix columns + Description.
+  List<String> lineItemPrefixHeaders(String mode) {
+    final (:showDate, :showIssue) = decodeMode(mode);
+    return [
+      if (showDate) 'Date',
+      if (showIssue) 'Issue #',
+      'Description',
+    ];
+  }
+
+  /// Column widths keyed by total extra prefix columns (0, 1, or 2).
+  Map<int, pw.TableColumnWidth> colWidthsForMode(String mode) {
+    final (:showDate, :showIssue) = decodeMode(mode);
+    final extras = (showDate ? 1 : 0) + (showIssue ? 1 : 0);
+    return switch (extras) {
+      0 => colWidths4,
+      1 => colWidths5,
+      _ => colWidths6,
+    };
+  }
+
+  /// 6-column widths: date + issue + desc + qty + rate + amount.
+  Map<int, pw.TableColumnWidth> get colWidths6 => const {
+        0: pw.FlexColumnWidth(1.3),
+        1: pw.FlexColumnWidth(1.3),
+        2: pw.FlexColumnWidth(3.5),
+        3: pw.FlexColumnWidth(1.0),
+        4: pw.FlexColumnWidth(1.2),
+        5: pw.FlexColumnWidth(1.2),
+      };
+
+  /// 5-column widths: one extra prefix + desc + qty + rate + amount.
+  Map<int, pw.TableColumnWidth> get colWidths5 => const {
+        0: pw.FlexColumnWidth(1.8),
+        1: pw.FlexColumnWidth(4.0),
+        2: pw.FlexColumnWidth(1.0),
+        3: pw.FlexColumnWidth(1.2),
+        4: pw.FlexColumnWidth(1.2),
+      };
+
+  /// 4-column widths: desc + qty + rate + amount.
+  Map<int, pw.TableColumnWidth> get colWidths4 => const {
+        0: pw.FlexColumnWidth(5.5),
+        1: pw.FlexColumnWidth(1.0),
+        2: pw.FlexColumnWidth(1.2),
+        3: pw.FlexColumnWidth(1.2),
+      };
 }

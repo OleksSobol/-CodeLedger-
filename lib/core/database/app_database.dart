@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -45,8 +45,23 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('PRAGMA journal_mode = WAL');
         },
         onUpgrade: (Migrator m, int from, int to) async {
-          // Future migrations go here.
-          // Always backup DB file before migrations in production.
+          if (from < 2) {
+            // v2: line-item display mode on templates; issue reference on items
+            await customStatement(
+              "ALTER TABLE invoice_templates ADD COLUMN "
+              "line_item_display_mode TEXT NOT NULL DEFAULT 'full'",
+            );
+            await customStatement(
+              'ALTER TABLE invoice_line_items ADD COLUMN '
+              'issue_reference TEXT',
+            );
+          }
+          if (from < 3) {
+            // v3: github repo link on projects
+            await customStatement(
+              'ALTER TABLE projects ADD COLUMN github_repo TEXT',
+            );
+          }
         },
       );
 

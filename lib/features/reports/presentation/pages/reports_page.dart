@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
@@ -584,6 +585,39 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                         onPressed: _isLoading ? null : _exportTaxReportCsv,
                         icon: const Icon(Icons.download_outlined),
                         label: const Text('Export CSV'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ── WA Excise Tax ──────────────────────────────────────
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('WA Excise Tax (B&O)',
+                        style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Quarterly B&O return for WA state. Generates a '
+                      'DOR-format CSV ready to upload at MyDOR. Tracks '
+                      'which quarters have been submitted.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () => context.push('/reports/wa-excise'),
+                        icon: const Icon(Icons.account_balance_outlined),
+                        label: const Text('Open WA Excise Tax'),
                       ),
                     ),
                   ],

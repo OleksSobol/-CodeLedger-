@@ -46,6 +46,12 @@ class SettingsPage extends ConsumerWidget {
             onTap: () => context.push('/settings/templates'),
           ),
           _SettingsTile(
+            icon: Icons.view_list_outlined,
+            title: 'Entry Layout',
+            subtitle: 'Choose which fields appear and in what order',
+            onTap: () => context.push('/settings/entry-layout'),
+          ),
+          _SettingsTile(
             icon: Icons.people_outline,
             title: 'Clients',
             subtitle: 'Manage clients & projects',
@@ -62,6 +68,16 @@ class SettingsPage extends ConsumerWidget {
             title: 'Backup & Restore',
             subtitle: 'Encrypted local & Drive backups',
             onTap: () => context.push('/backup'),
+          ),
+          const Divider(height: 1),
+
+          // --- Accounts section ---
+          _SectionHeader(title: 'Accounts'),
+          _SettingsTile(
+            icon: Icons.code,
+            title: 'GitHub',
+            subtitle: 'Link GitHub to auto-fill issue references',
+            onTap: () => context.push('/settings/accounts'),
           ),
           const Divider(height: 1),
 

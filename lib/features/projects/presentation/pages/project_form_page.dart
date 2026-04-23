@@ -25,6 +25,7 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _descriptionCtrl;
   late final TextEditingController _rateCtrl;
+  late final TextEditingController _githubRepoCtrl;
   late Color _color;
   late bool _isActive;
   bool _saving = false;
@@ -39,6 +40,7 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
     _descriptionCtrl = TextEditingController(text: p?.description ?? '');
     _rateCtrl = TextEditingController(
         text: p?.hourlyRateOverride?.toString() ?? '');
+    _githubRepoCtrl = TextEditingController(text: p?.githubRepo ?? '');
     _color = Color(p?.color ?? 0xFF2196F3);
     _isActive = p?.isActive ?? true;
   }
@@ -48,6 +50,7 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
     _nameCtrl.dispose();
     _descriptionCtrl.dispose();
     _rateCtrl.dispose();
+    _githubRepoCtrl.dispose();
     super.dispose();
   }
 
@@ -77,6 +80,10 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
       final notifier = ref.read(projectNotifierProvider.notifier);
       final rate = double.tryParse(_rateCtrl.text);
 
+      final githubRepo = _githubRepoCtrl.text.trim().isEmpty
+          ? null
+          : _githubRepoCtrl.text.trim();
+
       if (_isEditing) {
         await notifier.updateProject(
           widget.project!.id,
@@ -87,6 +94,7 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
                 ? null
                 : _descriptionCtrl.text.trim()),
             hourlyRateOverride: Value(rate),
+            githubRepo: Value(githubRepo),
             color: Value(_color.toARGB32()),
             isActive: Value(_isActive),
           ),
@@ -99,6 +107,7 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
               ? null
               : _descriptionCtrl.text.trim(),
           hourlyRateOverride: rate,
+          githubRepo: githubRepo,
           color: _color.toARGB32(),
         );
       }

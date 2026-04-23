@@ -33,6 +33,9 @@ class InvoiceTemplates extends Table {
       boolean().withDefault(const Constant(false))();
   TextColumn get footerText => text().nullable()();
   BoolColumn get isBuiltIn => boolean().withDefault(const Constant(true))();
+  // 'full' | 'issue_desc' | 'desc_only'
+  TextColumn get lineItemDisplayMode =>
+      text().withDefault(const Constant('full'))();
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt =>

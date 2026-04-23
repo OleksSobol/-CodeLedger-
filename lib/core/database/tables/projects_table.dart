@@ -8,6 +8,7 @@ class Projects extends Table {
   TextColumn get description => text().nullable()();
   RealColumn get hourlyRateOverride => real().nullable()();
   IntColumn get color => integer().withDefault(const Constant(0xFF2196F3))();
+  TextColumn get githubRepo => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   BoolColumn get isArchived =>
       boolean().withDefault(const Constant(false))();

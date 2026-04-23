@@ -15,6 +15,7 @@ class InvoiceLineItems extends Table {
       integer().nullable().references(TimeEntries, #id)();
   IntColumn get projectId =>
       integer().nullable().references(Projects, #id)();
+  TextColumn get issueReference => text().nullable()();
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime)();
 }

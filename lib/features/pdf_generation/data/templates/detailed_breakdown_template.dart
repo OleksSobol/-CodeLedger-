@@ -40,34 +40,29 @@ class DetailedBreakdownTemplate extends BaseInvoiceTemplate {
   }
 
   pw.Widget _buildGroupedTable(PdfInvoiceData data, PdfColor accent) {
+    final mode = data.template.lineItemDisplayMode;
     final allRows = <List<String>>[];
 
     for (final item in data.lineItems) {
-      // Split on ' | ' — if the first segment looks like a date, use it as
-      // the Date column; otherwise leave Date blank (manual line items).
-      final parts = item.description.split(' | ');
-      final looksLikeDate = parts.length > 1 &&
-          RegExp(r'^[A-Za-z]+ \d+, \d{4}$').hasMatch(parts.first.trim());
-
-      final date = looksLikeDate ? parts.first.trim() : '';
-      final rawDesc = looksLikeDate
-          ? parts.skip(1).join(' | ')
-          : item.description;
-
+      final prefix = lineItemPrefix(item, mode);
+      // Inject project name into the description (last element of prefix)
       final projectName = item.projectId != null
           ? data.projectNames[item.projectId] ?? ''
           : '';
-      final desc =
-          projectName.isNotEmpty ? '$projectName - $rawDesc' : rawDesc;
+      if (projectName.isNotEmpty && prefix.isNotEmpty) {
+        prefix[prefix.length - 1] =
+            '$projectName - ${prefix[prefix.length - 1]}';
+      }
 
-      // Time-based rows show hours; manual rows show quantity as a plain number
+      final parts = item.description.split(' | ');
+      final looksLikeDate = parts.length > 1 &&
+          RegExp(r'^[A-Za-z]+ \d+, \d{4}$').hasMatch(parts.first.trim());
       final qtyStr = looksLikeDate || item.timeEntryId != null
           ? '${item.quantity.toStringAsFixed(2)}h'
           : item.quantity.toStringAsFixed(2);
 
       allRows.add([
-        date,
-        desc,
+        ...prefix,
         qtyStr,
         fmtCurrency(item.unitPrice),
         fmtCurrency(item.total),
@@ -83,14 +78,13 @@ class DetailedBreakdownTemplate extends BaseInvoiceTemplate {
       headerDecoration: pw.BoxDecoration(color: accent),
       cellStyle: const pw.TextStyle(fontSize: 9),
       cellAlignment: pw.Alignment.centerLeft,
-      columnWidths: {
-        0: const pw.FlexColumnWidth(1.8),
-        1: const pw.FlexColumnWidth(3.5),
-        2: const pw.FlexColumnWidth(1),
-        3: const pw.FlexColumnWidth(1.2),
-        4: const pw.FlexColumnWidth(1.2),
-      },
-      headers: ['Date', 'Description', 'Hours', 'Rate', 'Amount'],
+      columnWidths: colWidthsForMode(mode),
+      headers: [
+        ...lineItemPrefixHeaders(mode),
+        'Hours',
+        'Rate',
+        'Amount',
+      ],
       data: allRows,
     );
   }

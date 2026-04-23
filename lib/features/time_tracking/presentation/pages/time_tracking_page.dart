@@ -14,6 +14,7 @@ import '../widgets/tag_filter_bar.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
 import '../../../projects/presentation/providers/project_providers.dart';
 import '../../../export/presentation/providers/export_providers.dart';
+import '../../../github/presentation/providers/github_provider.dart';
 
 class TimeTrackingPage extends ConsumerWidget {
   const TimeTrackingPage({super.key});
@@ -52,6 +53,7 @@ class TimeTrackingPage extends ConsumerWidget {
             onSelected: (value) {
               if (value == 'export') _exportCsv(context, ref);
               if (value == 'manual') ManualEntrySheet.show(context);
+              if (value == 'github_sync') _syncGitHub(context, ref, filter);
             },
             itemBuilder: (_) => const [
               PopupMenuItem(
@@ -67,6 +69,14 @@ class TimeTrackingPage extends ConsumerWidget {
                   child: ListTile(
                     leading: Icon(Icons.edit_note),
                     title: Text('Manual Entry'),
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  )),
+              PopupMenuItem(
+                  value: 'github_sync',
+                  child: ListTile(
+                    leading: Icon(Icons.sync),
+                    title: Text('Sync GitHub Issues'),
                     contentPadding: EdgeInsets.zero,
                     visualDensity: VisualDensity.compact,
                   )),
@@ -124,6 +134,54 @@ class TimeTrackingPage extends ConsumerWidget {
     if (f.start == month.start && f.end == month.end) return 'This Month';
     final fmt = DateFormat.MMMd();
     return '${fmt.format(f.start)} – ${fmt.format(f.end)}';
+  }
+
+  Future<void> _syncGitHub(
+      BuildContext context, WidgetRef ref, DateRangeFilter filter) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('Syncing GitHub issues…'),
+        duration: Duration(seconds: 30),
+      ),
+    );
+
+    try {
+      final notifier = ref.read(githubSyncNotifierProvider.notifier);
+      // Sync each day in the filter range
+      final days = <DateTime>[];
+      var d = filter.start;
+      while (d.isBefore(filter.end)) {
+        days.add(d);
+        d = d.add(const Duration(days: 1));
+      }
+
+      GitHubSyncResult? last;
+      for (final day in days) {
+        last = await notifier.syncForDate(day);
+        if (last.hasError) break;
+      }
+
+      messenger.hideCurrentSnackBar();
+      if (context.mounted && last != null) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(last.summary),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+        if (last.updatedCount > 0) {
+          ref.invalidate(filteredEntriesProvider);
+        }
+      }
+    } catch (e) {
+      messenger.hideCurrentSnackBar();
+      if (context.mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Sync error: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _exportCsv(BuildContext context, WidgetRef ref) async {

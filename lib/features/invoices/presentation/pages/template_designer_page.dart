@@ -28,6 +28,9 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
   late Color _primaryColor;
   late Color _accentColor;
   late String _fontFamily;
+  late String _lineItemDisplayMode;
+  late bool _showDateColumn;
+  late bool _showIssueColumn;
   late bool _showLogo;
   late bool _showPaymentInfo;
   late bool _showTaxBreakdown;
@@ -52,6 +55,11 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
     _primaryColor = Color(t.primaryColor);
     _accentColor = Color(t.accentColor);
     _fontFamily = t.fontFamily;
+    _lineItemDisplayMode = t.lineItemDisplayMode;
+    _showDateColumn =
+        _lineItemDisplayMode == 'full' || _lineItemDisplayMode == 'date_issue';
+    _showIssueColumn = _lineItemDisplayMode == 'issue_desc' ||
+        _lineItemDisplayMode == 'date_issue';
     _showLogo = t.showLogo;
     _showPaymentInfo = t.showPaymentInfo;
     _showTaxBreakdown = t.showTaxBreakdown;
@@ -84,6 +92,7 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
       primaryColor: _primaryColor.toARGB32(),
       accentColor: _accentColor.toARGB32(),
       fontFamily: _fontFamily,
+      lineItemDisplayMode: _lineItemDisplayMode,
       showLogo: _showLogo,
       showPaymentInfo: _showPaymentInfo,
       showTaxBreakdown: _showTaxBreakdown,
@@ -116,6 +125,16 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
     setState(() => _previewKey++);
   }
 
+  void _updateLineItemMode() {
+    _lineItemDisplayMode = _showDateColumn && _showIssueColumn
+        ? 'date_issue'
+        : _showDateColumn
+            ? 'full'
+            : _showIssueColumn
+                ? 'issue_desc'
+                : 'desc_only';
+  }
+
   Future<void> _save() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
@@ -133,6 +152,7 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
             widget.template.id,
             InvoiceTemplatesCompanion(
               name: Value(name),
+              lineItemDisplayMode: Value(_lineItemDisplayMode),
               primaryColor: Value(_primaryColor.toARGB32()),
               accentColor: Value(_accentColor.toARGB32()),
               fontFamily: Value(_fontFamily),
@@ -253,7 +273,8 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
         id: 1,
         invoiceId: 0,
         sortOrder: 0,
-        description: 'Feb 10 | Frontend development, UI review',
+        description: 'Feb 10, 2024 | Frontend development, UI review',
+        issueReference: '#42, #43',
         quantity: 8.0,
         unitPrice: 75.0,
         total: 600.0,
@@ -263,7 +284,8 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
         id: 2,
         invoiceId: 0,
         sortOrder: 1,
-        description: 'Feb 11 | API integration, testing',
+        description: 'Feb 11, 2024 | API integration, testing',
+        issueReference: '#44',
         quantity: 6.5,
         unitPrice: 75.0,
         total: 487.5,
@@ -273,7 +295,8 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
         id: 3,
         invoiceId: 0,
         sortOrder: 2,
-        description: 'Feb 12 | Bug fixes, code review',
+        description: 'Feb 12, 2024 | Bug fixes, code review',
+        issueReference: '#45',
         quantity: 7.0,
         unitPrice: 75.0,
         total: 525.0,
@@ -522,6 +545,35 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
 
           // Sections
           _SectionLabel(label: 'Sections'),
+          const SizedBox(height: Spacing.sm),
+          const ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text('Line Item Columns'),
+            subtitle: Text(
+                'Choose which extra columns appear before the description'),
+          ),
+          _ToggleTile(
+            title: 'Show Date Column',
+            value: _showDateColumn,
+            onChanged: (v) {
+              setState(() {
+                _showDateColumn = v;
+                _updateLineItemMode();
+              });
+              _refreshPreview();
+            },
+          ),
+          _ToggleTile(
+            title: 'Show Issue # Column',
+            value: _showIssueColumn,
+            onChanged: (v) {
+              setState(() {
+                _showIssueColumn = v;
+                _updateLineItemMode();
+              });
+              _refreshPreview();
+            },
+          ),
           const SizedBox(height: Spacing.sm),
           _ToggleTile(
             title: 'Show Logo',

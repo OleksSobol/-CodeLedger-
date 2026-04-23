@@ -151,6 +151,8 @@ class TimerNotifier extends AsyncNotifier<void> {
     required int entryId,
     required DateTime startTime,
     required DateTime endTime,
+    int? projectId,
+    bool clearProject = false,
     String? description,
     String? issueReference,
     String? repository,
@@ -164,6 +166,7 @@ class TimerNotifier extends AsyncNotifier<void> {
         startTime: Value(startTime),
         endTime: Value(endTime),
         durationMinutes: Value(duration),
+        projectId: clearProject ? const Value(null) : (projectId != null ? Value(projectId) : const Value.absent()),
         description: Value(description),
         issueReference: Value(issueReference),
         repository: Value(repository),
@@ -178,6 +181,8 @@ class TimerNotifier extends AsyncNotifier<void> {
   /// Update only metadata on a running (or any) entry without touching times.
   Future<bool> updateEntryMeta({
     required int entryId,
+    int? projectId,
+    bool clearProject = false,
     String? description,
     String? issueReference,
     String? repository,
@@ -187,6 +192,7 @@ class TimerNotifier extends AsyncNotifier<void> {
     return _dao.updateWithOverlapCheck(
       entryId,
       TimeEntriesCompanion(
+        projectId: clearProject ? const Value(null) : (projectId != null ? Value(projectId) : const Value.absent()),
         description: Value(description),
         issueReference: Value(issueReference),
         repository: Value(repository),
