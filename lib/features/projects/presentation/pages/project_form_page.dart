@@ -195,6 +195,16 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
             ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _githubRepoCtrl,
+              decoration: const InputDecoration(
+                labelText: 'GitHub Repo',
+                hintText: 'e.g. owner/repo',
+                prefixIcon: Icon(Icons.code),
+              ),
+              autocorrect: false,
+            ),
             const SizedBox(height: 16),
             ListTile(
               contentPadding: EdgeInsets.zero,
