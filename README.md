@@ -5,14 +5,45 @@ Offline-first time tracking and invoicing app for freelance developers. Built wi
 > **Latest release:** [v1.1.0](https://github.com/OleksSobol/-CodeLedger-/releases/tag/v1.1.0)
 
 ## Features
-- **Time tracking** — Clock in/out timer with overlap detection, GitHub issue references, project tagging
-- **Client & project management** — Archive/restore clients, per-client hourly rate and tax rate
-- **Invoicing** — Create, edit, and send invoices; draft editing; mark paid/archived
-- **PDF templates** — 3 built-in templates: Minimal, Detailed Breakdown, Modern Developer
-- **Reports** — Tax/Income report (PDF + CSV), Timesheet, Work Report; optional archived invoice inclusion
-- **Encrypted backups** — AES-256-GCM encrypted backups to local storage or Google Drive
-- **Data management** — Erase all data with double-confirmation (passphrase preserved)
-- **Dark mode** — System/Light/Dark theme switcher
+
+### Time Tracking
+- Clock in/out timer with overlap detection and running duration display
+- Manual entry and editing — date, times, rate, description, project, issue reference, repository, tags
+- Project selection on time entries (filterable by client)
+- Configurable tile layout — show/hide and reorder fields (time, client, description, issue, repo, tags, badges)
+- Tag filtering and date-range filter (today / this week / this month / custom)
+- CSV export for any date range
+
+### GitHub Integration
+- Link a GitHub repo (`owner/repo`) to any project
+- Connect via Personal Access Token (Settings → Accounts → GitHub)
+- **Sync GitHub Issues** — scans linked repos for `Issue-XXXX` branches with commits in the current date range and auto-appends issue references to matching time entries
+
+### Client & Project Management
+- Archive/restore clients and projects
+- Per-client hourly rate, tax rate, and currency
+- Per-project hourly rate override and GitHub repo link
+
+### Invoicing
+- Invoice wizard — select uninvoiced time entries, add manual line items, apply tax
+- Draft editing, mark paid/archived, late fee clause
+- PDF templates — 3 built-in: Minimal, Detailed Breakdown, Modern Developer
+- Template designer — colors, font, footer, independent Date and Issue # column toggles, logo, payment info, tax breakdown, bank details, Stripe link, and more
+- Custom templates (duplicate and customize any built-in)
+
+### Reports
+- **Timesheet** — PDF with configurable columns (start/end, description, project)
+- **Work Report** — detailed PDF grouped by day with issue references
+- **Tax / Income Report** — net income and tax collected from paid invoices (PDF + CSV)
+- **WA Excise Tax (B&O)** — quarterly WA DOR data upload CSV (ACCOUNT + TAX line 6 for Service B&O); History tab tracks submitted quarters with re-export
+
+### Settings & Data
+- **Accounts** — GitHub PAT and username for issue sync
+- **Entry Layout** — drag-to-reorder and toggle visibility of time entry tile fields
+- **Invoice Templates** — manage and set default template
+- **Encrypted backups** — AES-256-GCM to local storage or Google Drive
+- **Erase all data** — double-confirmation reset (passphrase preserved)
+- **Dark mode** — System / Light / Dark theme switcher
 
 ## Tech Stack
 - **Flutter** (Android, iOS, Web, Windows)
@@ -99,6 +130,9 @@ lib/
     ├── time_tracking/
     ├── invoices/
     ├── pdf_generation/
+    ├── github/                   # GitHub issue sync
+    ├── reports/
+    ├── backup/
     └── ...
 ```
 
