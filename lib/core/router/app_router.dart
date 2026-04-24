@@ -25,6 +25,7 @@ import '../../features/invoices/presentation/pages/template_designer_page.dart';
 import '../../features/time_tracking/presentation/pages/time_entry_layout_page.dart';
 import '../../features/settings/presentation/pages/accounts_settings_page.dart';
 import '../../features/reports/presentation/pages/wa_excise_report_page.dart';
+import '../../features/github/presentation/pages/github_sync_preview_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
@@ -261,6 +262,18 @@ final appRouter = GoRouter(
       name: 'backup',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const BackupPage(),
+    ),
+    GoRoute(
+      path: '/github-sync',
+      name: 'githubSync',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, DateTime>;
+        return GitHubSyncPreviewPage(
+          start: extra['start']!,
+          end: extra['end']!,
+        );
+      },
     ),
   ],
 );

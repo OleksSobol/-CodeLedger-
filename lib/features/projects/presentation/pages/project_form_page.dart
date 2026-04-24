@@ -200,7 +200,7 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
               controller: _githubRepoCtrl,
               decoration: const InputDecoration(
                 labelText: 'GitHub Repo',
-                hintText: 'e.g. owner/repo',
+                hintText: 'owner/repo or full GitHub URL',
                 prefixIcon: Icon(Icons.code),
               ),
               autocorrect: false,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/utils/duration_formatter.dart';
@@ -14,7 +15,6 @@ import '../widgets/tag_filter_bar.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
 import '../../../projects/presentation/providers/project_providers.dart';
 import '../../../export/presentation/providers/export_providers.dart';
-import '../../../github/presentation/providers/github_provider.dart';
 
 class TimeTrackingPage extends ConsumerWidget {
   const TimeTrackingPage({super.key});
@@ -136,52 +136,12 @@ class TimeTrackingPage extends ConsumerWidget {
     return '${fmt.format(f.start)} – ${fmt.format(f.end)}';
   }
 
-  Future<void> _syncGitHub(
-      BuildContext context, WidgetRef ref, DateRangeFilter filter) async {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Syncing GitHub issues…'),
-        duration: Duration(seconds: 30),
-      ),
-    );
-
-    try {
-      final notifier = ref.read(githubSyncNotifierProvider.notifier);
-      // Sync each day in the filter range
-      final days = <DateTime>[];
-      var d = filter.start;
-      while (d.isBefore(filter.end)) {
-        days.add(d);
-        d = d.add(const Duration(days: 1));
-      }
-
-      GitHubSyncResult? last;
-      for (final day in days) {
-        last = await notifier.syncForDate(day);
-        if (last.hasError) break;
-      }
-
-      messenger.hideCurrentSnackBar();
-      if (context.mounted && last != null) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(last.summary),
-            duration: const Duration(seconds: 4),
-          ),
-        );
-        if (last.updatedCount > 0) {
-          ref.invalidate(filteredEntriesProvider);
-        }
-      }
-    } catch (e) {
-      messenger.hideCurrentSnackBar();
-      if (context.mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text('Sync error: $e')),
-        );
-      }
-    }
+  void _syncGitHub(
+      BuildContext context, WidgetRef ref, DateRangeFilter filter) {
+    context.push('/github-sync', extra: {
+      'start': filter.start,
+      'end': filter.end,
+    });
   }
 
   Future<void> _exportCsv(BuildContext context, WidgetRef ref) async {
