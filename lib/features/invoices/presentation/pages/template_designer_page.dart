@@ -23,6 +23,7 @@ class TemplateDesignerPage extends ConsumerStatefulWidget {
 
 class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
   late TextEditingController _nameCtrl;
+  late TextEditingController _descriptionCtrl;
   late TextEditingController _footerCtrl;
   late String _templateKey;
   late Color _primaryColor;
@@ -50,6 +51,7 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
     super.initState();
     final t = widget.template;
     _nameCtrl = TextEditingController(text: t.name);
+    _descriptionCtrl = TextEditingController(text: t.description ?? '');
     _footerCtrl = TextEditingController(text: t.footerText ?? '');
     _templateKey = t.templateKey;
     _primaryColor = Color(t.primaryColor);
@@ -75,6 +77,7 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _descriptionCtrl.dispose();
     _footerCtrl.dispose();
     super.dispose();
   }
@@ -87,7 +90,9 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
       id: widget.template.id,
       name: _nameCtrl.text.trim(),
       templateKey: baseKey,
-      description: widget.template.description,
+      description: _descriptionCtrl.text.trim().isEmpty
+          ? null
+          : _descriptionCtrl.text.trim(),
       isDefault: widget.template.isDefault,
       primaryColor: _primaryColor.toARGB32(),
       accentColor: _accentColor.toARGB32(),
@@ -460,13 +465,22 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
           ),
           const SizedBox(height: Spacing.lg),
 
-          // Template name
+          // Template name & description
           if (!isBuiltIn) ...[
             TextFormField(
               controller: _nameCtrl,
               decoration: const InputDecoration(
                 labelText: 'Template Name',
               ),
+            ),
+            const SizedBox(height: Spacing.sm),
+            TextFormField(
+              controller: _descriptionCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                hintText: 'e.g. Clean minimal layout with tax breakdown',
+              ),
+              maxLines: 2,
             ),
             const SizedBox(height: Spacing.md),
           ],
