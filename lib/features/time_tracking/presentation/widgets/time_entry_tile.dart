@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/database/app_database.dart';
-import '../../../../core/utils/duration_formatter.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/utils/duration_formatter.dart';
 import '../../../../core/utils/tag_utils.dart';
 import '../../../../shared/widgets/spacing.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
+import '../providers/field_config_provider.dart';
 import '../providers/time_entry_providers.dart';
+import '../../domain/time_entry_field.dart';
+import 'time_entry_tile_body.dart';
 
 class TimeEntryTile extends ConsumerWidget {
   final TimeEntry entry;
@@ -18,13 +21,11 @@ class TimeEntryTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final timeFmt = DateFormat.jm();
-    final isRunning = entry.endTime == null;
-    final minutes = entry.durationMinutes ?? 0;
-    final earnings = minutes / 60.0 * entry.hourlyRateSnapshot;
 
     final clientAsync = ref.watch(clientByIdProvider(entry.clientId));
     final clientName = clientAsync.valueOrNull?.name;
+    final configs = ref.watch(fieldConfigProvider).valueOrNull ??
+        FieldConfig.defaults();
 
     return Dismissible(
       key: ValueKey(entry.id),
@@ -77,124 +78,12 @@ class TimeEntryTile extends ConsumerWidget {
           onTap: () => _showDetailSheet(context, ref, clientName),
           onLongPress: () => _showActionSheet(context, ref),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Row 1: Time range + duration
-                Row(
-                  children: [
-                    Text(
-                      isRunning
-                          ? '${timeFmt.format(entry.startTime)} – ...'
-                          : '${timeFmt.format(entry.startTime)} – ${timeFmt.format(entry.endTime!)}',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const Spacer(),
-                    if (!isRunning) ...[
-                      Text(
-                        formatDuration(minutes),
-                        style: theme.textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        formatCurrency(earnings),
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ] else
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text('Running',
-                            style: TextStyle(
-                                color: Colors.red,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                  ],
-                ),
-
-                // Row 2: Client name · Project
-                if (clientName != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    clientName,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-
-                // Row 3: Description
-                if (entry.description != null &&
-                    entry.description!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(entry.description!,
-                      style: theme.textTheme.bodySmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                ],
-
-                // Row 4: Metadata badges
-                if (entry.issueReference != null ||
-                    entry.repository != null ||
-                    entry.isInvoiced ||
-                    entry.isManual) ...[
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: [
-                      if (entry.repository != null)
-                        _MetaBadge(
-                            icon: Icons.folder_outlined,
-                            text: entry.repository!),
-                      if (entry.issueReference != null)
-                        _MetaBadge(
-                            icon: Icons.tag, text: entry.issueReference!),
-                      if (entry.isManual)
-                        _MetaBadge(
-                            icon: Icons.edit_outlined, text: 'Manual'),
-                      if (entry.isInvoiced)
-                        _MetaBadge(
-                            icon: Icons.receipt_outlined, text: 'Invoiced'),
-                    ],
-                  ),
-                ],
-
-                // Row 5: Tag chips
-                Builder(builder: (context) {
-                  final tags = parseTags(entry.tags);
-                  if (tags.isEmpty) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: tags
-                          .map((t) => Chip(
-                                label: Text(t,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall),
-                                padding: EdgeInsets.zero,
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                visualDensity: VisualDensity.compact,
-                              ))
-                          .toList(),
-                    ),
-                  );
-                }),
-              ],
+            padding: const EdgeInsets.symmetric(
+                horizontal: Spacing.md, vertical: 12),
+            child: TimeEntryTileBody(
+              entry: entry,
+              clientName: clientName,
+              configs: configs,
             ),
           ),
         ),
@@ -446,25 +335,3 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-class _MetaBadge extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _MetaBadge({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: Theme.of(context).colorScheme.outline),
-        const SizedBox(width: 2),
-        Text(text,
-            style: Theme.of(context)
-                .textTheme
-                .labelSmall
-                ?.copyWith(color: Theme.of(context).colorScheme.outline)),
-      ],
-    );
-  }
-}
