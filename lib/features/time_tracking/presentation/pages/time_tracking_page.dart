@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -40,7 +40,7 @@ class TimeTrackingPage extends ConsumerWidget {
           children: [
             const Text('Time Tracking'),
             Text(
-              '${_filterLabel(filter)} · ${formatDuration(totalMinutes)}',
+              '${_filterLabel(filter)} Â· ${formatDuration(totalMinutes)}',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -93,12 +93,12 @@ class TimeTrackingPage extends ConsumerWidget {
         child: CustomScrollView(
           slivers: [
             // Active Timer (if running)
-            if (runningAsync.valueOrNull != null)
+            if (runningAsync.value != null)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(Spacing.md),
                   child:
-                      ActiveTimerWidget(entry: runningAsync.valueOrNull!),
+                      ActiveTimerWidget(entry: runningAsync.value!),
                 ),
               ),
 
@@ -133,7 +133,7 @@ class TimeTrackingPage extends ConsumerWidget {
     final month = DateRangeFilter.thisMonth();
     if (f.start == month.start && f.end == month.end) return 'This Month';
     final fmt = DateFormat.MMMd();
-    return '${fmt.format(f.start)} – ${fmt.format(f.end)}';
+    return '${fmt.format(f.start)} â€“ ${fmt.format(f.end)}';
   }
 
   void _syncGitHub(

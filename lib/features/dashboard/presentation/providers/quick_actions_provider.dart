@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/database/daos/app_settings_dao.dart';
 import '../../../../core/providers/theme_provider.dart';
@@ -65,12 +65,12 @@ class QuickActionsNotifier extends AsyncNotifier<List<QuickAction>> {
   }
 
   Future<void> addAction(QuickAction action) async {
-    final current = state.valueOrNull ?? [];
+    final current = state.value ?? [];
     await save([...current, action]);
   }
 
   Future<void> removeAt(int index) async {
-    final current = List<QuickAction>.from(state.valueOrNull ?? []);
+    final current = List<QuickAction>.from(state.value ?? []);
     if (index < current.length) {
       current.removeAt(index);
       await save(current);
@@ -78,7 +78,7 @@ class QuickActionsNotifier extends AsyncNotifier<List<QuickAction>> {
   }
 
   Future<void> reorder(int oldIndex, int newIndex) async {
-    final current = List<QuickAction>.from(state.valueOrNull ?? []);
+    final current = List<QuickAction>.from(state.value ?? []);
     if (newIndex > oldIndex) newIndex--;
     final item = current.removeAt(oldIndex);
     current.insert(newIndex, item);

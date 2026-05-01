@@ -51,12 +51,25 @@ class DateRangeFilter {
   }
 }
 
-final dateRangeFilterProvider = StateProvider<DateRangeFilter>((ref) {
-  return DateRangeFilter.thisWeek();
-});
+class DateRangeFilterNotifier extends Notifier<DateRangeFilter> {
+  @override
+  DateRangeFilter build() => DateRangeFilter.thisWeek();
+  void set(DateRangeFilter v) => state = v;
+}
+
+final dateRangeFilterProvider =
+    NotifierProvider<DateRangeFilterNotifier, DateRangeFilter>(
+        DateRangeFilterNotifier.new);
+
+class TagFilterNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => {};
+  void set(Set<String> v) => state = v;
+}
 
 /// Active tag filter — entries must contain ALL selected tags.
-final tagFilterProvider = StateProvider<Set<String>>((ref) => {});
+final tagFilterProvider =
+    NotifierProvider<TagFilterNotifier, Set<String>>(TagFilterNotifier.new);
 
 /// All unique tags used across all time entries.
 final allTagsProvider = FutureProvider<Set<String>>((ref) {

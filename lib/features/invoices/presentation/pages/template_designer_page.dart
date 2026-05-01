@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -209,7 +209,7 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
 
   Future<Uint8List> _generatePreviewPdf() async {
     final profileAsync = ref.read(profileProvider);
-    final profile = profileAsync.valueOrNull;
+    final profile = profileAsync.value;
 
     final now = DateTime.now();
     final sampleProfile = profile ??

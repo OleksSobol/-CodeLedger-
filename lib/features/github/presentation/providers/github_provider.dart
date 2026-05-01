@@ -119,66 +119,86 @@ class GitHubSyncNotifier extends AsyncNotifier<void> {
     final allClients = await ref.read(allClientsProvider.future);
     final clientById = {for (final c in allClients) c.id: c.name};
 
+    // Cap end at today — never scan future dates.
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    var day = DateTime(start.year, start.month, start.day);
+    final endDay = () {
+      final raw = DateTime(end.year, end.month, end.day);
+      return raw.isBefore(tomorrow) ? raw : tomorrow;
+    }();
+
     service.logs.add(SyncLog(
       'Scanning ${linkedProjects.length} linked project(s) for '
-      '${_fmtDate(start)} – ${_fmtDate(end.subtract(const Duration(days: 1)))}',
+      '${_fmtDate(day)} – ${_fmtDate(endDay.subtract(const Duration(days: 1)))}',
       SyncLogLevel.info,
     ));
 
-    // Verify repo access first (normalize repo strings before use)
+    // Verify repo access first.
     final accessOk = <String, bool>{};
     for (final p in linkedProjects) {
       final normalized = GitHubService.normalizeRepo(p.githubRepo!);
       accessOk[normalized] = await service.verifyRepoAccess(normalized);
     }
 
+    // Pre-fetch Issue-* branch lists once per repo to avoid redundant API calls.
+    final branchCache = <String, List<String>>{};
+    for (final p in linkedProjects) {
+      final repo = GitHubService.normalizeRepo(p.githubRepo!);
+      if (accessOk[repo] != true) continue;
+      if (!branchCache.containsKey(repo)) {
+        branchCache[repo] = await service.listIssueBranches(repo);
+        service.logs.add(SyncLog(
+          '  $repo: ${branchCache[repo]!.length} Issue-* branch(es)',
+          SyncLogLevel.info,
+        ));
+      }
+    }
+
     final timeEntryDao = ref.read(timeEntryDaoProvider);
     final matches = <SyncMatch>[];
 
-    var day = DateTime(start.year, start.month, start.day);
-    final endDay = DateTime(end.year, end.month, end.day);
-
     while (day.isBefore(endDay)) {
       final dayEnd = day.add(const Duration(days: 1));
-      final entries =
-          await timeEntryDao.getAllEntries(from: day, to: dayEnd);
+      final entries = await timeEntryDao.getAllEntries(from: day, to: dayEnd);
 
-      for (final project in linkedProjects) {
-        final repo = GitHubService.normalizeRepo(project.githubRepo!);
-        if (accessOk[repo] != true) continue;
+      for (final entry in entries) {
+        // Use the entry's exact time window — commits outside it are ignored.
+        final since = entry.startTime.toUtc();
+        final until = (entry.endTime ?? dayEnd).toUtc();
 
-        final issueRefs = await service.getIssueRefsForDate(repo, day);
+        // Match only projects whose repo could apply to this entry.
+        final applicableProjects = linkedProjects.where((p) =>
+            p.id == entry.projectId ||
+            (entry.projectId == null && p.clientId == entry.clientId)).toList();
 
-        for (final issueRef in issueRefs) {
-          final projectEntries =
-              entries.where((e) => e.projectId == project.id).toList();
-          final clientEntries =
-              entries.where((e) => e.clientId == project.clientId).toList();
-          final candidates =
-              projectEntries.isNotEmpty ? projectEntries : clientEntries;
-          if (candidates.isEmpty) continue;
+        for (final project in applicableProjects) {
+          final repo = GitHubService.normalizeRepo(project.githubRepo!);
+          if (accessOk[repo] != true) continue;
+          final branches = branchCache[repo] ?? [];
 
-          final target = candidates.firstWhere(
-            (e) => !(e.issueReference ?? '').contains(issueRef),
-            orElse: () => candidates.first,
+          final issueRefs = await service.getIssueRefsForTimeRange(
+            repo, since, until, branches,
           );
 
-          if ((target.issueReference ?? '').contains(issueRef)) continue;
+          for (final issueRef in issueRefs) {
+            if (_hasRef(entry.issueReference, issueRef)) continue;
 
-          // Deduplicate: don't add the same (issueRef, entryId) twice
-          final alreadyQueued = matches.any(
-            (m) => m.issueRef == issueRef && m.entry.id == target.id,
-          );
-          if (alreadyQueued) continue;
+            // Deduplicate: don't add the same (issueRef, entryId) twice.
+            final alreadyQueued = matches.any(
+              (m) => m.issueRef == issueRef && m.entry.id == entry.id,
+            );
+            if (alreadyQueued) continue;
 
-          matches.add(SyncMatch(
-            repo: repo,
-            projectName: project.name,
-            clientName: clientById[project.clientId] ?? '',
-            issueRef: issueRef,
-            entry: target,
-            existingRef: target.issueReference,
-          ));
+            matches.add(SyncMatch(
+              repo: repo,
+              projectName: project.name,
+              clientName: clientById[project.clientId] ?? '',
+              issueRef: issueRef,
+              entry: entry,
+              existingRef: entry.issueReference,
+            ));
+          }
         }
       }
 
@@ -209,7 +229,7 @@ class GitHubSyncNotifier extends AsyncNotifier<void> {
       final existing = accumulatedRefs[entryId] ??
           (match.entry.issueReference ?? '');
 
-      if (existing.contains(match.issueRef)) continue;
+      if (_hasRef(existing, match.issueRef)) continue;
 
       final newRef =
           existing.isEmpty ? match.issueRef : '$existing, ${match.issueRef}';
@@ -266,4 +286,11 @@ class GitHubSyncNotifier extends AsyncNotifier<void> {
 
   String _fmtDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  /// Exact-match check: is [ref] already in the comma-separated [existing] list?
+  /// Uses split instead of contains() to avoid "Issue-3" matching inside "Issue-30".
+  static bool _hasRef(String? existing, String ref) {
+    if (existing == null || existing.isEmpty) return false;
+    return existing.split(',').map((s) => s.trim()).contains(ref);
+  }
 }

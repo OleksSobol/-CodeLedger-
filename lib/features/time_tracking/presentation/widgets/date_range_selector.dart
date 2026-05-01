@@ -38,13 +38,14 @@ class DateRangeSelector extends ConsumerWidget {
                   },
                   onSelectionChanged: (selection) {
                     final value = selection.first;
-                    ref.read(dateRangeFilterProvider.notifier).state =
-                        switch (value) {
-                      'today' => DateRangeFilter.today(),
-                      'week' => DateRangeFilter.thisWeek(),
-                      'month' => DateRangeFilter.thisMonth(),
-                      _ => DateRangeFilter.thisWeek(),
-                    };
+                    ref.read(dateRangeFilterProvider.notifier).set(
+                      switch (value) {
+                        'today' => DateRangeFilter.today(),
+                        'week' => DateRangeFilter.thisWeek(),
+                        'month' => DateRangeFilter.thisMonth(),
+                        _ => DateRangeFilter.thisWeek(),
+                      },
+                    );
                   },
                   showSelectedIcon: false,
                   style: ButtonStyle(
@@ -114,10 +115,10 @@ class DateRangeSelector extends ConsumerWidget {
       ),
     );
     if (picked != null) {
-      ref.read(dateRangeFilterProvider.notifier).state = DateRangeFilter(
+      ref.read(dateRangeFilterProvider.notifier).set(DateRangeFilter(
         start: picked.start,
         end: picked.end.add(const Duration(days: 1)),
-      );
+      ));
     }
   }
 }

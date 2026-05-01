@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -53,7 +53,7 @@ class ExportService {
       ]);
     }
 
-    final csv = const ListToCsvConverter().convert(rows);
+    final csv = const CsvEncoder().convert(rows);
     final dir = await getTemporaryDirectory();
     final filename = 'time_entries_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
     final file = File('${dir.path}/$filename');
@@ -97,7 +97,7 @@ class ExportService {
       '', '', '',
     ]);
 
-    final csv = const ListToCsvConverter().convert(csvRows);
+    final csv = const CsvEncoder().convert(csvRows);
     final dir = await getTemporaryDirectory();
     final filename = 'tax_report_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
     final file = File('${dir.path}/$filename');

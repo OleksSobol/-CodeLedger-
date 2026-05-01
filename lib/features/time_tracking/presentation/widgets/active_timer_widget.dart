@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -74,7 +74,7 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
           title: const Text('Overlapping Entry'),
           content: Text(
             'Clocking out now overlaps with an entry from '
-            '${timeFmt.format(overlap.startTime)} – '
+            '${timeFmt.format(overlap.startTime)} â€“ '
             '${timeFmt.format(overlap.endTime!)}.\n\n'
             'Adjust the conflicting entry to make room?',
           ),
@@ -117,7 +117,7 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
     final theme = Theme.of(context);
     final clientAsync =
         ref.watch(clientByIdProvider(widget.entry.clientId));
-    final clientName = clientAsync.valueOrNull?.name;
+    final clientName = clientAsync.value?.name;
     final rate = widget.entry.hourlyRateSnapshot;
 
     return Card(
@@ -158,7 +158,7 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
             ),
             const SizedBox(height: Spacing.sm),
 
-            // Full-width elapsed timer + earnings — isolated ticker
+            // Full-width elapsed timer + earnings â€” isolated ticker
             ValueListenableBuilder<Duration>(
               valueListenable: _elapsed,
               builder: (_, elapsed, __) {
@@ -195,7 +195,7 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
 
             const SizedBox(height: Spacing.md),
 
-            // Clock Out button — full width
+            // Clock Out button â€” full width
             FilledButton(
               onPressed: _clockOut,
               style: FilledButton.styleFrom(

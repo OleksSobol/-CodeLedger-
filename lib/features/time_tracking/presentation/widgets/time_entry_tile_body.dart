@@ -176,21 +176,27 @@ class _TagsRow extends StatelessWidget {
   final String? tagsJson;
   const _TagsRow({required this.tagsJson});
 
+  static const _maxVisible = 5;
+
   @override
   Widget build(BuildContext context) {
     final tags = parseTags(tagsJson);
     if (tags.isEmpty) return const SizedBox.shrink();
+    final visible = tags.take(_maxVisible).toList();
+    final extra = tags.length - _maxVisible;
+    Chip chip(String label) => Chip(
+          label: Text(label, style: Theme.of(context).textTheme.labelSmall),
+          padding: EdgeInsets.zero,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.compact,
+        );
     return Wrap(
       spacing: 4,
       runSpacing: 4,
-      children: tags
-          .map((t) => Chip(
-                label: Text(t, style: Theme.of(context).textTheme.labelSmall),
-                padding: EdgeInsets.zero,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-              ))
-          .toList(),
+      children: [
+        ...visible.map(chip),
+        if (extra > 0) chip('+$extra'),
+      ],
     );
   }
 }

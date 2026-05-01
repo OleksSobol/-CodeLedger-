@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -51,7 +51,7 @@ class FinancialSummaryRow extends ConsumerWidget {
             badge: outstandingAsync.whenOrNull(
                 data: (v) => v.count > 0 ? '${v.count}' : null),
             onTap: () {
-              ref.read(invoiceStatusFilterProvider.notifier).state = 'sent';
+              ref.read(invoiceStatusFilterProvider.notifier).set('sent');
               context.go('/invoices');
             },
           ),
@@ -74,7 +74,7 @@ class FinancialSummaryRow extends ConsumerWidget {
             badge: overdueAsync.whenOrNull(
                 data: (v) => v.count > 0 ? '${v.count}' : null),
             onTap: () {
-              ref.read(invoiceStatusFilterProvider.notifier).state = 'overdue';
+              ref.read(invoiceStatusFilterProvider.notifier).set('overdue');
               context.go('/invoices');
             },
           ),

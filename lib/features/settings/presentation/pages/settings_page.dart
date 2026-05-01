@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/providers/app_version_provider.dart';
@@ -22,7 +22,7 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode =
-        ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
+        ref.watch(themeModeProvider).value ?? ThemeMode.system;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -124,7 +124,7 @@ class SettingsPage extends ConsumerWidget {
             leading: const Icon(Icons.info_outline),
             title: const Text('CodeLedger'),
             subtitle: Text(
-              ref.watch(appVersionProvider).valueOrNull ?? '...',
+              ref.watch(appVersionProvider).value ?? '...',
             ),
           ),
         ],

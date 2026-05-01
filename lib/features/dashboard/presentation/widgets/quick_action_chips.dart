@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/spacing.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
@@ -25,13 +25,13 @@ class QuickActionChips extends ConsumerWidget {
                 style: theme.textTheme.titleMedium
                     ?.copyWith(fontWeight: FontWeight.bold)),
             const Spacer(),
-            if ((actionsAsync.valueOrNull ?? []).isNotEmpty)
+            if ((actionsAsync.value ?? []).isNotEmpty)
               IconButton(
                 icon: const Icon(Icons.edit_outlined, size: 18),
                 tooltip: 'Edit quick actions',
                 visualDensity: VisualDensity.compact,
                 onPressed: () =>
-                    _showEditSheet(context, ref, actionsAsync.valueOrNull ?? []),
+                    _showEditSheet(context, ref, actionsAsync.value ?? []),
               ),
           ],
         ),
@@ -59,7 +59,7 @@ class QuickActionChips extends ConsumerWidget {
                     ),
                   );
                 }),
-                // "Add" chip — outlined/secondary style to differentiate
+                // "Add" chip â€” outlined/secondary style to differentiate
                 ActionChip(
                   avatar: Icon(Icons.add, size: 18,
                       color: theme.colorScheme.outline),
@@ -97,7 +97,7 @@ class QuickActionChips extends ConsumerWidget {
 
   void _showAddSheet(BuildContext context, WidgetRef ref) {
     final clientsAsync = ref.read(activeClientsProvider);
-    final clients = clientsAsync.valueOrNull ?? [];
+    final clients = clientsAsync.value ?? [];
 
     if (clients.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

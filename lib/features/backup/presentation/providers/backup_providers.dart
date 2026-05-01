@@ -19,11 +19,25 @@ final driveBackupServiceProvider = Provider<DriveBackupService>((ref) {
 
 // -- Drive state --
 
+class DriveSignedInNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void set(bool v) => state = v;
+}
+
 /// Tracks the Drive sign-in state.
-final driveSignedInProvider = StateProvider<bool>((ref) => false);
+final driveSignedInProvider =
+    NotifierProvider<DriveSignedInNotifier, bool>(DriveSignedInNotifier.new);
+
+class DriveEmailNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void set(String? v) => state = v;
+}
 
 /// Tracks the signed-in email.
-final driveEmailProvider = StateProvider<String?>((ref) => null);
+final driveEmailProvider =
+    NotifierProvider<DriveEmailNotifier, String?>(DriveEmailNotifier.new);
 
 /// Lists backups on Drive (refreshed manually).
 final driveBackupsProvider =
@@ -58,6 +72,12 @@ class BackupError extends BackupUiState {
   const BackupError(this.message);
 }
 
-final backupUiStateProvider = StateProvider<BackupUiState>(
-  (_) => const BackupIdle(),
-);
+class BackupUiStateNotifier extends Notifier<BackupUiState> {
+  @override
+  BackupUiState build() => const BackupIdle();
+  void set(BackupUiState v) => state = v;
+}
+
+final backupUiStateProvider =
+    NotifierProvider<BackupUiStateNotifier, BackupUiState>(
+        BackupUiStateNotifier.new);

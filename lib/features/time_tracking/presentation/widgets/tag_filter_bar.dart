@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/time_entry_providers.dart';
 
@@ -10,7 +10,7 @@ class TagFilterBar extends ConsumerWidget {
     final allTagsAsync = ref.watch(allTagsProvider);
     final selectedTags = ref.watch(tagFilterProvider);
 
-    final tags = allTagsAsync.valueOrNull ?? {};
+    final tags = allTagsAsync.value ?? {};
     if (tags.isEmpty) return const SizedBox.shrink();
 
     return SizedBox(
@@ -25,7 +25,7 @@ class TagFilterBar extends ConsumerWidget {
               child: ActionChip(
                 label: const Text('Clear'),
                 onPressed: () =>
-                    ref.read(tagFilterProvider.notifier).state = {},
+                    ref.read(tagFilterProvider.notifier).set({}),
               ),
             ),
           ...tags.map((tag) => Padding(
@@ -37,7 +37,7 @@ class TagFilterBar extends ConsumerWidget {
                     final current =
                         Set<String>.from(ref.read(tagFilterProvider));
                     selected ? current.add(tag) : current.remove(tag);
-                    ref.read(tagFilterProvider.notifier).state = current;
+                    ref.read(tagFilterProvider.notifier).set(current);
                   },
                 ),
               )),

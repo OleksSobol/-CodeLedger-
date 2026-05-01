@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,8 +33,8 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     final drive = ref.read(driveBackupServiceProvider);
     final email = await drive.trySilentSignIn();
     if (email != null && mounted) {
-      ref.read(driveSignedInProvider.notifier).state = true;
-      ref.read(driveEmailProvider.notifier).state = email;
+      ref.read(driveSignedInProvider.notifier).set(true);
+      ref.read(driveEmailProvider.notifier).set(email);
     }
   }
 
@@ -42,7 +42,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
 
   void _setState(BackupUiState state) {
     if (!mounted) return;
-    ref.read(backupUiStateProvider.notifier).state = state;
+    ref.read(backupUiStateProvider.notifier).set(state);
   }
 
   void _showSnack(String message) {
@@ -86,7 +86,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
 
   Future<void> _restoreLocalBackup() async {
     // Pick file
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.any,
     );
     if (result == null || result.files.isEmpty) return;
@@ -145,8 +145,8 @@ class _BackupPageState extends ConsumerState<BackupPage> {
       final drive = ref.read(driveBackupServiceProvider);
       final email = await drive.signIn();
       if (email != null) {
-        ref.read(driveSignedInProvider.notifier).state = true;
-        ref.read(driveEmailProvider.notifier).state = email;
+        ref.read(driveSignedInProvider.notifier).set(true);
+        ref.read(driveEmailProvider.notifier).set(email);
         ref.invalidate(driveBackupsProvider);
         _setState(const BackupIdle());
         _showSnack('Signed in as $email');
@@ -173,8 +173,8 @@ class _BackupPageState extends ConsumerState<BackupPage> {
   Future<void> _signOut() async {
     final drive = ref.read(driveBackupServiceProvider);
     await drive.signOut();
-    ref.read(driveSignedInProvider.notifier).state = false;
-    ref.read(driveEmailProvider.notifier).state = null;
+    ref.read(driveSignedInProvider.notifier).set(false);
+    ref.read(driveEmailProvider.notifier).set(null);
     _setState(const BackupIdle());
   }
 

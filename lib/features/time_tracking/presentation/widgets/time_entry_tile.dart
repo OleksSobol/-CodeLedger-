@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -23,8 +23,8 @@ class TimeEntryTile extends ConsumerWidget {
     final theme = Theme.of(context);
 
     final clientAsync = ref.watch(clientByIdProvider(entry.clientId));
-    final clientName = clientAsync.valueOrNull?.name;
-    final configs = ref.watch(fieldConfigProvider).valueOrNull ??
+    final clientName = clientAsync.value?.name;
+    final configs = ref.watch(fieldConfigProvider).value ??
         FieldConfig.defaults();
 
     return Dismissible(
@@ -188,8 +188,9 @@ class TimeEntryTile extends ConsumerWidget {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (ctx) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(Spacing.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -211,8 +212,8 @@ class TimeEntryTile extends ConsumerWidget {
                   const SizedBox(width: 6),
                   Text(
                     isRunning
-                        ? '${timeFmt.format(entry.startTime)} – running'
-                        : '${timeFmt.format(entry.startTime)} – ${timeFmt.format(entry.endTime!)}',
+                        ? '${timeFmt.format(entry.startTime)} â€“ running'
+                        : '${timeFmt.format(entry.startTime)} â€“ ${timeFmt.format(entry.endTime!)}',
                     style: theme.textTheme.bodyMedium,
                   ),
                   if (!isRunning) ...[
@@ -237,7 +238,7 @@ class TimeEntryTile extends ConsumerWidget {
                 _DetailRow(
                   icon: Icons.attach_money,
                   text:
-                      '${formatCurrency(entry.hourlyRateSnapshot)}/hr · ${formatCurrency(earnings)} total',
+                      '${formatCurrency(entry.hourlyRateSnapshot)}/hr Â· ${formatCurrency(earnings)} total',
                 ),
 
               // Description

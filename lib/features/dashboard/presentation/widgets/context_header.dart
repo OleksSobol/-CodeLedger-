@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -29,7 +29,7 @@ class ContextHeader extends ConsumerWidget {
     final weeklyAsync = ref.watch(weeklyHoursProvider);
     final overdueAsync = ref.watch(overdueInvoicesProvider);
     final themeMode =
-        ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
+        ref.watch(themeModeProvider).value ?? ThemeMode.system;
 
     final name = profileAsync.whenOrNull(
       data: (p) =>

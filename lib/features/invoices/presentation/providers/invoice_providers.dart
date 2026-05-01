@@ -11,7 +11,15 @@ import '../../../time_tracking/presentation/providers/time_entry_providers.dart'
 import '../../../profile/presentation/providers/profile_provider.dart';
 
 // ── Status filter ──────────────────────────────────────────────────
-final invoiceStatusFilterProvider = StateProvider<String?>((ref) => null);
+class InvoiceStatusFilterNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void set(String? v) => state = v;
+}
+
+final invoiceStatusFilterProvider =
+    NotifierProvider<InvoiceStatusFilterNotifier, String?>(
+        InvoiceStatusFilterNotifier.new);
 
 // ── All invoices stream ────────────────────────────────────────────
 final allInvoicesProvider = StreamProvider<List<Invoice>>((ref) {
@@ -115,11 +123,12 @@ class ManualLineItem {
 }
 
 final invoiceWizardProvider =
-    StateNotifierProvider<InvoiceWizardNotifier, InvoiceWizardState>(
-        (ref) => InvoiceWizardNotifier());
+    NotifierProvider<InvoiceWizardNotifier, InvoiceWizardState>(
+        InvoiceWizardNotifier.new);
 
-class InvoiceWizardNotifier extends StateNotifier<InvoiceWizardState> {
-  InvoiceWizardNotifier() : super(const InvoiceWizardState());
+class InvoiceWizardNotifier extends Notifier<InvoiceWizardState> {
+  @override
+  InvoiceWizardState build() => const InvoiceWizardState();
 
   void setClient(int clientId) {
     state = InvoiceWizardState(clientId: clientId);
@@ -248,7 +257,7 @@ class InvoiceNotifier extends AsyncNotifier<void> {
     // Group entries by (date string, hourly rate)
     final groups = <(String, double), List<TimeEntry>>{};
     for (final entry in wizard.selectedEntries) {
-      final key = (dateFmt.format(entry.startTime), entry.hourlyRateSnapshot);
+      final (String, double) key = (dateFmt.format(entry.startTime), entry.hourlyRateSnapshot);
       (groups[key] ??= []).add(entry);
     }
 

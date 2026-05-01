@@ -85,49 +85,9 @@ class GitHubService {
     return false;
   }
 
-  /// Returns issue refs (e.g. "Issue-5444") that had commits from [username]
-  /// in [repo] on [date].
-  Future<Set<String>> getIssueRefsForDate(String repo, DateTime date) async {
-    repo = normalizeRepo(repo);
-    final dayStart = DateTime(date.year, date.month, date.day).toUtc();
-    final dayEnd = dayStart.add(const Duration(days: 1));
-
-    _log('Scanning branches in $repo for ${_fmtDate(date)}…');
-    final issueBranches = await _listIssueBranches(repo);
-    _log('  Found ${issueBranches.length} Issue-* branch(es) — checking in parallel');
-
-    final found = <String>{};
-
-    // Check branches in parallel batches of 10 to avoid overwhelming the API.
-    const batchSize = 10;
-    for (var i = 0; i < issueBranches.length; i += batchSize) {
-      final batch = issueBranches.skip(i).take(batchSize).toList();
-      final results = await Future.wait(
-        batch.map((branch) => _hasCommitsOnBranch(repo, branch, dayStart, dayEnd)
-            .then((has) => has ? branch : null)),
-      );
-      for (final branch in results.whereType<String>()) {
-        _log('  ✓ $branch — commit by $username on ${_fmtDate(date)}');
-        found.add(branch);
-      }
-    }
-
-    final msgRefs =
-        await _getIssueRefsFromCommitMessages(repo, dayStart, dayEnd);
-    if (msgRefs.isNotEmpty) {
-      _log('  Found ${msgRefs.length} ref(s) in commit messages: ${msgRefs.join(', ')}');
-      found.addAll(msgRefs);
-    }
-
-    if (found.isEmpty) {
-      _log('  No issue refs for ${_fmtDate(date)} in $repo',
-          SyncLogLevel.warning);
-    }
-
-    return found;
-  }
-
-  Future<List<String>> _listIssueBranches(String repo) async {
+  /// Fetches all branch names matching the Issue-* pattern for [repo].
+  /// Call once per repo and cache the result before scanning multiple entries.
+  Future<List<String>> listIssueBranches(String repo) async {
     final branches = <String>[];
     var page = 1;
     final issuePattern = RegExp(r'^[Ii]ssue[-_]\d+');
@@ -155,6 +115,41 @@ class GitHubService {
       page++;
     }
     return branches;
+  }
+
+  /// Returns issue refs that had commits from [username] in [repo] within
+  /// [since]–[until]. Pass pre-fetched [issueBranches] (from [listIssueBranches])
+  /// to avoid a redundant branch-list API call per entry.
+  Future<Set<String>> getIssueRefsForTimeRange(
+    String repo,
+    DateTime since,
+    DateTime until,
+    List<String> issueBranches,
+  ) async {
+    repo = normalizeRepo(repo);
+    final found = <String>{};
+
+    const batchSize = 10;
+    for (var i = 0; i < issueBranches.length; i += batchSize) {
+      final batch = issueBranches.skip(i).take(batchSize).toList();
+      final results = await Future.wait(
+        batch.map((branch) =>
+            _hasCommitsOnBranch(repo, branch, since, until)
+                .then((has) => has ? branch : null)),
+      );
+      for (final branch in results.whereType<String>()) {
+        _log('  ✓ $branch — commit by $username in window');
+        found.add(branch);
+      }
+    }
+
+    final msgRefs = await _getIssueRefsFromCommitMessages(repo, since, until);
+    if (msgRefs.isNotEmpty) {
+      _log('  Found ${msgRefs.length} ref(s) in commit messages: ${msgRefs.join(', ')}');
+      found.addAll(msgRefs);
+    }
+
+    return found;
   }
 
   Future<bool> _hasCommitsOnBranch(

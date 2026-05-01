@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -83,7 +83,7 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
 
   Widget _buildIdleCard(BuildContext context, ThemeData theme) {
     final lastEntryAsync = ref.watch(lastCompletedEntryProvider);
-    final lastEntry = lastEntryAsync.valueOrNull;
+    final lastEntry = lastEntryAsync.value;
 
     return Card(
       child: Padding(
@@ -133,7 +133,7 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
   Widget _buildRunningCard(
       BuildContext context, ThemeData theme, TimeEntry running) {
     final clientAsync = ref.watch(clientByIdProvider(running.clientId));
-    final clientName = clientAsync.valueOrNull?.name;
+    final clientName = clientAsync.value?.name;
     final hasInfo = clientName != null || running.description != null;
 
     return Card(
@@ -174,7 +174,7 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
             ),
             const SizedBox(height: Spacing.sm),
 
-            // Full-width elapsed timer — isolated ticker
+            // Full-width elapsed timer â€” isolated ticker
             ValueListenableBuilder<Duration>(
               valueListenable: _elapsed,
               builder: (_, elapsed, __) {
@@ -198,7 +198,7 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
 
             const SizedBox(height: Spacing.md),
 
-            // Clock Out button — full width
+            // Clock Out button â€” full width
             FilledButton(
               onPressed: () => _clockOut(context, running.id),
               style: FilledButton.styleFrom(
@@ -226,7 +226,7 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
           title: const Text('Overlapping Entry'),
           content: Text(
             'Clocking out now overlaps with an entry from '
-            '${timeFmt.format(overlap.startTime)} – '
+            '${timeFmt.format(overlap.startTime)} â€“ '
             '${timeFmt.format(overlap.endTime!)}.\n\n'
             'Adjust the conflicting entry to make room?',
           ),

@@ -325,6 +325,8 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Hourly Rate (\$)',
               hintText: 'e.g. 30.00',
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
             ),
             keyboardType:
                 const TextInputType.numberWithOptions(decimal: true),
@@ -336,6 +338,8 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Description',
               hintText: 'What did you work on?',
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
             ),
             maxLines: 3,
           ),
@@ -345,6 +349,8 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Repository',
               hintText: 'e.g. org/repo',
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
             ),
           ),
           const SizedBox(height: 12),
@@ -353,7 +359,11 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Issue Reference',
               hintText: 'e.g. org/repo#42',
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
             ),
+            minLines: 1,
+            maxLines: 6,
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -361,6 +371,8 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Tags (comma separated)',
               hintText: 'e.g. bugfix, frontend, review',
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
             ),
           ),
           const SizedBox(height: 24),

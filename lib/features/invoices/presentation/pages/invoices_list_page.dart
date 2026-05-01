@@ -40,8 +40,8 @@ class InvoicesListPage extends ConsumerWidget {
                     label: Text(_labels[i]),
                     selected: isSelected,
                     onSelected: (_) {
-                      ref.read(invoiceStatusFilterProvider.notifier).state =
-                          _statuses[i];
+                      ref.read(invoiceStatusFilterProvider.notifier).set(
+                          _statuses[i]);
                     },
                   ),
                 );

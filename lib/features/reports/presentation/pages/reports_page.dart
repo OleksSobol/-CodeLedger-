@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -169,7 +169,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     final clientDao = ref.read(clientDaoProvider);
     final profile = await profileDao.getProfile();
 
-    final allInvoices = ref.read(allInvoicesProvider).valueOrNull ?? [];
+    final allInvoices = ref.read(allInvoicesProvider).value ?? [];
 
     final endOfDay = DateTime(
       _dateRange!.end.year,
@@ -330,7 +330,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Filters ────────────────────────────────────────────
+            // â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -351,7 +351,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                         child: Text(
                           _dateRange == null
                               ? 'Select dates'
-                              : '${_fmt(_dateRange!.start)} – ${_fmt(_dateRange!.end)}',
+                              : '${_fmt(_dateRange!.start)} â€“ ${_fmt(_dateRange!.end)}',
                         ),
                       ),
                     ),
@@ -429,7 +429,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
             ),
             const SizedBox(height: 16),
 
-            // ── Timesheet ──────────────────────────────────────────
+            // â”€â”€ Timesheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -439,7 +439,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                     Text('Timesheet', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 4),
                     Text(
-                      'Clean hours sheet for employers — choose which '
+                      'Clean hours sheet for employers â€” choose which '
                       'columns to include.',
                       style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant),
@@ -483,7 +483,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
             ),
             const SizedBox(height: 16),
 
-            // ── Work Report ────────────────────────────────────────
+            // â”€â”€ Work Report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -513,7 +513,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
             ),
             const SizedBox(height: 16),
 
-            // ── CSV Export ─────────────────────────────────────────
+            // â”€â”€ CSV Export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -544,7 +544,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
 
             const SizedBox(height: 16),
 
-            // ── Tax / Income Report ────────────────────────────────
+            // â”€â”€ Tax / Income Report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -594,7 +594,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
 
             const SizedBox(height: 16),
 
-            // ── WA Excise Tax ──────────────────────────────────────
+            // â”€â”€ WA Excise Tax â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -639,7 +639,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   String _fmt(DateTime dt) => DateFormat('MMM d, yyyy').format(dt);
 }
 
-// ── Timesheet preview page ──────────────────────────────────────────
+// â”€â”€ Timesheet preview page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _TimesheetPreviewPage extends StatelessWidget {
   final Uint8List pdfBytes;

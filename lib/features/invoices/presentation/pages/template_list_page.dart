@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/database/app_database.dart';
@@ -59,7 +59,7 @@ class TemplateListPage extends ConsumerWidget {
   }
 
   Future<void> _createNew(BuildContext context, WidgetRef ref) async {
-    final templates = ref.read(allTemplatesProvider).valueOrNull ?? [];
+    final templates = ref.read(allTemplatesProvider).value ?? [];
     final source = templates.firstWhere(
       (t) => t.isDefault,
       orElse: () => templates.first,

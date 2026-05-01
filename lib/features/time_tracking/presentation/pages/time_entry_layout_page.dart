@@ -15,34 +15,29 @@ class TimeEntryLayoutPage extends ConsumerStatefulWidget {
 }
 
 class _TimeEntryLayoutPageState extends ConsumerState<TimeEntryLayoutPage> {
-  List<FieldConfig>? _configs;
+  List<FieldConfig> _configs = FieldConfig.defaults();
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    // Load saved config once; fall back to defaults if still loading.
     ref.read(fieldConfigProvider.future).then((configs) {
       if (mounted) setState(() => _configs = List.from(configs));
     });
   }
 
-  List<FieldConfig> get _current =>
-      _configs ?? FieldConfig.defaults();
-
   // ── Mutations ────────────────────────────────────────────────────
 
   void _toggle(int index) {
     setState(() {
-      final c = _current[index];
-      _configs![index] = c.copyWith(isVisible: !c.isVisible);
+      _configs[index] = _configs[index].copyWith(isVisible: !_configs[index].isVisible);
     });
   }
 
   void _reorder(int oldIndex, int newIndex) {
     setState(() {
       if (newIndex > oldIndex) newIndex--;
-      final items = List<FieldConfig>.from(_current);
+      final items = List<FieldConfig>.from(_configs);
       final moved = items.removeAt(oldIndex);
       items.insert(newIndex, moved);
       _configs = [
@@ -54,7 +49,7 @@ class _TimeEntryLayoutPageState extends ConsumerState<TimeEntryLayoutPage> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      await ref.read(fieldConfigProvider.notifier).save(_current);
+      await ref.read(fieldConfigProvider.notifier).save(_configs);
       if (mounted) Navigator.pop(context);
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -114,7 +109,7 @@ class _TimeEntryLayoutPageState extends ConsumerState<TimeEntryLayoutPage> {
                     child: TimeEntryTileBody(
                       entry: _sampleEntry(),
                       clientName: 'Acme Corp',
-                      configs: _current,
+                      configs: _configs,
                     ),
                   ),
                 ),
@@ -139,10 +134,10 @@ class _TimeEntryLayoutPageState extends ConsumerState<TimeEntryLayoutPage> {
             child: ReorderableListView.builder(
               buildDefaultDragHandles: false,
               padding: EdgeInsets.zero,
-              itemCount: _current.length,
+              itemCount: _configs.length,
               onReorder: _reorder,
               itemBuilder: (context, index) {
-                final cfg = _current[index];
+                final cfg = _configs[index];
                 return _FieldRow(
                   key: ValueKey(cfg.field),
                   index: index,

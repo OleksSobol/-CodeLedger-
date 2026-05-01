@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../features/time_tracking/presentation/providers/time_entry_providers.dart';
@@ -54,9 +54,9 @@ class ShellScaffold extends ConsumerWidget {
     final theme = Theme.of(context);
     switch (index) {
       case 0:
-        // Home: context-aware — Clock Out if running, Start Timer if idle
+        // Home: context-aware â€” Clock Out if running, Start Timer if idle
         final running = ref.watch(runningEntryProvider);
-        final runningEntry = running.valueOrNull;
+        final runningEntry = running.value;
         if (runningEntry != null) {
           return FloatingActionButton.extended(
             onPressed: () => _clockOut(context, ref, runningEntry.id),
@@ -72,9 +72,9 @@ class ShellScaffold extends ConsumerWidget {
           label: const Text('Start Timer'),
         );
       case 1:
-        // Time tab: context-aware — Clock Out if running, Clock In if idle
+        // Time tab: context-aware â€” Clock Out if running, Clock In if idle
         final timeRunning = ref.watch(runningEntryProvider);
-        final timeRunningEntry = timeRunning.valueOrNull;
+        final timeRunningEntry = timeRunning.value;
         if (timeRunningEntry != null) {
           return FloatingActionButton.extended(
             onPressed: () =>
