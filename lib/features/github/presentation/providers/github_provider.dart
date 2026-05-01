@@ -124,7 +124,7 @@ class GitHubSyncNotifier extends AsyncNotifier<void> {
     final tomorrow = DateTime(now.year, now.month, now.day + 1);
     var day = DateTime(start.year, start.month, start.day);
     final endDay = () {
-      final raw = DateTime(end.year, end.month, end.day);
+      final raw = DateTime(end.year, end.month, end.day + 1);
       return raw.isBefore(tomorrow) ? raw : tomorrow;
     }();
 
