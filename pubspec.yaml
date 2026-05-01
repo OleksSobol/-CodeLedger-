@@ -1,7 +1,7 @@
 name: code_ledger
 description: "Offline-first time tracking and invoicing for freelance developers."
 publish_to: 'none'
-version: 1.0.0+48
+version: 1.0.0+49
 
 environment:
   sdk: ^3.9.2
@@ -61,7 +61,7 @@ dependencies:
   json_annotation: ^4.9.0
   equatable: ^2.0.8
   collection: ^1.19.1
-  package_info_plus: ^9.0.0
+  package_info_plus: ^9.0.1
 
 dev_dependencies:
   flutter_test:
@@ -70,10 +70,10 @@ dev_dependencies:
 
   # Code Generation
   build_runner: ^2.5.4
-  drift_dev: ^2.28.0
+  drift_dev: ^2.28.2
   riverpod_generator: ^4.0.3
   freezed: ^3.2.5
-  json_serializable: ^6.9.5
+  json_serializable: ^6.13.0
 
   # Testing
   mocktail: ^1.0.4
