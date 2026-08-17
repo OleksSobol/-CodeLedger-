@@ -173,6 +173,9 @@ class GitHubService {
     final List<dynamic> data = jsonDecode(response.body);
     final timestamps = <DateTime>[];
     for (final commit in data) {
+      if (!_isUserAuthor(commit)) continue;
+
+
       final dateStr = commit['commit']?['author']?['date'] as String?;
       if (dateStr != null) timestamps.add(DateTime.parse(dateStr));
     }
@@ -202,6 +205,8 @@ class GitHubService {
     );
 
     for (final commit in data) {
+      if (!_isUserAuthor(commit)) continue;
+
       final msg = commit['commit']?['message'] as String? ?? '';
       final dateStr = commit['commit']?['author']?['date'] as String?;
       if (dateStr == null) continue;
@@ -212,5 +217,24 @@ class GitHubService {
       }
     }
     return results;
+  }
+
+  /// Strictly checks if the commit was authored by the user.
+  /// Prevents false positives from GitHub's loose `author=` matching and
+  /// ignores commits from users without linked GitHub accounts.
+  bool _isUserAuthor(Map<String, dynamic> commit) {
+    final target = username.toLowerCase();
+    final authorLogin = (commit['author']?['login'] as String?)?.toLowerCase();
+
+    if (authorLogin == target) return true;
+
+    // If the commit's author isn't linked to a GitHub account, check the git name/email
+    if (authorLogin == null) {
+      final gitName = (commit['commit']?['author']?['name'] as String?)?.toLowerCase();
+      final gitEmail = (commit['commit']?['author']?['email'] as String?)?.toLowerCase();
+      if (gitName == target || gitEmail == target) return true;
+    }
+
+    return false;
   }
 }

@@ -157,4 +157,17 @@ class SupabaseUserProfileRepository implements UserProfileRepository {
     }).eq('user_id', _uid);
     return formatted;
   }
+  @override
+  Future<void> revertInvoiceNumber(String deletedInvoiceNumber) async {
+    final profile = await getProfile();
+    final currentNumber = profile.nextInvoiceNumber;
+    final expectedPreviousFormatted =
+        '${profile.invoiceNumberPrefix}${(currentNumber - 1).toString().padLeft(4, '0')}';
+    if (deletedInvoiceNumber == expectedPreviousFormatted && currentNumber > 1) {
+      await _client.from('user_profiles').update({
+        'next_invoice_number': currentNumber - 1,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }).eq('user_id', _uid);
+    }
+  }
 }

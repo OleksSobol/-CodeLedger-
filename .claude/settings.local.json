@@ -1,7 +1,30 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git merge *)"
+      "Bash(git merge *)",
+      "Bash(Get-ChildItem -Path \"E:\\\\workspace\\\\personal_projects\\\\code_ledger\" -Directory)",
+      "Bash(Select-Object -First 20)",
+      "Bash(flutter analyze *)",
+      "mcp__claude_ai_Linear__list_issues",
+      "Bash(gh pr *)",
+      "Bash(flutter run *)",
+      "Bash(git fetch *)",
+      "Bash(git checkout *)",
+      "mcp__claude_ai_Linear__save_issue",
+      "mcp__claude_ai_Linear__get_issue",
+      "Bash(dart pub *)",
+      "Bash(python -c \"import sys,json; deps=json.load\\(sys.stdin\\); [print\\(p['name'],p['version']\\) for p in deps['packages'] if 'drift' in p['name'].lower\\(\\) or 'sqlite' in p['name'].lower\\(\\)]\")",
+      "Bash(dart run *)",
+      "Bash(python -c \"import sys; [print\\(l\\) for l in sys.stdin if 'drift_flutter' in l]\")",
+      "Bash(grep -A2 \"name: sqlite3$\" pubspec.lock)",
+      "Bash(dart compile *)",
+      "Bash(xargs grep -l \"google_sign_in\\\\|GoogleSignIn\\\\|signIn\")",
+      "Bash(flutter pub *)",
+      "Bash(flutter build *)",
+      "Bash(Get-ChildItem -Path \"E:\\\\workspace\\\\personal_projects\\\\code_ledger\" -Recurse -Directory)",
+      "Bash(Select-Object FullName)",
+      "Bash(not exist *)",
+      "Bash(flutter test *)"
     ]
   }
 }

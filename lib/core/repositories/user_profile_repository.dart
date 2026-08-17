@@ -5,4 +5,5 @@ abstract class UserProfileRepository {
   Future<UserProfile> getProfile();
   Future<bool> updateProfile(UserProfilesCompanion companion);
   Future<String> getNextInvoiceNumber();
+  Future<void> revertInvoiceNumber(String deletedInvoiceNumber);
 }
