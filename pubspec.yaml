@@ -1,7 +1,7 @@
 name: code_ledger
 description: "Offline-first time tracking and invoicing for freelance developers."
 publish_to: 'none'
-version: 1.0.0+90
+version: 1.0.0+91
 
 environment:
   sdk: ^3.9.2
@@ -90,6 +90,7 @@ dev_dependencies:
   # App Icon
   flutter_launcher_icons: ^0.14.3
   image: ^4.3.0
+  objective_c: 3.0.0
 
 flutter_launcher_icons:
   android: true

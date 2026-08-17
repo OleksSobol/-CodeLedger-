@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 import 'package:intl/intl.dart';
@@ -514,7 +515,7 @@ class InvoiceNotifier extends AsyncNotifier<void> {
   }
 
   Future<void> deleteInvoice(String invoiceId) async {
-    final invoices = await _invoiceDao.watchAllInvoices().first;
+    final invoices = await _invoiceDao.watchInvoices().first;
     final invoice = invoices.firstWhereOrNull((i) => i.id == invoiceId);
     if (invoice != null) {
       await _profileDao.revertInvoiceNumber(invoice.invoiceNumber);

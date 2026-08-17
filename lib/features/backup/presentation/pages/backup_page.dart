@@ -90,9 +90,9 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     final result = await FilePicker.pickFiles(
       type: FileType.any,
     );
-    if (result == null || result.files.isEmpty) return;
+    if (result.isEmpty) return;
 
-    final filePath = result.files.single.path;
+    final filePath = result.single.path;
     if (filePath == null) return;
 
     // Confirm destructive

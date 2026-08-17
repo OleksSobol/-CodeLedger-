@@ -5,8 +5,7 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Auto-increment build number in pubspec.yaml on each build
-tasks.register("incrementBuildNumber") {
+tasks.matching { it.name.startsWith("assemble") }.configureEach {
     doLast {
         val pubspec = file("../../pubspec.yaml")
         val content = pubspec.readText()
@@ -20,10 +19,6 @@ tasks.register("incrementBuildNumber") {
             println("Build number incremented: $oldBuild → $newBuild")
         }
     }
-}
-
-tasks.matching { it.name.startsWith("assemble") }.configureEach {
-    dependsOn("incrementBuildNumber")
 }
 
 android {
