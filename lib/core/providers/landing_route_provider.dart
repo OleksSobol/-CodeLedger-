@@ -17,7 +17,8 @@ bool isValidLandingRoute(String? route) =>
 /// Persisted route to navigate to on app start.
 final landingRouteProvider =
     AsyncNotifierProvider<LandingRouteNotifier, String>(
-        LandingRouteNotifier.new);
+      LandingRouteNotifier.new,
+    );
 
 class LandingRouteNotifier extends AsyncNotifier<String> {
   @override

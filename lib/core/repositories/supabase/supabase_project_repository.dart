@@ -10,18 +10,18 @@ class SupabaseProjectRepository implements ProjectRepository {
   String get _uid => _client.auth.currentUser!.id;
 
   Project _fromRow(Map<String, dynamic> r) => Project(
-        id: r['id'] as String,
-        clientId: r['client_id'] as String,
-        name: r['name'] as String,
-        description: r['description'] as String?,
-        hourlyRateOverride: (r['hourly_rate_override'] as num?)?.toDouble(),
-        color: r['color'] as int? ?? 0xFF2196F3,
-        githubRepo: r['github_repo'] as String?,
-        isActive: r['is_active'] as bool? ?? true,
-        isArchived: r['is_archived'] as bool? ?? false,
-        createdAt: DateTime.parse(r['created_at'] as String),
-        updatedAt: DateTime.parse(r['updated_at'] as String),
-      );
+    id: r['id'] as String,
+    clientId: r['client_id'] as String,
+    name: r['name'] as String,
+    description: r['description'] as String?,
+    hourlyRateOverride: (r['hourly_rate_override'] as num?)?.toDouble(),
+    color: r['color'] as int? ?? 0xFF2196F3,
+    githubRepo: r['github_repo'] as String?,
+    isActive: r['is_active'] as bool? ?? true,
+    isArchived: r['is_archived'] as bool? ?? false,
+    createdAt: DateTime.parse(r['created_at'] as String),
+    updatedAt: DateTime.parse(r['updated_at'] as String),
+  );
 
   @override
   Stream<List<Project>> watchProjectsForClient(String clientId) =>
@@ -63,8 +63,7 @@ class SupabaseProjectRepository implements ProjectRepository {
 
   @override
   Future<Project> getProject(String id) async {
-    final row =
-        await _client.from('projects').select().eq('id', id).single();
+    final row = await _client.from('projects').select().eq('id', id).single();
     return _fromRow(row);
   }
 
@@ -78,10 +77,13 @@ class SupabaseProjectRepository implements ProjectRepository {
       'user_id': _uid,
       'client_id': companion.clientId.value,
       'name': companion.name.value,
-      if (companion.description.present) 'description': companion.description.value,
-      if (companion.hourlyRateOverride.present) 'hourly_rate_override': companion.hourlyRateOverride.value,
+      if (companion.description.present)
+        'description': companion.description.value,
+      if (companion.hourlyRateOverride.present)
+        'hourly_rate_override': companion.hourlyRateOverride.value,
       'color': companion.color.present ? companion.color.value : 0xFF2196F3,
-      if (companion.githubRepo.present) 'github_repo': companion.githubRepo.value,
+      if (companion.githubRepo.present)
+        'github_repo': companion.githubRepo.value,
       'is_active': companion.isActive.present ? companion.isActive.value : true,
       'is_archived': false,
       'created_at': now,
@@ -97,24 +99,35 @@ class SupabaseProjectRepository implements ProjectRepository {
     };
     if (companion.clientId.present) map['client_id'] = companion.clientId.value;
     if (companion.name.present) map['name'] = companion.name.value;
-    if (companion.description.present) map['description'] = companion.description.value;
-    if (companion.hourlyRateOverride.present) map['hourly_rate_override'] = companion.hourlyRateOverride.value;
+    if (companion.description.present)
+      map['description'] = companion.description.value;
+    if (companion.hourlyRateOverride.present)
+      map['hourly_rate_override'] = companion.hourlyRateOverride.value;
     if (companion.color.present) map['color'] = companion.color.value;
-    if (companion.githubRepo.present) map['github_repo'] = companion.githubRepo.value;
+    if (companion.githubRepo.present)
+      map['github_repo'] = companion.githubRepo.value;
     if (companion.isActive.present) map['is_active'] = companion.isActive.value;
-    if (companion.isArchived.present) map['is_archived'] = companion.isArchived.value;
-    final result =
-        await _client.from('projects').update(map).eq('id', id).select();
+    if (companion.isArchived.present)
+      map['is_archived'] = companion.isArchived.value;
+    final result = await _client
+        .from('projects')
+        .update(map)
+        .eq('id', id)
+        .select();
     return result.isNotEmpty;
   }
 
   @override
   Future<bool> archiveProject(String id) async {
-    final result = await _client.from('projects').update({
-      'is_archived': true,
-      'is_active': false,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    }).eq('id', id).select();
+    final result = await _client
+        .from('projects')
+        .update({
+          'is_archived': true,
+          'is_active': false,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('id', id)
+        .select();
     return result.isNotEmpty;
   }
 }

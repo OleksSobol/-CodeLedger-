@@ -10,8 +10,9 @@ final appSettingsDaoProvider = Provider<AppSettingsDao>((ref) {
 });
 
 /// Persisted theme mode: system, light, or dark.
-final themeModeProvider =
-    AsyncNotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
+final themeModeProvider = AsyncNotifierProvider<ThemeModeNotifier, ThemeMode>(
+  ThemeModeNotifier.new,
+);
 
 class ThemeModeNotifier extends AsyncNotifier<ThemeMode> {
   @override

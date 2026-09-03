@@ -14,8 +14,7 @@ class ActiveTimerWidget extends ConsumerStatefulWidget {
   const ActiveTimerWidget({super.key, required this.entry});
 
   @override
-  ConsumerState<ActiveTimerWidget> createState() =>
-      _ActiveTimerWidgetState();
+  ConsumerState<ActiveTimerWidget> createState() => _ActiveTimerWidgetState();
 }
 
 class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
@@ -61,9 +60,7 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
 
   Future<void> _clockOut() async {
     try {
-      await ref
-          .read(timerNotifierProvider.notifier)
-          .clockOut(widget.entry.id);
+      await ref.read(timerNotifierProvider.notifier).clockOut(widget.entry.id);
     } on OverlappingTimeEntryException catch (e) {
       if (!mounted) return;
       final timeFmt = DateFormat.jm();
@@ -97,17 +94,17 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
               .clockOut(widget.entry.id, truncateOverlaps: true);
         } catch (e2) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error: $e2')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Error: $e2')));
           }
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -115,8 +112,7 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final clientAsync =
-        ref.watch(clientByIdProvider(widget.entry.clientId));
+    final clientAsync = ref.watch(clientByIdProvider(widget.entry.clientId));
     final clientName = clientAsync.value?.name;
     final rate = widget.entry.hourlyRateSnapshot;
 
@@ -137,8 +133,9 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
                     height: 10,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: theme.colorScheme.error
-                          .withValues(alpha: _pulseAnimation.value),
+                      color: theme.colorScheme.error.withValues(
+                        alpha: _pulseAnimation.value,
+                      ),
                     ),
                   ),
                 ),
@@ -183,8 +180,9 @@ class _ActiveTimerWidgetState extends ConsumerState<ActiveTimerWidget>
                     Text(
                       '\$${earnings.toStringAsFixed(2)} earned',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer
-                            .withValues(alpha: 0.7),
+                        color: theme.colorScheme.onPrimaryContainer.withValues(
+                          alpha: 0.7,
+                        ),
                       ),
                       textAlign: TextAlign.center,
                     ),

@@ -18,14 +18,15 @@ class TimeSummaryBar extends ConsumerWidget {
       data: (entries) {
         final completed = entries.where((e) => e.endTime != null);
         final totalMinutes = completed.fold<int>(
-            0, (sum, e) => sum + (e.durationMinutes ?? 0));
+          0,
+          (sum, e) => sum + (e.durationMinutes ?? 0),
+        );
         final totalEarnings = completed.fold<double>(
-            0,
-            (sum, e) =>
-                sum +
-                (e.durationMinutes ?? 0) / 60.0 * e.hourlyRateSnapshot);
-        final uninvoicedCount =
-            completed.where((e) => !e.isInvoiced).length;
+          0,
+          (sum, e) =>
+              sum + (e.durationMinutes ?? 0) / 60.0 * e.hourlyRateSnapshot,
+        );
+        final uninvoicedCount = completed.where((e) => !e.isInvoiced).length;
 
         final theme = Theme.of(context);
 
@@ -57,8 +58,10 @@ class TimeSummaryBar extends ConsumerWidget {
           height: 80,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding:
-                const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 4),
+            padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.md,
+              vertical: 4,
+            ),
             itemCount: tiles.length,
             separatorBuilder: (_, _) => const SizedBox(width: Spacing.sm),
             itemBuilder: (context, index) {
@@ -113,8 +116,10 @@ class _InsightTile extends StatelessWidget {
             Container(width: 4, color: accent),
             Expanded(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,

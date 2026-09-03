@@ -23,17 +23,21 @@ class OverdueInvoicesCard extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Icon(Icons.warning_amber_rounded,
-                    size: 32,
-                    color: theme.colorScheme.onErrorContainer),
+                Icon(
+                  Icons.warning_amber_rounded,
+                  size: 32,
+                  color: theme.colorScheme.onErrorContainer,
+                ),
                 const SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Overdue',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                            color:
-                                theme.colorScheme.onErrorContainer)),
+                    Text(
+                      'Overdue',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onErrorContainer,
+                      ),
+                    ),
                     Text(
                       formatCurrency(summary.total),
                       style: theme.textTheme.headlineSmall?.copyWith(
@@ -45,14 +49,16 @@ class OverdueInvoicesCard extends ConsumerWidget {
                 ),
                 const Spacer(),
                 Chip(
-                  label: Text('${summary.count}',
-                      style: TextStyle(
-                          color:
-                              theme.colorScheme.onErrorContainer)),
+                  label: Text(
+                    '${summary.count}',
+                    style: TextStyle(color: theme.colorScheme.onErrorContainer),
+                  ),
                   backgroundColor: theme.colorScheme.errorContainer,
                   side: BorderSide(
-                      color: theme.colorScheme.onErrorContainer
-                          .withValues(alpha: 0.3)),
+                    color: theme.colorScheme.onErrorContainer.withValues(
+                      alpha: 0.3,
+                    ),
+                  ),
                 ),
               ],
             ),

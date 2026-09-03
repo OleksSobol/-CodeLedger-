@@ -34,11 +34,13 @@ class TemplateListPage extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.palette_outlined,
-                      size: 64, color: theme.colorScheme.outline),
+                  Icon(
+                    Icons.palette_outlined,
+                    size: 64,
+                    color: theme.colorScheme.outline,
+                  ),
                   const SizedBox(height: Spacing.md),
-                  Text('No templates',
-                      style: theme.textTheme.titleMedium),
+                  Text('No templates', style: theme.textTheme.titleMedium),
                 ],
               ),
             );
@@ -47,8 +49,7 @@ class TemplateListPage extends ConsumerWidget {
           return ListView.separated(
             padding: const EdgeInsets.all(Spacing.md),
             itemCount: templates.length,
-            separatorBuilder: (_, _) =>
-                const SizedBox(height: Spacing.sm),
+            separatorBuilder: (_, _) => const SizedBox(height: Spacing.sm),
             itemBuilder: (context, index) {
               final t = templates[index];
               return _TemplateCard(template: t);
@@ -92,8 +93,7 @@ class _TemplateCard extends ConsumerWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () =>
-            context.pushNamed('templateDesigner', extra: template),
+        onTap: () => context.pushNamed('templateDesigner', extra: template),
         child: Padding(
           padding: const EdgeInsets.all(Spacing.md),
           child: Row(
@@ -107,7 +107,8 @@ class _TemplateCard extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: Color(template.primaryColor),
                       borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(6)),
+                        top: Radius.circular(6),
+                      ),
                     ),
                   ),
                   Container(
@@ -116,7 +117,8 @@ class _TemplateCard extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: Color(template.accentColor),
                       borderRadius: const BorderRadius.vertical(
-                          bottom: Radius.circular(6)),
+                        bottom: Radius.circular(6),
+                      ),
                     ),
                   ),
                 ],
@@ -132,30 +134,33 @@ class _TemplateCard extends ConsumerWidget {
                       children: [
                         Text(
                           template.name,
-                          style: theme.textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         if (template.isDefault) ...[
                           const SizedBox(width: 6),
-                          Icon(Icons.star,
-                              size: 16,
-                              color: theme.colorScheme.primary),
+                          Icon(
+                            Icons.star,
+                            size: 16,
+                            color: theme.colorScheme.primary,
+                          ),
                         ],
                         if (!template.isBuiltIn) ...[
                           const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 1),
+                              horizontal: 6,
+                              vertical: 1,
+                            ),
                             decoration: BoxDecoration(
                               color: theme.colorScheme.tertiaryContainer,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               'Custom',
-                              style:
-                                  theme.textTheme.labelSmall?.copyWith(
-                                color: theme
-                                    .colorScheme.onTertiaryContainer,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onTertiaryContainer,
                               ),
                             ),
                           ),
@@ -178,8 +183,11 @@ class _TemplateCard extends ConsumerWidget {
               ),
 
               // Chevron
-              Icon(Icons.chevron_right,
-                  size: 20, color: theme.colorScheme.outline),
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: theme.colorScheme.outline,
+              ),
             ],
           ),
         ),

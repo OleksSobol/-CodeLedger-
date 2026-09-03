@@ -30,8 +30,7 @@ class UserProfileDao extends DatabaseAccessor<AppDatabase>
       final number = profile.nextInvoiceNumber;
       final formatted =
           '${profile.invoiceNumberPrefix}${number.toString().padLeft(4, '0')}';
-      await (update(userProfiles)..where((t) => t.id.equals(profile.id)))
-          .write(
+      await (update(userProfiles)..where((t) => t.id.equals(profile.id))).write(
         UserProfilesCompanion(
           nextInvoiceNumber: Value(number + 1),
           updatedAt: Value(DateTime.now()),
@@ -47,10 +46,12 @@ class UserProfileDao extends DatabaseAccessor<AppDatabase>
       final currentNumber = profile.nextInvoiceNumber;
       final expectedPreviousFormatted =
           '${profile.invoiceNumberPrefix}${(currentNumber - 1).toString().padLeft(4, '0')}';
-      
-      if (deletedInvoiceNumber == expectedPreviousFormatted && currentNumber > 1) {
-        await (update(userProfiles)..where((t) => t.id.equals(profile.id)))
-            .write(
+
+      if (deletedInvoiceNumber == expectedPreviousFormatted &&
+          currentNumber > 1) {
+        await (update(
+          userProfiles,
+        )..where((t) => t.id.equals(profile.id))).write(
           UserProfilesCompanion(
             nextInvoiceNumber: Value(currentNumber - 1),
             updatedAt: Value(DateTime.now()),

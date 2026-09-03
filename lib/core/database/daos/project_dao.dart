@@ -6,31 +6,33 @@ import '../tables/projects_table.dart';
 part 'project_dao.g.dart';
 
 @DriftAccessor(tables: [Projects])
-class ProjectDao extends DatabaseAccessor<AppDatabase>
-    with _$ProjectDaoMixin {
+class ProjectDao extends DatabaseAccessor<AppDatabase> with _$ProjectDaoMixin {
   ProjectDao(super.db);
 
   Stream<List<Project>> watchProjectsForClient(String clientId) {
     return (select(projects)
-          ..where((t) =>
-              t.clientId.equals(clientId) & t.isArchived.equals(false))
+          ..where(
+            (t) => t.clientId.equals(clientId) & t.isArchived.equals(false),
+          )
           ..orderBy([(t) => OrderingTerm.asc(t.name)]))
         .watch();
   }
 
   Future<List<Project>> getProjectsForClient(String clientId) {
     return (select(projects)
-          ..where((t) =>
-              t.clientId.equals(clientId) & t.isArchived.equals(false))
+          ..where(
+            (t) => t.clientId.equals(clientId) & t.isArchived.equals(false),
+          )
           ..orderBy([(t) => OrderingTerm.asc(t.name)]))
         .get();
   }
 
   Future<bool> hasProjectsForClient(String clientId) async {
-    final rows = await (select(projects)
-          ..where((t) => t.clientId.equals(clientId))
-          ..limit(1))
-        .get();
+    final rows =
+        await (select(projects)
+              ..where((t) => t.clientId.equals(clientId))
+              ..limit(1))
+            .get();
     return rows.isNotEmpty;
   }
 
@@ -59,9 +61,6 @@ class ProjectDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<bool> archiveProject(String id) {
-    return updateProject(
-      id,
-      const ProjectsCompanion(isArchived: Value(true)),
-    );
+    return updateProject(id, const ProjectsCompanion(isArchived: Value(true)));
   }
 }

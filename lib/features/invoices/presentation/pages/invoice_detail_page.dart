@@ -28,11 +28,8 @@ Future<void> showEditLineItemSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (ctx) => _EditLineItemSheet(
-      item: item,
-      invoiceId: invoiceId,
-      ref: ref,
-    ),
+    builder: (ctx) =>
+        _EditLineItemSheet(item: item, invoiceId: invoiceId, ref: ref),
   );
 }
 
@@ -66,9 +63,11 @@ class _EditLineItemSheetState extends State<_EditLineItemSheet> {
     _date = split.date;
     _descCtrl = TextEditingController(text: split.description);
     _qtyCtrl = TextEditingController(
-        text: widget.item.quantity.toStringAsFixed(2));
+      text: widget.item.quantity.toStringAsFixed(2),
+    );
     _rateCtrl = TextEditingController(
-        text: widget.item.unitPrice.toStringAsFixed(2));
+      text: widget.item.unitPrice.toStringAsFixed(2),
+    );
   }
 
   @override
@@ -109,16 +108,20 @@ class _EditLineItemSheetState extends State<_EditLineItemSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Edit Line Item',
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Edit Line Item',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 16),
             if (_date != null) ...[
               Row(
                 children: [
                   const Icon(Icons.calendar_today_outlined, size: 16),
                   const SizedBox(width: 8),
-                  Text('Date: $_date',
-                      style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    'Date: $_date',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -136,10 +139,12 @@ class _EditLineItemSheetState extends State<_EditLineItemSheet> {
                 Expanded(
                   child: TextFormField(
                     controller: _qtyCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'Quantity (hrs)'),
+                    decoration: const InputDecoration(
+                      labelText: 'Quantity (hrs)',
+                    ),
                     keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
+                      decimal: true,
+                    ),
                     validator: (v) =>
                         double.tryParse(v ?? '') == null ? 'Invalid' : null,
                   ),
@@ -148,10 +153,12 @@ class _EditLineItemSheetState extends State<_EditLineItemSheet> {
                 Expanded(
                   child: TextFormField(
                     controller: _rateCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'Unit Price (\$)'),
+                    decoration: const InputDecoration(
+                      labelText: 'Unit Price (\$)',
+                    ),
                     keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
+                      decimal: true,
+                    ),
                     validator: (v) =>
                         double.tryParse(v ?? '') == null ? 'Invalid' : null,
                   ),
@@ -225,7 +232,10 @@ class InvoiceDetailPage extends ConsumerWidget {
   }
 
   Future<void> _sendInvoice(
-      BuildContext context, WidgetRef ref, Invoice? invoice) async {
+    BuildContext context,
+    WidgetRef ref,
+    Invoice? invoice,
+  ) async {
     if (invoice == null) return;
 
     try {
@@ -235,7 +245,8 @@ class InvoiceDetailPage extends ConsumerWidget {
 
       final dir = await getApplicationDocumentsDirectory();
       final file = File(
-          '${dir.path}/${invoice.invoiceNumber.replaceAll(RegExp(r'[^\w]'), '_')}.pdf');
+        '${dir.path}/${invoice.invoiceNumber.replaceAll(RegExp(r'[^\w]'), '_')}.pdf',
+      );
       await file.writeAsBytes(bytes);
 
       // Get client (needed for both email recipient and subject {client} token)
@@ -244,13 +255,18 @@ class InvoiceDetailPage extends ConsumerWidget {
       final recipients = <String>[if (client.email != null) client.email!];
 
       // Build email subject from profile format
-      final profile = await ref.read(userProfileRepositoryProvider).getProfile();
+      final profile = await ref
+          .read(userProfileRepositoryProvider)
+          .getProfile();
       final subject = profile.defaultEmailSubjectFormat
           .replaceAll('{number}', invoice.invoiceNumber)
           .replaceAll('{client}', client.name)
-          .replaceAll('{period}', invoice.periodStart != null
-              ? '${DateFormat.yMMMd().format(invoice.periodStart!)} - ${DateFormat.yMMMd().format(invoice.periodEnd!)}'
-              : '');
+          .replaceAll(
+            '{period}',
+            invoice.periodStart != null
+                ? '${DateFormat.yMMMd().format(invoice.periodStart!)} - ${DateFormat.yMMMd().format(invoice.periodEnd!)}'
+                : '',
+          );
 
       // Send
       final emailService = ref.read(emailServiceProvider);
@@ -262,9 +278,9 @@ class InvoiceDetailPage extends ConsumerWidget {
       );
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -284,8 +300,7 @@ class _InvoiceDetailBody extends ConsumerWidget {
     final theme = Theme.of(context);
     final dateFmt = DateFormat.yMMMd();
     final clientAsync = ref.watch(clientByIdProvider(invoice.clientId));
-    final clientName =
-        clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
+    final clientName = clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
     final balanceDue = invoice.total - invoice.amountPaid;
 
     return ListView(
@@ -303,23 +318,25 @@ class _InvoiceDetailBody extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         invoice.invoiceNumber,
-                        style: theme.textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     InvoiceStatusBadge(status: invoice.status),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(clientName,
-                    style: theme.textTheme.titleMedium),
+                Text(clientName, style: theme.textTheme.titleMedium),
                 const SizedBox(height: 12),
                 _InfoRow(
-                    label: 'Issue Date',
-                    value: dateFmt.format(invoice.issueDate)),
+                  label: 'Issue Date',
+                  value: dateFmt.format(invoice.issueDate),
+                ),
                 _InfoRow(
-                    label: 'Due Date',
-                    value: dateFmt.format(invoice.dueDate)),
+                  label: 'Due Date',
+                  value: dateFmt.format(invoice.dueDate),
+                ),
                 if (invoice.periodStart != null && invoice.periodEnd != null)
                   _InfoRow(
                     label: 'Period',
@@ -328,16 +345,16 @@ class _InvoiceDetailBody extends ConsumerWidget {
                   ),
                 if (invoice.sentDate != null)
                   _InfoRow(
-                      label: 'Sent',
-                      value: dateFmt.format(invoice.sentDate!)),
+                    label: 'Sent',
+                    value: dateFmt.format(invoice.sentDate!),
+                  ),
                 if (invoice.paidDate != null)
                   _InfoRow(
-                      label: 'Paid',
-                      value: dateFmt.format(invoice.paidDate!)),
+                    label: 'Paid',
+                    value: dateFmt.format(invoice.paidDate!),
+                  ),
                 if (invoice.paymentMethod != null)
-                  _InfoRow(
-                      label: 'Method',
-                      value: invoice.paymentMethod!),
+                  _InfoRow(label: 'Method', value: invoice.paymentMethod!),
               ],
             ),
           ),
@@ -345,80 +362,123 @@ class _InvoiceDetailBody extends ConsumerWidget {
         const SizedBox(height: 16),
 
         // Line items
-        Text('Line Items',
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          'Line Items',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 8),
         lineItemsAsync.when(
-          loading: () =>
-              const Center(child: CircularProgressIndicator()),
+          loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Text('Error: $e'),
           data: (items) {
             final hasDates = items.any(
-                (i) => splitLineItemDescription(i.description).date != null);
+              (i) => splitLineItemDescription(i.description).date != null,
+            );
             final hasIssues = items.any(
-                (i) => i.issueReference != null && i.issueReference!.isNotEmpty);
+              (i) => i.issueReference != null && i.issueReference!.isNotEmpty,
+            );
             return Card(
-            child: Column(
-              children: [
-                // Header row
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12)),
-                  ),
-                  child: Row(
-                    children: [
-                      if (hasDates)
-                        SizedBox(
-                          width: 80,
-                          child: Text('Date',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                      if (hasIssues)
-                        SizedBox(
-                          width: 80,
-                          child: Text('Issue #',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                      Expanded(
-                          flex: 3,
-                          child: Text('Description',
-                              style: theme.textTheme.labelSmall
-                                  ?.copyWith(fontWeight: FontWeight.bold))),
-                      _ColHeader('Qty'),
-                      _ColHeader('Rate'),
-                      _ColHeader('Total'),
-                    ],
-                  ),
-                ),
-                ...items.map((item) => InkWell(
-                      onTap: () => showEditLineItemSheet(
-                          context, ref, item, invoice.id),
-                      child: _LineItemRow(
-                        item: item,
-                        currency: invoice.currency,
-                        showDateColumn: hasDates,
-                        showIssueColumn: hasIssues,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final fixedColsWidth = (hasDates ? 80.0 : 0.0) +
+                      (hasIssues ? 80.0 : 0.0) +
+                      (64.0 * 3) + // Qty, Rate, Total
+                      32.0; // padding
+
+                  final minDescWidth = 150.0;
+                  // If there's enough space, expand the description. Otherwise, lock it to minDescWidth and allow scroll.
+                  final descWidth = (constraints.maxWidth - fixedColsWidth) > minDescWidth
+                      ? (constraints.maxWidth - fixedColsWidth)
+                      : minDescWidth;
+
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Header row
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerHighest,
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(12),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                if (hasDates)
+                                  SizedBox(
+                                    width: 80,
+                                    child: Text(
+                                      'Date',
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                if (hasIssues)
+                                  SizedBox(
+                                    width: 80,
+                                    child: Text(
+                                      'Issue #',
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                SizedBox(
+                                  width: descWidth,
+                                  child: Text(
+                                    'Description',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const _ColHeader('Qty'),
+                                const _ColHeader('Rate'),
+                                const _ColHeader('Total'),
+                              ],
+                            ),
+                          ),
+                          ...items.map(
+                            (item) => InkWell(
+                              onTap: () => showEditLineItemSheet(
+                                  context, ref, item, invoice.id),
+                              child: _LineItemRow(
+                                item: item,
+                                currency: invoice.currency,
+                                showDateColumn: hasDates,
+                                showIssueColumn: hasIssues,
+                                descWidth: descWidth,
+                              ),
+                            ),
+                          ),
+                          if (items.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                              child: Text(
+                                'Tap a line item to edit',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                    )),
-                if (items.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Text(
-                      'Tap a line item to edit',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
                     ),
-                  ),
-              ],
-            ),
-          );
+                  );
+                },
+              ),
+            );
           },
         ),
         const SizedBox(height: 16),
@@ -430,39 +490,55 @@ class _InvoiceDetailBody extends ConsumerWidget {
             child: Column(
               children: [
                 _TotalRow(
-                    label: 'Subtotal',
-                    value: formatCurrency(invoice.subtotal,
-                        currency: invoice.currency)),
+                  label: 'Subtotal',
+                  value: formatCurrency(
+                    invoice.subtotal,
+                    currency: invoice.currency,
+                  ),
+                ),
                 if (invoice.taxRate > 0) ...[
                   _TotalRow(
-                      label:
-                          '${invoice.taxLabel} (${invoice.taxRate.toStringAsFixed(1)}%)',
-                      value: formatCurrency(invoice.taxAmount,
-                          currency: invoice.currency)),
+                    label:
+                        '${invoice.taxLabel} (${invoice.taxRate.toStringAsFixed(1)}%)',
+                    value: formatCurrency(
+                      invoice.taxAmount,
+                      currency: invoice.currency,
+                    ),
+                  ),
                 ],
                 if (invoice.lateFeeAmount > 0)
                   _TotalRow(
-                      label: 'Late Fee',
-                      value: formatCurrency(invoice.lateFeeAmount,
-                          currency: invoice.currency)),
+                    label: 'Late Fee',
+                    value: formatCurrency(
+                      invoice.lateFeeAmount,
+                      currency: invoice.currency,
+                    ),
+                  ),
                 const Divider(),
                 _TotalRow(
                   label: 'Total',
-                  value: formatCurrency(invoice.total,
-                      currency: invoice.currency),
+                  value: formatCurrency(
+                    invoice.total,
+                    currency: invoice.currency,
+                  ),
                   bold: true,
                 ),
                 if (invoice.amountPaid > 0)
                   _TotalRow(
-                      label: 'Paid',
-                      value: formatCurrency(invoice.amountPaid,
-                          currency: invoice.currency),
-                      color: Colors.green),
+                    label: 'Paid',
+                    value: formatCurrency(
+                      invoice.amountPaid,
+                      currency: invoice.currency,
+                    ),
+                    color: Colors.green,
+                  ),
                 if (balanceDue > 0 && invoice.status != 'draft')
                   _TotalRow(
                     label: 'Balance Due',
-                    value: formatCurrency(balanceDue,
-                        currency: invoice.currency),
+                    value: formatCurrency(
+                      balanceDue,
+                      currency: invoice.currency,
+                    ),
                     bold: true,
                     color: theme.colorScheme.error,
                   ),
@@ -474,9 +550,12 @@ class _InvoiceDetailBody extends ConsumerWidget {
         // Notes
         if (invoice.notes != null && invoice.notes!.isNotEmpty) ...[
           const SizedBox(height: 16),
-          Text('Notes',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'Notes',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
           Card(
             child: Padding(
@@ -495,217 +574,226 @@ class _InvoiceDetailBody extends ConsumerWidget {
   }
 
   Widget _buildActions(
-      BuildContext context, WidgetRef ref, Invoice inv, double balanceDue) {
+    BuildContext context,
+    WidgetRef ref,
+    Invoice inv,
+    double balanceDue,
+  ) {
     final notifier = ref.read(invoiceNotifierProvider.notifier);
 
     return switch (inv.status) {
       'draft' => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            OutlinedButton.icon(
-              onPressed: () => context.push(
-                '/invoices/${inv.id}/add-time',
-                extra: inv,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OutlinedButton.icon(
+            onPressed: () =>
+                context.push('/invoices/${inv.id}/add-time', extra: inv),
+            icon: const Icon(Icons.add_circle_outline),
+            label: const Text('Add More Time Entries'),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Delete Draft'),
+                        content: const Text(
+                          'This will delete the draft and unmark all linked time entries.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Cancel'),
+                          ),
+                          FilledButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            child: const Text('Delete'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirm == true && context.mounted) {
+                      await notifier.deleteDraft(inv.id);
+                      if (context.mounted) Navigator.of(context).pop();
+                    }
+                  },
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Delete'),
+                ),
               ),
-              icon: const Icon(Icons.add_circle_outline),
-              label: const Text('Add More Time Entries'),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Delete Draft'),
-                          content: const Text(
-                              'This will delete the draft and unmark all linked time entries.'),
-                          actions: [
-                            TextButton(
-                                onPressed: () =>
-                                    Navigator.pop(ctx, false),
-                                child: const Text('Cancel')),
-                            FilledButton(
-                                onPressed: () =>
-                                    Navigator.pop(ctx, true),
-                                child: const Text('Delete')),
-                          ],
-                        ),
-                      );
-                      if (confirm == true && context.mounted) {
-                        await notifier.deleteDraft(inv.id);
-                        if (context.mounted) Navigator.of(context).pop();
-                      }
-                    },
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Delete'),
-                  ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () async {
+                    await notifier.updateStatus(inv.id, 'sent');
+                  },
+                  icon: const Icon(Icons.send),
+                  label: const Text('Mark Sent'),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () async {
-                      await notifier.updateStatus(inv.id, 'sent');
-                    },
-                    icon: const Icon(Icons.send),
-                    label: const Text('Mark Sent'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
+      ),
       'sent' => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      final result = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => RecordPaymentDialog(
-                          invoiceId: inv.id,
-                          balanceDue: balanceDue,
-                          currency: inv.currency,
-                        ),
-                      );
-                      if (result == true) {
-                        // Providers auto-invalidate
-                      }
-                    },
-                    icon: const Icon(Icons.payment),
-                    label: const Text('Record Payment'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () async {
-                      await notifier.recordPayment(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final result = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => RecordPaymentDialog(
                         invoiceId: inv.id,
-                        amount: balanceDue,
-                        method: 'Other',
-                      );
-                    },
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Mark Paid'),
-                  ),
+                        balanceDue: balanceDue,
+                        currency: inv.currency,
+                      ),
+                    );
+                    if (result == true) {
+                      // Providers auto-invalidate
+                    }
+                  },
+                  icon: const Icon(Icons.payment),
+                  label: const Text('Record Payment'),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: () async {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Reopen as Draft?'),
-                    content: const Text(
-                      'This will revert the invoice back to draft so you '
-                      'can edit line items and resend it. The sent date '
-                      'will be cleared.',
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () async {
+                    await notifier.recordPayment(
+                      invoiceId: inv.id,
+                      amount: balanceDue,
+                      method: 'Other',
+                    );
+                  },
+                  icon: const Icon(Icons.check_circle),
+                  label: const Text('Mark Paid'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Reopen as Draft?'),
+                  content: const Text(
+                    'This will revert the invoice back to draft so you '
+                    'can edit line items and resend it. The sent date '
+                    'will be cleared.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Cancel'),
                     ),
-                    actions: [
-                      TextButton(
-                          onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text('Cancel')),
-                      FilledButton(
-                          onPressed: () => Navigator.pop(ctx, true),
-                          child: const Text('Reopen')),
-                    ],
-                  ),
-                );
-                if (confirm == true) {
-                  await notifier.revertToDraft(inv.id);
-                }
-              },
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('Reopen as Draft'),
-            ),
-          ],
-        ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Reopen'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true) {
+                await notifier.revertToDraft(inv.id);
+              }
+            },
+            icon: const Icon(Icons.edit_outlined),
+            label: const Text('Reopen as Draft'),
+          ),
+        ],
+      ),
       'paid' => Column(
-          children: [
-            Chip(
-              avatar: const Icon(Icons.check_circle, color: Colors.green),
-              label: Text(
-                  'Paid on ${DateFormat.yMMMd().format(inv.paidDate ?? inv.updatedAt)}'),
+        children: [
+          Chip(
+            avatar: const Icon(Icons.check_circle, color: Colors.green),
+            label: Text(
+              'Paid on ${DateFormat.yMMMd().format(inv.paidDate ?? inv.updatedAt)}',
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _confirmDelete(context, notifier, inv),
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Delete'),
-                  ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _confirmDelete(context, notifier, inv),
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Delete'),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.tonalIcon(
-                    onPressed: () async {
-                      await notifier.archiveInvoice(inv.id);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Invoice archived')),
-                        );
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    icon: const Icon(Icons.archive_outlined),
-                    label: const Text('Archive'),
-                  ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: () async {
+                    await notifier.archiveInvoice(inv.id);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Invoice archived')),
+                      );
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  icon: const Icon(Icons.archive_outlined),
+                  label: const Text('Archive'),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
+      ),
       'archived' => Column(
-          children: [
-            Chip(
-              avatar: const Icon(Icons.archive, color: Colors.grey),
-              label: const Text('Archived'),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _confirmDelete(context, notifier, inv),
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Delete'),
-                  ),
+        children: [
+          Chip(
+            avatar: const Icon(Icons.archive, color: Colors.grey),
+            label: const Text('Archived'),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _confirmDelete(context, notifier, inv),
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Delete'),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.tonalIcon(
-                    onPressed: () async {
-                      await notifier.unarchiveInvoice(inv.id);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Invoice restored')),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.unarchive_outlined),
-                    label: const Text('Unarchive'),
-                  ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: () async {
+                    await notifier.unarchiveInvoice(inv.id);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Invoice restored')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.unarchive_outlined),
+                  label: const Text('Unarchive'),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
+      ),
       _ => const SizedBox.shrink(),
     };
   }
 
   Future<void> _confirmDelete(
-      BuildContext context, InvoiceNotifier notifier, Invoice inv) async {
+    BuildContext context,
+    InvoiceNotifier notifier,
+    Invoice inv,
+  ) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -750,12 +838,12 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-              width: 100,
-              child: Text(label,
-                  style: Theme.of(context).textTheme.bodySmall)),
+            width: 100,
+            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+          ),
           Expanded(
-              child: Text(value,
-                  style: Theme.of(context).textTheme.bodyMedium)),
+            child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
+          ),
         ],
       ),
     );
@@ -770,12 +858,13 @@ class _ColHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 64,
-      child: Text(text,
-          textAlign: TextAlign.end,
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall
-              ?.copyWith(fontWeight: FontWeight.bold)),
+      child: Text(
+        text,
+        textAlign: TextAlign.end,
+        style: Theme.of(
+          context,
+        ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
+      ),
     );
   }
 }
@@ -822,30 +911,38 @@ class _LineItemRow extends StatelessWidget {
             ),
           Expanded(
             flex: 3,
-            child: Text(split.description,
-                style: theme.textTheme.bodyMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis),
-          ),
-          SizedBox(
-            width: 64,
-            child: Text(item.quantity.toStringAsFixed(2),
-                textAlign: TextAlign.end,
-                style: theme.textTheme.bodySmall),
+            child: Text(
+              split.description,
+              style: theme.textTheme.bodyMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           SizedBox(
             width: 64,
             child: Text(
-                formatCurrency(item.unitPrice, currency: currency),
-                textAlign: TextAlign.end,
-                style: theme.textTheme.bodySmall),
+              item.quantity.toStringAsFixed(2),
+              textAlign: TextAlign.end,
+              style: theme.textTheme.bodySmall,
+            ),
           ),
           SizedBox(
             width: 64,
-            child: Text(formatCurrency(item.total, currency: currency),
-                textAlign: TextAlign.end,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(fontWeight: FontWeight.w600)),
+            child: Text(
+              formatCurrency(item.unitPrice, currency: currency),
+              textAlign: TextAlign.end,
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+          SizedBox(
+            width: 64,
+            child: Text(
+              formatCurrency(item.total, currency: currency),
+              textAlign: TextAlign.end,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -869,10 +966,10 @@ class _TotalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = bold
-        ? Theme.of(context)
-            .textTheme
-            .titleSmall
-            ?.copyWith(fontWeight: FontWeight.bold, color: color)
+        ? Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: color,
+          )
         : Theme.of(context).textTheme.bodyMedium?.copyWith(color: color);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),

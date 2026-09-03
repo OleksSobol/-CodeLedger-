@@ -29,8 +29,10 @@ class RecentActivitySliver extends ConsumerWidget {
       loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
       error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
       data: (entries) {
-        final completed =
-            entries.where((e) => e.endTime != null).take(5).toList();
+        final completed = entries
+            .where((e) => e.endTime != null)
+            .take(5)
+            .toList();
         if (completed.isEmpty) {
           return SliverToBoxAdapter(
             child: Padding(
@@ -42,10 +44,8 @@ class RecentActivitySliver extends ConsumerWidget {
                     child: Text(
                       'No recent activity',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ),
@@ -93,8 +93,7 @@ class _InteractiveEntryTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final clientAsync = ref.watch(clientByIdProvider(entry.clientId));
-    final clientName =
-        clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
+    final clientName = clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
 
     final hours = (entry.durationMinutes ?? 0) / 60.0;
     final desc = entry.description ?? 'Work session';
@@ -112,8 +111,7 @@ class _InteractiveEntryTile extends ConsumerWidget {
         color: theme.colorScheme.tertiary,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: Spacing.md),
-        child:
-            Icon(Icons.receipt_long, color: theme.colorScheme.onTertiary),
+        child: Icon(Icons.receipt_long, color: theme.colorScheme.onTertiary),
       ),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
@@ -155,7 +153,10 @@ class _InteractiveEntryTile extends ConsumerWidget {
   }
 
   void _showDetailSheet(
-      BuildContext context, ThemeData theme, String clientName) {
+    BuildContext context,
+    ThemeData theme,
+    String clientName,
+  ) {
     final timeFmt = DateFormat.jm();
     final dateFmt = DateFormat.yMMMd();
     final minutes = entry.durationMinutes ?? 0;
@@ -172,23 +173,21 @@ class _InteractiveEntryTile extends ConsumerWidget {
           children: [
             Text(
               entry.description ?? 'Work session',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: Spacing.md),
+            _DetailRow('Client', clientName),
+            _DetailRow('Date', dateFmt.format(entry.startTime)),
             _DetailRow(
-                'Client', clientName),
-            _DetailRow(
-                'Date', dateFmt.format(entry.startTime)),
-            _DetailRow(
-                'Time',
-                '${timeFmt.format(entry.startTime)} - '
-                    '${entry.endTime != null ? timeFmt.format(entry.endTime!) : 'Running'}'),
+              'Time',
+              '${timeFmt.format(entry.startTime)} - '
+                  '${entry.endTime != null ? timeFmt.format(entry.endTime!) : 'Running'}',
+            ),
             _DetailRow('Duration', formatDuration(minutes)),
-            _DetailRow('Rate',
-                '\$${rate.toStringAsFixed(2)}/hr'),
-            _DetailRow('Value',
-                '\$${total.toStringAsFixed(2)}'),
+            _DetailRow('Rate', '\$${rate.toStringAsFixed(2)}/hr'),
+            _DetailRow('Value', '\$${total.toStringAsFixed(2)}'),
             const SizedBox(height: Spacing.md),
             SizedBox(
               width: double.infinity,
@@ -242,9 +241,7 @@ class _DetailRow extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(value, style: theme.textTheme.bodyMedium),
-          ),
+          Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
         ],
       ),
     );

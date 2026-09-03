@@ -20,7 +20,9 @@ class DateRangeSelector extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: Spacing.md, vertical: Spacing.sm),
+        horizontal: Spacing.md,
+        vertical: Spacing.sm,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -33,9 +35,7 @@ class DateRangeSelector extends ConsumerWidget {
                     ButtonSegment(value: 'week', label: Text('Week')),
                     ButtonSegment(value: 'month', label: Text('Month')),
                   ],
-                  selected: {
-                    if (selected == 'custom') 'week' else selected,
-                  },
+                  selected: {if (selected == 'custom') 'week' else selected},
                   onSelectionChanged: (selection) {
                     final value = selection.first;
                     ref.read(dateRangeFilterProvider.notifier).set(
@@ -66,12 +66,17 @@ class DateRangeSelector extends ConsumerWidget {
           const SizedBox(height: 4),
           TextButton.icon(
             onPressed: () => _pickCustomRange(context, ref, filter),
-            icon: Icon(Icons.date_range, size: 16,
-                color: selected == 'custom'
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant),
+            icon: Icon(
+              Icons.date_range,
+              size: 16,
+              color: selected == 'custom'
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
             label: Text(
-              selected == 'custom' ? 'Custom range selected' : 'Custom range...',
+              selected == 'custom'
+                  ? 'Custom range selected'
+                  : 'Custom range...',
               style: theme.textTheme.labelMedium?.copyWith(
                 color: selected == 'custom'
                     ? theme.colorScheme.primary
@@ -100,7 +105,10 @@ class DateRangeSelector extends ConsumerWidget {
   }
 
   Future<void> _pickCustomRange(
-      BuildContext context, WidgetRef ref, DateRangeFilter current) async {
+    BuildContext context,
+    WidgetRef ref,
+    DateRangeFilter current,
+  ) async {
     final initialEnd = current.end.subtract(const Duration(days: 1));
     final lastDate = initialEnd.isAfter(DateTime.now())
         ? initialEnd
@@ -109,16 +117,17 @@ class DateRangeSelector extends ConsumerWidget {
       context: context,
       firstDate: DateTime(2020),
       lastDate: lastDate,
-      initialDateRange: DateTimeRange(
-        start: current.start,
-        end: initialEnd,
-      ),
+      initialDateRange: DateTimeRange(start: current.start, end: initialEnd),
     );
     if (picked != null) {
-      ref.read(dateRangeFilterProvider.notifier).set(DateRangeFilter(
-        start: picked.start,
-        end: picked.end.add(const Duration(days: 1)),
-      ));
+      ref
+          .read(dateRangeFilterProvider.notifier)
+          .set(
+            DateRangeFilter(
+              start: picked.start,
+              end: picked.end.add(const Duration(days: 1)),
+            ),
+          );
     }
   }
 }

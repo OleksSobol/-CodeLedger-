@@ -40,16 +40,19 @@ class SendInvoicesPage extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.mark_email_read_outlined,
-                        size: 64, color: theme.colorScheme.outline),
+                    Icon(
+                      Icons.mark_email_read_outlined,
+                      size: 64,
+                      color: theme.colorScheme.outline,
+                    ),
                     const SizedBox(height: 16),
-                    Text('Nothing to send',
-                        style: theme.textTheme.titleMedium),
+                    Text('Nothing to send', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 8),
                     Text(
                       'Drafts you create will show up here, ready to email.',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -61,8 +64,7 @@ class SendInvoicesPage extends ConsumerWidget {
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: drafts.length,
-            itemBuilder: (context, i) =>
-                _DraftCard(invoice: drafts[i]),
+            itemBuilder: (context, i) => _DraftCard(invoice: drafts[i]),
           );
         },
       ),
@@ -85,10 +87,8 @@ class _DraftCardState extends ConsumerState<_DraftCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dateFmt = DateFormat.yMMMd();
-    final clientAsync =
-        ref.watch(clientByIdProvider(widget.invoice.clientId));
-    final clientName =
-        clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
+    final clientAsync = ref.watch(clientByIdProvider(widget.invoice.clientId));
+    final clientName = clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -102,15 +102,19 @@ class _DraftCardState extends ConsumerState<_DraftCard> {
                 Expanded(
                   child: Text(
                     widget.invoice.invoiceNumber,
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Text(
-                  formatCurrency(widget.invoice.total,
-                      currency: widget.invoice.currency),
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  formatCurrency(
+                    widget.invoice.total,
+                    currency: widget.invoice.currency,
+                  ),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -127,9 +131,9 @@ class _DraftCardState extends ConsumerState<_DraftCard> {
                     onPressed: _sending
                         ? null
                         : () => context.push(
-                              '/invoices/${widget.invoice.id}/add-time',
-                              extra: widget.invoice,
-                            ),
+                            '/invoices/${widget.invoice.id}/add-time',
+                            extra: widget.invoice,
+                          ),
                     icon: const Icon(Icons.add_circle_outline),
                     label: const Text('Add Time'),
                   ),
@@ -140,14 +144,13 @@ class _DraftCardState extends ConsumerState<_DraftCard> {
                     onPressed: _sending
                         ? null
                         : () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => PdfPreviewPage(
-                                  invoiceId: widget.invoice.id,
-                                  invoiceNumber:
-                                      widget.invoice.invoiceNumber,
-                                ),
+                            MaterialPageRoute(
+                              builder: (_) => PdfPreviewPage(
+                                invoiceId: widget.invoice.id,
+                                invoiceNumber: widget.invoice.invoiceNumber,
                               ),
                             ),
+                          ),
                     icon: const Icon(Icons.picture_as_pdf_outlined),
                     label: const Text('Preview'),
                   ),
@@ -176,30 +179,32 @@ class _DraftCardState extends ConsumerState<_DraftCard> {
     setState(() => _sending = true);
     try {
       final invoice = widget.invoice;
-      final doc =
-          await ref.refresh(invoicePdfProvider(invoice.id).future);
+      final doc = await ref.refresh(invoicePdfProvider(invoice.id).future);
       final bytes = await doc.save();
       final dir = await getTemporaryDirectory();
       final file = File(
-          '${dir.path}/${invoice.invoiceNumber.replaceAll(RegExp(r'[^\w]'), '_')}.pdf');
+        '${dir.path}/${invoice.invoiceNumber.replaceAll(RegExp(r'[^\w]'), '_')}.pdf',
+      );
       await file.writeAsBytes(bytes);
 
-      final client =
-          await ref.read(clientRepositoryProvider).getClient(invoice.clientId);
-      final profile =
-          await ref.read(userProfileRepositoryProvider).getProfile();
+      final client = await ref
+          .read(clientRepositoryProvider)
+          .getClient(invoice.clientId);
+      final profile = await ref
+          .read(userProfileRepositoryProvider)
+          .getProfile();
       final subject = profile.defaultEmailSubjectFormat
           .replaceAll('{number}', invoice.invoiceNumber)
           .replaceAll('{client}', client.name)
           .replaceAll(
-              '{period}',
-              invoice.periodStart != null && invoice.periodEnd != null
-                  ? '${DateFormat.yMMMd().format(invoice.periodStart!)} - '
+            '{period}',
+            invoice.periodStart != null && invoice.periodEnd != null
+                ? '${DateFormat.yMMMd().format(invoice.periodStart!)} - '
                       '${DateFormat.yMMMd().format(invoice.periodEnd!)}'
-                  : '');
+                : '',
+          );
 
-      final recipients =
-          <String>[if (client.email != null) client.email!];
+      final recipients = <String>[if (client.email != null) client.email!];
 
       final emailService = ref.read(emailServiceProvider);
       await emailService.sendInvoice(
@@ -215,15 +220,14 @@ class _DraftCardState extends ConsumerState<_DraftCard> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('${invoice.invoiceNumber} marked as sent.')),
+          SnackBar(content: Text('${invoice.invoiceNumber} marked as sent.')),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _sending = false);

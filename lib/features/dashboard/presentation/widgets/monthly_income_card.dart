@@ -18,23 +18,22 @@ class MonthlyIncomeCard extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Icons.trending_up,
-                size: 32, color: theme.colorScheme.primary),
+            Icon(Icons.trending_up, size: 32, color: theme.colorScheme.primary),
             const SizedBox(width: 16),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('$monthName Income',
-                    style: theme.textTheme.labelMedium),
+                Text('$monthName Income', style: theme.textTheme.labelMedium),
                 incomeAsync.when(
-                  loading: () => Text('...',
-                      style: theme.textTheme.headlineSmall),
-                  error: (_, _) => Text('--',
-                      style: theme.textTheme.headlineSmall),
+                  loading: () =>
+                      Text('...', style: theme.textTheme.headlineSmall),
+                  error: (_, _) =>
+                      Text('--', style: theme.textTheme.headlineSmall),
                   data: (income) => Text(
                     formatCurrency(income),
                     style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],

@@ -10,8 +10,9 @@ class ClientUninvoiced {
   const ClientUninvoiced({required this.client, required this.hours});
 }
 
-final uninvoicedByClientProvider =
-    FutureProvider<List<ClientUninvoiced>>((ref) async {
+final uninvoicedByClientProvider = FutureProvider<List<ClientUninvoiced>>((
+  ref,
+) async {
   final clientRepo = ref.watch(clientRepositoryProvider);
   final clients = await clientRepo.getActiveClients();
   final results = <ClientUninvoiced>[];
@@ -32,10 +33,12 @@ final monthlyIncomeProvider = FutureProvider<double>((ref) async {
   final monthStart = DateTime(now.year, now.month);
   final monthEnd = DateTime(now.year, now.month + 1);
   return paid
-      .where((i) =>
-          i.paidDate != null &&
-          !i.paidDate!.isBefore(monthStart) &&
-          i.paidDate!.isBefore(monthEnd))
+      .where(
+        (i) =>
+            i.paidDate != null &&
+            !i.paidDate!.isBefore(monthStart) &&
+            i.paidDate!.isBefore(monthEnd),
+      )
       .fold<double>(0, (sum, i) => sum + i.amountPaid);
 });
 
@@ -47,8 +50,7 @@ class InvoiceSummary {
   const InvoiceSummary({required this.count, required this.total});
 }
 
-final outstandingInvoicesProvider =
-    FutureProvider<InvoiceSummary>((ref) async {
+final outstandingInvoicesProvider = FutureProvider<InvoiceSummary>((ref) async {
   final repo = ref.watch(invoiceRepositoryProvider);
   final sent = await repo.getByStatus('sent');
   return InvoiceSummary(
@@ -64,22 +66,18 @@ final weeklyHoursProvider = FutureProvider<double>((ref) async {
   final weekday = now.weekday;
   final weekStart = DateTime(now.year, now.month, now.day - (weekday - 1));
   final weekEnd = weekStart.add(const Duration(days: 7));
-  final entries = await repo
-      .watchEntriesForDateRange(weekStart, weekEnd)
-      .first;
+  final entries = await repo.watchEntriesForDateRange(weekStart, weekEnd).first;
   return entries
       .where((e) => e.endTime != null)
       .fold<double>(0, (sum, e) => sum + (e.durationMinutes ?? 0) / 60.0);
 });
 
 /// Overdue invoices — sent + past due date.
-final overdueInvoicesProvider =
-    FutureProvider<InvoiceSummary>((ref) async {
+final overdueInvoicesProvider = FutureProvider<InvoiceSummary>((ref) async {
   final repo = ref.watch(invoiceRepositoryProvider);
   final overdue = await repo.getOverdueInvoices();
   return InvoiceSummary(
     count: overdue.length,
-    total:
-        overdue.fold<double>(0, (sum, i) => sum + i.total - i.amountPaid),
+    total: overdue.fold<double>(0, (sum, i) => sum + i.total - i.amountPaid),
   );
 });

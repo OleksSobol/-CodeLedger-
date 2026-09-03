@@ -5,13 +5,11 @@ import '../tables/expenses_table.dart';
 part 'expense_dao.g.dart';
 
 @DriftAccessor(tables: [Expenses])
-class ExpenseDao extends DatabaseAccessor<AppDatabase>
-    with _$ExpenseDaoMixin {
+class ExpenseDao extends DatabaseAccessor<AppDatabase> with _$ExpenseDaoMixin {
   ExpenseDao(super.db);
 
   Stream<List<Expense>> watchAll() =>
-      (select(db.expenses)..orderBy([(e) => OrderingTerm.asc(e.name)]))
-          .watch();
+      (select(db.expenses)..orderBy([(e) => OrderingTerm.asc(e.name)])).watch();
 
   Future<List<Expense>> getAll() =>
       (select(db.expenses)..orderBy([(e) => OrderingTerm.asc(e.name)])).get();
@@ -47,8 +45,7 @@ extension ExpenseCalc on Expense {
     }
   }
 
-  double get monthlyAmount =>
-      frequency == 'annual' ? amount / 12 : amount;
+  double get monthlyAmount => frequency == 'annual' ? amount / 12 : amount;
 
   double get monthlyDeductible => monthlyAmount * deductibleFraction;
 

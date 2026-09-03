@@ -39,10 +39,10 @@ class _EditDraftInvoicePageState extends ConsumerState<EditDraftInvoicePage> {
     super.initState();
     final inv = widget.invoice;
     _invoiceNumberCtrl = TextEditingController(text: inv.invoiceNumber);
-    _subtotalCtrl =
-        TextEditingController(text: inv.subtotal.toStringAsFixed(2));
-    _taxRateCtrl =
-        TextEditingController(text: inv.taxRate.toStringAsFixed(2));
+    _subtotalCtrl = TextEditingController(
+      text: inv.subtotal.toStringAsFixed(2),
+    );
+    _taxRateCtrl = TextEditingController(text: inv.taxRate.toStringAsFixed(2));
     _taxLabelCtrl = TextEditingController(text: inv.taxLabel);
     _notesCtrl = TextEditingController(text: inv.notes ?? '');
     _selectedClientId = inv.clientId;
@@ -65,8 +65,7 @@ class _EditDraftInvoicePageState extends ConsumerState<EditDraftInvoicePage> {
       double.tryParse(_subtotalCtrl.text.replaceAll(',', '')) ?? 0.0;
   double get _taxRate => double.tryParse(_taxRateCtrl.text) ?? 0.0;
   double get _taxAmount => _subtotal * (_taxRate / 100.0);
-  double get _total =>
-      _subtotal + _taxAmount + widget.invoice.lateFeeAmount;
+  double get _total => _subtotal + _taxAmount + widget.invoice.lateFeeAmount;
 
   Future<void> _pickDate(bool isIssue) async {
     final initial = isIssue ? _issueDate : _dueDate;
@@ -95,7 +94,9 @@ class _EditDraftInvoicePageState extends ConsumerState<EditDraftInvoicePage> {
           ? 'Tax'
           : _taxLabelCtrl.text.trim();
 
-      await ref.read(invoiceNotifierProvider.notifier).updateDraftInvoice(
+      await ref
+          .read(invoiceNotifierProvider.notifier)
+          .updateDraftInvoice(
             invoiceId: widget.invoice.id,
             clientId: _selectedClientId,
             invoiceNumber: _invoiceNumberCtrl.text.trim(),
@@ -112,13 +113,14 @@ class _EditDraftInvoicePageState extends ConsumerState<EditDraftInvoicePage> {
 
       if (!mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Draft updated.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Draft updated.')));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -134,8 +136,7 @@ class _EditDraftInvoicePageState extends ConsumerState<EditDraftInvoicePage> {
 
     // Ensure the current client is in the list even if archived
     final clientList = clientsAsync.whenOrNull(data: (c) => c) ?? const [];
-    final clientInList =
-        clientList.any((c) => c.id == _selectedClientId);
+    final clientInList = clientList.any((c) => c.id == _selectedClientId);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Draft')),
@@ -143,7 +144,11 @@ class _EditDraftInvoicePageState extends ConsumerState<EditDraftInvoicePage> {
         key: _formKey,
         child: ListView(
           padding: EdgeInsets.fromLTRB(
-              Spacing.md, Spacing.md, Spacing.md, Spacing.md + bottomInset),
+            Spacing.md,
+            Spacing.md,
+            Spacing.md,
+            Spacing.md + bottomInset,
+          ),
           children: [
             // ── Client ──────────────────────────────────────────────
             clientsAsync.when(
@@ -152,16 +157,16 @@ class _EditDraftInvoicePageState extends ConsumerState<EditDraftInvoicePage> {
               data: (clients) {
                 // If the current client is not active, add a fallback entry
                 final items = [
-                  ...clients.map((c) =>
-                      DropdownMenuItem(value: c.id, child: Text(c.name))),
+                  ...clients.map(
+                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  ),
                   if (!clientInList)
                     DropdownMenuItem(
                       value: _selectedClientId,
-                      child: ref
+                      child:
+                          ref
                               .watch(clientByIdProvider(_selectedClientId))
-                              .whenOrNull(
-                                data: (c) => Text(c.name),
-                              ) ??
+                              .whenOrNull(data: (c) => Text(c.name)) ??
                           Text('Client #$_selectedClientId'),
                     ),
                 ];
@@ -254,8 +259,9 @@ class _EditDraftInvoicePageState extends ConsumerState<EditDraftInvoicePage> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.attach_money),
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
               ],
@@ -294,8 +300,9 @@ class _EditDraftInvoicePageState extends ConsumerState<EditDraftInvoicePage> {
                       prefixIcon: Icon(Icons.percent),
                       helperText: '0 = no tax',
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
                     ],
@@ -323,17 +330,19 @@ class _EditDraftInvoicePageState extends ConsumerState<EditDraftInvoicePage> {
                   child: Column(
                     children: [
                       _TotalRow(
-                          label: 'Subtotal',
-                          amount: _subtotal,
-                          currency: _currency),
+                        label: 'Subtotal',
+                        amount: _subtotal,
+                        currency: _currency,
+                      ),
                       if (_taxRate > 0) ...[
                         const SizedBox(height: Spacing.xs),
                         _TotalRow(
-                            label:
-                                '${_taxLabelCtrl.text.trim().isEmpty ? 'Tax' : _taxLabelCtrl.text.trim()} '
-                                '(${_taxRate.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}%)',
-                            amount: _taxAmount,
-                            currency: _currency),
+                          label:
+                              '${_taxLabelCtrl.text.trim().isEmpty ? 'Tax' : _taxLabelCtrl.text.trim()} '
+                              '(${_taxRate.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}%)',
+                          amount: _taxAmount,
+                          currency: _currency,
+                        ),
                       ],
                       if (widget.invoice.lateFeeAmount > 0) ...[
                         const SizedBox(height: Spacing.xs),
@@ -414,10 +423,10 @@ class _TotalRow extends StatelessWidget {
       symbol: currency == 'USD'
           ? '\$'
           : currency == 'EUR'
-              ? '€'
-              : currency == 'GBP'
-                  ? '£'
-                  : '$currency ',
+          ? '€'
+          : currency == 'GBP'
+          ? '£'
+          : '$currency ',
       decimalDigits: 2,
     );
 

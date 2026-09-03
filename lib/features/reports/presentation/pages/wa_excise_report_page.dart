@@ -41,34 +41,34 @@ class _WaSubmission {
   });
 
   Map<String, dynamic> toJson() => {
-        'period': period,
-        'submittedAt': submittedAt,
-        'grossAmount': grossAmount,
-        'deductions': deductions,
-        'taxableAmount': taxableAmount,
-        'boTax': boTax,
-        'stateSalesTax': stateSalesTax,
-        'localTax': localTax,
-        'credits': credits,
-        'totalDue': totalDue,
-        'fileContent': fileContent,
-        if (notes != null) 'notes': notes,
-      };
+    'period': period,
+    'submittedAt': submittedAt,
+    'grossAmount': grossAmount,
+    'deductions': deductions,
+    'taxableAmount': taxableAmount,
+    'boTax': boTax,
+    'stateSalesTax': stateSalesTax,
+    'localTax': localTax,
+    'credits': credits,
+    'totalDue': totalDue,
+    'fileContent': fileContent,
+    if (notes != null) 'notes': notes,
+  };
 
   factory _WaSubmission.fromJson(Map<String, dynamic> json) => _WaSubmission(
-        period: json['period'] as String,
-        submittedAt: json['submittedAt'] as String,
-        grossAmount: (json['grossAmount'] as num).toDouble(),
-        deductions: (json['deductions'] as num?)?.toDouble() ?? 0,
-        taxableAmount: (json['taxableAmount'] as num?)?.toDouble() ?? 0,
-        boTax: (json['boTax'] as num?)?.toDouble() ?? 0,
-        stateSalesTax: (json['stateSalesTax'] as num?)?.toDouble() ?? 0,
-        localTax: (json['localTax'] as num?)?.toDouble() ?? 0,
-        credits: (json['credits'] as num?)?.toDouble() ?? 0,
-        totalDue: (json['totalDue'] as num).toDouble(),
-        fileContent: json['fileContent'] as String,
-        notes: json['notes'] as String?,
-      );
+    period: json['period'] as String,
+    submittedAt: json['submittedAt'] as String,
+    grossAmount: (json['grossAmount'] as num).toDouble(),
+    deductions: (json['deductions'] as num?)?.toDouble() ?? 0,
+    taxableAmount: (json['taxableAmount'] as num?)?.toDouble() ?? 0,
+    boTax: (json['boTax'] as num?)?.toDouble() ?? 0,
+    stateSalesTax: (json['stateSalesTax'] as num?)?.toDouble() ?? 0,
+    localTax: (json['localTax'] as num?)?.toDouble() ?? 0,
+    credits: (json['credits'] as num?)?.toDouble() ?? 0,
+    totalDue: (json['totalDue'] as num).toDouble(),
+    fileContent: json['fileContent'] as String,
+    notes: json['notes'] as String?,
+  );
 }
 
 // ── Quarter helpers ────────────────────────────────────────────────────────────
@@ -106,8 +106,7 @@ class WaExciseReportPage extends ConsumerStatefulWidget {
   const WaExciseReportPage({super.key});
 
   @override
-  ConsumerState<WaExciseReportPage> createState() =>
-      _WaExciseReportPageState();
+  ConsumerState<WaExciseReportPage> createState() => _WaExciseReportPageState();
 }
 
 class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
@@ -166,8 +165,15 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
   void dispose() {
     _tabs.dispose();
     for (final c in [
-      _traCtrl, _grossCtrl, _deductionsCtrl, _creditsCtrl, _notesCtrl,
-      _boRateCtrl, _stateSalesRateCtrl, _localCodeCtrl, _localNameCtrl,
+      _traCtrl,
+      _grossCtrl,
+      _deductionsCtrl,
+      _creditsCtrl,
+      _notesCtrl,
+      _boRateCtrl,
+      _stateSalesRateCtrl,
+      _localCodeCtrl,
+      _localNameCtrl,
       _localRateCtrl,
     ]) {
       c.dispose();
@@ -186,7 +192,9 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
 
     // Fall back to profile taxId for TRA
     if ((tra == null || tra.isEmpty)) {
-      final profile = await ref.read(userProfileRepositoryProvider).getProfile();
+      final profile = await ref
+          .read(userProfileRepositoryProvider)
+          .getProfile();
       if (profile.taxId != null && mounted) {
         _traCtrl.text = profile.taxId!;
       }
@@ -222,10 +230,11 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
       try {
         final list = jsonDecode(json) as List<dynamic>;
         setState(() {
-          _submissions = list
-              .map((e) => _WaSubmission.fromJson(e as Map<String, dynamic>))
-              .toList()
-            ..sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
+          _submissions =
+              list
+                  .map((e) => _WaSubmission.fromJson(e as Map<String, dynamic>))
+                  .toList()
+                ..sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
         });
       } catch (_) {}
     }
@@ -234,7 +243,9 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
   Future<void> _saveSubmissions() async {
     final dao = ref.read(appSettingsDaoProvider);
     await dao.setValue(
-        _kSubmissions, jsonEncode(_submissions.map((s) => s.toJson()).toList()));
+      _kSubmissions,
+      jsonEncode(_submissions.map((s) => s.toJson()).toList()),
+    );
   }
 
   void _refreshGross() {
@@ -271,7 +282,8 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
     final buf = StringBuffer();
     buf.writeln('# WA Combined Excise Tax Return - $period');
     buf.writeln(
-        '# Generated ${DateFormat.yMMMd().format(DateTime.now())} by CodeLedger');
+      '# Generated ${DateFormat.yMMMd().format(DateTime.now())} by CodeLedger',
+    );
     buf.writeln();
     // Account line
     buf.writeln('ACCOUNT,$tra,$period,$preparer,$email,$phone');
@@ -303,15 +315,18 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
       final file = File('${dir.path}/WA_Excise_$period.csv');
       await file.writeAsString(content);
       if (mounted) {
-        await SharePlus.instance.share(ShareParams(
-          files: [XFile(file.path, mimeType: 'text/csv')],
-          subject: 'WA Excise Tax $period',
-        ));
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(file.path, mimeType: 'text/csv')],
+            subject: 'WA Excise Tax $period',
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -348,15 +363,16 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
       _notesCtrl.clear();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$period marked as submitted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$period marked as submitted')));
         _tabs.animateTo(1);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -371,11 +387,13 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
         content: Text('Remove the record for ${s.period}?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete')),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
@@ -390,14 +408,17 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/WA_Excise_${s.period}.csv');
       await file.writeAsString(s.fileContent);
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path, mimeType: 'text/csv')],
-        subject: 'WA Excise Tax ${s.period}',
-      ));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'text/csv')],
+          subject: 'WA Excise Tax ${s.period}',
+        ),
+      );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -414,7 +435,10 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
         title: const Text('WA Excise Tax'),
         bottom: TabBar(
           controller: _tabs,
-          tabs: const [Tab(text: 'Generate'), Tab(text: 'History')],
+          tabs: const [
+            Tab(text: 'Generate'),
+            Tab(text: 'History'),
+          ],
         ),
       ),
       body: TabBarView(
@@ -428,8 +452,9 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
     final theme = Theme.of(context);
     final cur = NumberFormat.currency(symbol: '\$');
     final pct = NumberFormat.percentPattern()..maximumFractionDigits = 4;
-    final isSubmitted = _submissions
-        .any((s) => s.period == _periodCode(_year, _quarter));
+    final isSubmitted = _submissions.any(
+      (s) => s.period == _periodCode(_year, _quarter),
+    );
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -443,51 +468,73 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
               children: [
                 Text('Filing Period', style: theme.textTheme.titleSmall),
                 const SizedBox(height: 12),
-                Row(children: [
-                  Expanded(
-                    child: DropdownButtonFormField<int>(
-                      // ignore: deprecated_member_use
-                      value: _year,
-                      decoration: const InputDecoration(labelText: 'Year'),
-                      items: List.generate(5, (i) {
-                        final y = DateTime.now().year - i;
-                        return DropdownMenuItem(value: y, child: Text('$y'));
-                      }),
-                      onChanged: (v) {
-                        setState(() => _year = v!);
-                        _refreshGross();
-                      },
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<int>(
+                        // ignore: deprecated_member_use
+                        value: _year,
+                        decoration: const InputDecoration(labelText: 'Year'),
+                        items: List.generate(5, (i) {
+                          final y = DateTime.now().year - i;
+                          return DropdownMenuItem(value: y, child: Text('$y'));
+                        }),
+                        onChanged: (v) {
+                          setState(() => _year = v!);
+                          _refreshGross();
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<int>(
-                      // ignore: deprecated_member_use
-                      value: _quarter,
-                      decoration: const InputDecoration(labelText: 'Quarter'),
-                      items: const [
-                        DropdownMenuItem(value: 1, child: Text('Q1 (Jan-Mar)')),
-                        DropdownMenuItem(value: 2, child: Text('Q2 (Apr-Jun)')),
-                        DropdownMenuItem(value: 3, child: Text('Q3 (Jul-Sep)')),
-                        DropdownMenuItem(value: 4, child: Text('Q4 (Oct-Dec)')),
-                      ],
-                      onChanged: (v) {
-                        setState(() => _quarter = v!);
-                        _refreshGross();
-                      },
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<int>(
+                        // ignore: deprecated_member_use
+                        value: _quarter,
+                        decoration: const InputDecoration(labelText: 'Quarter'),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 1,
+                            child: Text('Q1 (Jan-Mar)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 2,
+                            child: Text('Q2 (Apr-Jun)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 3,
+                            child: Text('Q3 (Jul-Sep)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 4,
+                            child: Text('Q4 (Oct-Dec)'),
+                          ),
+                        ],
+                        onChanged: (v) {
+                          setState(() => _quarter = v!);
+                          _refreshGross();
+                        },
+                      ),
                     ),
-                  ),
-                ]),
+                  ],
+                ),
                 if (isSubmitted) ...[
                   const SizedBox(height: 8),
-                  Row(children: [
-                    Icon(Icons.check_circle,
-                        color: theme.colorScheme.primary, size: 16),
-                    const SizedBox(width: 6),
-                    Text('Already submitted',
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        color: theme.colorScheme.primary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Already submitted',
                         style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.primary)),
-                  ]),
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ],
             ),
@@ -527,8 +574,9 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
                     border: const OutlineInputBorder(),
                     prefixText: '\$ ',
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   onChanged: (_) => setState(() {}),
                 ),
                 const SizedBox(height: 12),
@@ -541,8 +589,9 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
                     border: OutlineInputBorder(),
                     prefixText: '\$ ',
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   onChanged: (_) => setState(() {}),
                 ),
                 const SizedBox(height: 12),
@@ -553,8 +602,9 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
                     border: OutlineInputBorder(),
                     prefixText: '\$ ',
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   onChanged: (_) => setState(() {}),
                 ),
               ],
@@ -575,80 +625,92 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
                   '${_localCodeCtrl.text.isNotEmpty ? '  ·  Local ${(_localRate * 100).toStringAsFixed(2)}%' : ''}',
                   style: theme.textTheme.bodySmall,
                 ),
-                trailing: Icon(_showRateSettings
-                    ? Icons.expand_less
-                    : Icons.expand_more),
+                trailing: Icon(
+                  _showRateSettings ? Icons.expand_less : Icons.expand_more,
+                ),
                 onTap: () =>
                     setState(() => _showRateSettings = !_showRateSettings),
               ),
               if (_showRateSettings)
                 Padding(
-                  padding:
-                      const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Column(
                     children: [
-                      Row(children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _boRateCtrl,
-                            decoration: const InputDecoration(
-                                labelText: 'B&O Rate (Retailing)'),
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            onChanged: (_) => setState(() {}),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _boRateCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'B&O Rate (Retailing)',
+                              ),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              onChanged: (_) => setState(() {}),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _stateSalesRateCtrl,
-                            decoration: const InputDecoration(
-                                labelText: 'State Sales Rate'),
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            onChanged: (_) => setState(() {}),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _stateSalesRateCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'State Sales Rate',
+                              ),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              onChanged: (_) => setState(() {}),
+                            ),
                           ),
-                        ),
-                      ]),
+                        ],
+                      ),
                       const SizedBox(height: 12),
-                      Row(children: [
-                        Expanded(
-                          flex: 2,
-                          child: TextFormField(
-                            controller: _localCodeCtrl,
-                            decoration: const InputDecoration(
-                              labelText: 'Local Location Code',
-                              hintText: 'e.g. 3913',
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              controller: _localCodeCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'Local Location Code',
+                                hintText: 'e.g. 3913',
+                              ),
+                              keyboardType: TextInputType.number,
+                              onChanged: (_) => setState(() {}),
                             ),
-                            keyboardType: TextInputType.number,
-                            onChanged: (_) => setState(() {}),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 3,
-                          child: TextFormField(
-                            controller: _localNameCtrl,
-                            decoration: const InputDecoration(
-                              labelText: 'Location Name',
-                              hintText: 'e.g. Yakima City',
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 3,
+                            child: TextFormField(
+                              controller: _localNameCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'Location Name',
+                                hintText: 'e.g. Yakima City',
+                              ),
+                              onChanged: (_) => setState(() {}),
                             ),
-                            onChanged: (_) => setState(() {}),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 2,
-                          child: TextFormField(
-                            controller: _localRateCtrl,
-                            decoration: const InputDecoration(
-                                labelText: 'Local Rate'),
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            onChanged: (_) => setState(() {}),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              controller: _localRateCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'Local Rate',
+                              ),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              onChanged: (_) => setState(() {}),
+                            ),
                           ),
-                        ),
-                      ]),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -665,9 +727,12 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Return Summary',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold)),
+                Text(
+                  'Return Summary',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 _SummarySection(
                   label: 'Business & Occupation - Retailing',
@@ -675,12 +740,13 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
                     _TaxRow('Gross', cur.format(_gross)),
                     _TaxRow('Deductions', '- ${cur.format(_deductions)}'),
                     _TaxRow('Taxable', cur.format(_taxable), bold: true),
+                    _TaxRow('Rate', pct.format(_boRate)),
                     _TaxRow(
-                        'Rate',
-                        pct.format(_boRate)),
-                    _TaxRow('B&O Tax Due', cur.format(_boTax),
-                        bold: true,
-                        color: theme.colorScheme.primary),
+                      'B&O Tax Due',
+                      cur.format(_boTax),
+                      bold: true,
+                      color: theme.colorScheme.primary,
+                    ),
                   ],
                 ),
                 const Divider(height: 24),
@@ -691,8 +757,12 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
                     _TaxRow('Deductions', '- ${cur.format(_deductions)}'),
                     _TaxRow('Taxable', cur.format(_taxable), bold: true),
                     _TaxRow('Rate', pct.format(_stateSalesRate)),
-                    _TaxRow('State Sales Tax Due', cur.format(_stateSalesTax),
-                        bold: true, color: theme.colorScheme.primary),
+                    _TaxRow(
+                      'State Sales Tax Due',
+                      cur.format(_stateSalesTax),
+                      bold: true,
+                      color: theme.colorScheme.primary,
+                    ),
                   ],
                 ),
                 if (_localRate > 0 && _localCodeCtrl.text.isNotEmpty) ...[
@@ -703,20 +773,29 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
                     rows: [
                       _TaxRow('Taxable', cur.format(_taxable), bold: true),
                       _TaxRow('Rate', pct.format(_localRate)),
-                      _TaxRow('Local Tax Due', cur.format(_localTax),
-                          bold: true, color: theme.colorScheme.primary),
+                      _TaxRow(
+                        'Local Tax Due',
+                        cur.format(_localTax),
+                        bold: true,
+                        color: theme.colorScheme.primary,
+                      ),
                     ],
                   ),
                 ],
                 const Divider(height: 24),
                 _TaxRow('Total Tax', cur.format(_totalTax), bold: true),
                 if (_credits > 0)
-                  _TaxRow('Credits', '- ${cur.format(_credits)}',
-                      color: Colors.green),
+                  _TaxRow(
+                    'Credits',
+                    '- ${cur.format(_credits)}',
+                    color: Colors.green,
+                  ),
                 const SizedBox(height: 4),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(8),
@@ -724,16 +803,20 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Total Amount Owed',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  theme.colorScheme.onPrimaryContainer)),
-                      Text(cur.format(_totalDue),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  theme.colorScheme.onPrimaryContainer)),
+                      Text(
+                        'Total Amount Owed',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      Text(
+                        cur.format(_totalDue),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -772,8 +855,9 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
           'CSV uses WA DOR data upload format: ACCOUNT + TAX lines (B&O Retailing line 2, '
           'State Sales line 1, Local line 45) + DED lines for apportionment (code 01). '
           'Upload at MyDOR to Excise Tax Return to Upload a file.',
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 32),
       ],
@@ -791,11 +875,12 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
           children: [
             Icon(Icons.history, size: 48, color: Colors.grey),
             SizedBox(height: 12),
-            Text('No submissions yet.',
-                style: TextStyle(color: Colors.grey)),
+            Text('No submissions yet.', style: TextStyle(color: Colors.grey)),
             SizedBox(height: 4),
-            Text('Tap "Mark as Submitted" after filing.',
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
+            Text(
+              'Tap "Mark as Submitted" after filing.',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
           ],
         ),
       );
@@ -821,8 +906,9 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
                           int.parse(s.period.substring(2)),
                           int.parse(s.period.substring(1, 2)),
                         ),
-                        style: theme.textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     PopupMenuButton<String>(
@@ -853,8 +939,10 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
                     ),
                   ],
                 ),
-                Text('Submitted: ${s.submittedAt}',
-                    style: theme.textTheme.bodySmall),
+                Text(
+                  'Submitted: ${s.submittedAt}',
+                  style: theme.textTheme.bodySmall,
+                ),
                 if (s.notes != null)
                   Text(s.notes!, style: theme.textTheme.bodySmall),
                 const SizedBox(height: 8),
@@ -864,14 +952,21 @@ class _WaExciseReportPageState extends ConsumerState<WaExciseReportPage>
                 _TaxRow('Taxable', cur.format(s.taxableAmount), bold: true),
                 _TaxRow('B&O Tax', cur.format(s.boTax)),
                 _TaxRow('State Sales Tax', cur.format(s.stateSalesTax)),
-                if (s.localTax > 0) _TaxRow('Local Tax', cur.format(s.localTax)),
+                if (s.localTax > 0)
+                  _TaxRow('Local Tax', cur.format(s.localTax)),
                 if (s.credits > 0)
-                  _TaxRow('Credits', '- ${cur.format(s.credits)}',
-                      color: Colors.green),
+                  _TaxRow(
+                    'Credits',
+                    '- ${cur.format(s.credits)}',
+                    color: Colors.green,
+                  ),
                 const Divider(height: 12),
-                _TaxRow('Total Paid', cur.format(s.totalDue),
-                    bold: true,
-                    color: theme.colorScheme.primary),
+                _TaxRow(
+                  'Total Paid',
+                  cur.format(s.totalDue),
+                  bold: true,
+                  color: theme.colorScheme.primary,
+                ),
               ],
             ),
           ),
@@ -894,11 +989,12 @@ class _SummarySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: Theme.of(context)
-                .textTheme
-                .labelMedium
-                ?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 6),
         ...rows,
       ],
@@ -912,15 +1008,14 @@ class _TaxRow extends StatelessWidget {
   final bool bold;
   final Color? color;
 
-  const _TaxRow(this.label, this.value,
-      {this.bold = false, this.color});
+  const _TaxRow(this.label, this.value, {this.bold = false, this.color});
 
   @override
   Widget build(BuildContext context) {
     final style = Theme.of(context).textTheme.bodySmall?.copyWith(
-          fontWeight: bold ? FontWeight.bold : null,
-          color: color,
-        );
+      fontWeight: bold ? FontWeight.bold : null,
+      color: color,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1),
       child: Row(

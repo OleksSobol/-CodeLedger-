@@ -6,9 +6,15 @@ class DriftUserProfileRepository implements UserProfileRepository {
   final UserProfileDao _dao;
   DriftUserProfileRepository(this._dao);
 
-  @override Stream<UserProfile> watchProfile() => _dao.watchProfile();
-  @override Future<UserProfile> getProfile() => _dao.getProfile();
-  @override Future<bool> updateProfile(UserProfilesCompanion c) => _dao.updateProfile(c);
-  @override Future<String> getNextInvoiceNumber() => _dao.getNextInvoiceNumber();
-  @override Future<void> revertInvoiceNumber(String deletedInvoiceNumber) => _dao.revertInvoiceNumber(deletedInvoiceNumber);
+  @override
+  Stream<UserProfile> watchProfile() => _dao.watchProfile();
+  @override
+  Future<UserProfile> getProfile() => _dao.getProfile();
+  @override
+  Future<bool> updateProfile(UserProfilesCompanion c) => _dao.updateProfile(c);
+  @override
+  Future<String> getNextInvoiceNumber() => _dao.getNextInvoiceNumber();
+  @override
+  Future<void> revertInvoiceNumber(String deletedInvoiceNumber) =>
+      _dao.revertInvoiceNumber(deletedInvoiceNumber);
 }

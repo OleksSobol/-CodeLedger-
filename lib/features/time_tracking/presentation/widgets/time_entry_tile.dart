@@ -25,8 +25,8 @@ class TimeEntryTile extends ConsumerWidget {
 
     final clientAsync = ref.watch(clientByIdProvider(entry.clientId));
     final clientName = clientAsync.value?.name;
-    final configs = ref.watch(fieldConfigProvider).value ??
-        FieldConfig.defaults();
+    final configs =
+        ref.watch(fieldConfigProvider).value ?? FieldConfig.defaults();
 
     return Dismissible(
       key: ValueKey(entry.id),
@@ -54,11 +54,13 @@ class TimeEntryTile extends ConsumerWidget {
               content: const Text('Delete this time entry?'),
               actions: [
                 TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Cancel')),
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancel'),
+                ),
                 FilledButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Delete')),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Delete'),
+                ),
               ],
             ),
           );
@@ -81,7 +83,9 @@ class TimeEntryTile extends ConsumerWidget {
           onLongPress: () => _showActionSheet(context, ref),
           child: Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: Spacing.md, vertical: 12),
+              horizontal: Spacing.md,
+              vertical: 12,
+            ),
             child: TimeEntryTileBody(
               entry: entry,
               clientName: clientName,
@@ -96,14 +100,21 @@ class TimeEntryTile extends ConsumerWidget {
   Future<void> _duplicateEntry(BuildContext context, WidgetRef ref) async {
     final now = DateTime.now();
     final duration = entry.endTime?.difference(entry.startTime);
-    final start = DateTime(now.year, now.month, now.day,
-        entry.startTime.hour, entry.startTime.minute);
+    final start = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      entry.startTime.hour,
+      entry.startTime.minute,
+    );
     final end = duration != null ? start.add(duration) : null;
 
     if (end == null) return;
 
     try {
-      await ref.read(timerNotifierProvider.notifier).addManualEntry(
+      await ref
+          .read(timerNotifierProvider.notifier)
+          .addManualEntry(
             clientId: entry.clientId,
             projectId: entry.projectId,
             startTime: start,
@@ -134,9 +145,9 @@ class TimeEntryTile extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error duplicating entry: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error duplicating entry: $e')));
       }
     }
   }
@@ -166,11 +177,14 @@ class TimeEntryTile extends ConsumerWidget {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.delete_outline,
-                    color: Theme.of(context).colorScheme.error),
-                title: Text('Delete',
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.error)),
+                leading: Icon(
+                  Icons.delete_outline,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                title: Text(
+                  'Delete',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
                 onTap: () async {
                   Navigator.pop(ctx);
                   final confirmed = await showDialog<bool>(
@@ -180,11 +194,13 @@ class TimeEntryTile extends ConsumerWidget {
                       content: const Text('Delete this time entry?'),
                       actions: [
                         TextButton(
-                            onPressed: () => Navigator.pop(dlg, false),
-                            child: const Text('Cancel')),
+                          onPressed: () => Navigator.pop(dlg, false),
+                          child: const Text('Cancel'),
+                        ),
                         FilledButton(
-                            onPressed: () => Navigator.pop(dlg, true),
-                            child: const Text('Delete')),
+                          onPressed: () => Navigator.pop(dlg, true),
+                          child: const Text('Delete'),
+                        ),
                       ],
                     ),
                   );
@@ -204,7 +220,10 @@ class TimeEntryTile extends ConsumerWidget {
   }
 
   void _showDetailSheet(
-      BuildContext context, WidgetRef ref, String? clientName) {
+    BuildContext context,
+    WidgetRef ref,
+    String? clientName,
+  ) {
     final theme = Theme.of(context);
     final timeFmt = DateFormat.jm();
     final dateFmt = DateFormat.yMMMEd();
@@ -225,16 +244,20 @@ class TimeEntryTile extends ConsumerWidget {
               // Date
               Text(
                 dateFmt.format(entry.startTime),
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: Spacing.sm),
 
               // Time range + duration
               Row(
                 children: [
-                  Icon(Icons.schedule,
-                      size: 16, color: theme.colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.schedule,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     isRunning
@@ -246,8 +269,9 @@ class TimeEntryTile extends ConsumerWidget {
                     const Spacer(),
                     Text(
                       formatDuration(minutes),
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ],
@@ -256,8 +280,7 @@ class TimeEntryTile extends ConsumerWidget {
 
               // Client
               if (clientName != null)
-                _DetailRow(
-                    icon: Icons.business_outlined, text: clientName),
+                _DetailRow(icon: Icons.business_outlined, text: clientName),
 
               // Rate + Earnings
               if (!isRunning)
@@ -268,53 +291,64 @@ class TimeEntryTile extends ConsumerWidget {
                 ),
 
               // Description
-              if (entry.description != null &&
-                  entry.description!.isNotEmpty)
+              if (entry.description != null && entry.description!.isNotEmpty)
                 _DetailRow(
-                    icon: Icons.notes_outlined, text: entry.description!),
+                  icon: Icons.notes_outlined,
+                  text: entry.description!,
+                ),
 
               // Repository
               if (entry.repository != null)
                 _DetailRow(
-                    icon: Icons.folder_outlined, text: entry.repository!),
+                  icon: Icons.folder_outlined,
+                  text: entry.repository!,
+                ),
 
               // Issue ref
               if (entry.issueReference != null)
                 _DetailRow(icon: Icons.tag, text: entry.issueReference!),
 
               // Tags
-              Builder(builder: (context) {
-                final tags = parseTags(entry.tags);
-                if (tags.isEmpty) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: Spacing.sm),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.label_outline,
+              Builder(
+                builder: (context) {
+                  final tags = parseTags(entry.tags);
+                  if (tags.isEmpty) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: Spacing.sm),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.label_outline,
                           size: 16,
-                          color: theme.colorScheme.onSurfaceVariant),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Wrap(
-                          spacing: 4,
-                          runSpacing: 4,
-                          children: tags
-                              .map((t) => Chip(
-                                    label: Text(t,
-                                        style: theme.textTheme.labelSmall),
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Wrap(
+                            spacing: 4,
+                            runSpacing: 4,
+                            children: tags
+                                .map(
+                                  (t) => Chip(
+                                    label: Text(
+                                      t,
+                                      style: theme.textTheme.labelSmall,
+                                    ),
                                     padding: EdgeInsets.zero,
                                     materialTapTargetSize:
                                         MaterialTapTargetSize.shrinkWrap,
                                     visualDensity: VisualDensity.compact,
-                                  ))
-                              .toList(),
+                                  ),
+                                )
+                                .toList(),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
+                      ],
+                    ),
+                  );
+                },
+              ),
 
               const SizedBox(height: Spacing.md),
 
@@ -349,9 +383,11 @@ class _DetailRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: Spacing.sm),
       child: Row(
         children: [
-          Icon(icon,
-              size: 16,
-              color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(
+            icon,
+            size: 16,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
@@ -361,4 +397,3 @@ class _DetailRow extends StatelessWidget {
     );
   }
 }
-

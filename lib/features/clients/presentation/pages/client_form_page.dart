@@ -54,16 +54,17 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
     _stateCtrl = TextEditingController(text: c?.stateProvince ?? '');
     _postalCodeCtrl = TextEditingController(text: c?.postalCode ?? '');
     _countryCtrl = TextEditingController(text: c?.country ?? '');
-    _hourlyRateCtrl =
-        TextEditingController(text: c?.hourlyRate?.toString() ?? '');
+    _hourlyRateCtrl = TextEditingController(
+      text: c?.hourlyRate?.toString() ?? '',
+    );
     _currencyCtrl = TextEditingController(text: c?.currency ?? 'USD');
-    _taxRateCtrl =
-        TextEditingController(text: c?.taxRate?.toString() ?? '');
+    _taxRateCtrl = TextEditingController(text: c?.taxRate?.toString() ?? '');
     _paymentTerms = c?.paymentTermsOverride != null
         ? PaymentTerms.fromString(c!.paymentTermsOverride!)
         : null;
     _customDaysCtrl = TextEditingController(
-        text: c?.paymentTermsDaysOverride?.toString() ?? '');
+      text: c?.paymentTermsDaysOverride?.toString() ?? '',
+    );
     _notesCtrl = TextEditingController(text: c?.notes ?? '');
   }
 
@@ -104,9 +105,8 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
 
       if (_isEditing) {
         final oldRate = widget.client!.hourlyRate;
-        final rateChanged = hourlyRate != null &&
-            oldRate != null &&
-            hourlyRate != oldRate;
+        final rateChanged =
+            hourlyRate != null && oldRate != null && hourlyRate != oldRate;
 
         await notifier.updateClient(
           widget.client!.id,
@@ -135,8 +135,10 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
         // If rate changed, offer to update uninvoiced entries
         if (rateChanged && mounted) {
           final dao = ref.read(timeEntryRepositoryProvider);
-          final count =
-              await dao.countUninvoicedAtRate(widget.client!.id, oldRate);
+          final count = await dao.countUninvoicedAtRate(
+            widget.client!.id,
+            oldRate,
+          );
           if (count > 0 && mounted) {
             final update = await showDialog<bool>(
               context: context,
@@ -161,8 +163,7 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
               ),
             );
             if (update == true) {
-              await dao.updateRateForClient(
-                  widget.client!.id, hourlyRate);
+              await dao.updateRateForClient(widget.client!.id, hourlyRate);
               if (mounted) {
                 ref.invalidate(filteredEntriesProvider);
               }
@@ -185,8 +186,9 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
           currency: _currencyCtrl.text.trim().toUpperCase(),
           taxRate: taxRate,
           paymentTermsOverride: _paymentTerms?.value,
-          paymentTermsDaysOverride:
-              _paymentTerms == PaymentTerms.custom ? customDays : null,
+          paymentTermsDaysOverride: _paymentTerms == PaymentTerms.custom
+              ? customDays
+              : null,
           notes: _trimOrNull(_notesCtrl.text),
         );
       }
@@ -194,9 +196,9 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -206,9 +208,7 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Client' : 'Add Client'),
-      ),
+      appBar: AppBar(title: Text(_isEditing ? 'Edit Client' : 'Add Client')),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -239,19 +239,16 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 24),
-            Text('Address',
-                style: Theme.of(context).textTheme.titleSmall),
+            Text('Address', style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             TextFormField(
               controller: _addressLine1Ctrl,
-              decoration:
-                  const InputDecoration(labelText: 'Address Line 1'),
+              decoration: const InputDecoration(labelText: 'Address Line 1'),
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _addressLine2Ctrl,
-              decoration:
-                  const InputDecoration(labelText: 'Address Line 2'),
+              decoration: const InputDecoration(labelText: 'Address Line 2'),
             ),
             const SizedBox(height: 12),
             Row(
@@ -259,16 +256,14 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _cityCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'City'),
+                    decoration: const InputDecoration(labelText: 'City'),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
                     controller: _stateCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'State'),
+                    decoration: const InputDecoration(labelText: 'State'),
                   ),
                 ),
               ],
@@ -279,23 +274,20 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _postalCodeCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'Postal Code'),
+                    decoration: const InputDecoration(labelText: 'Postal Code'),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
                     controller: _countryCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'Country'),
+                    decoration: const InputDecoration(labelText: 'Country'),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            Text('Billing',
-                style: Theme.of(context).textTheme.titleSmall),
+            Text('Billing', style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -307,15 +299,15 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
                       hintText: 'Uses default if empty',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
+                      decimal: true,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
                     controller: _currencyCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'Currency'),
+                    decoration: const InputDecoration(labelText: 'Currency'),
                     textCapitalization: TextCapitalization.characters,
                   ),
                 ),
@@ -328,8 +320,9 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
                 labelText: 'Tax Rate %',
                 hintText: 'Uses default if empty',
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<PaymentTerms?>(
@@ -338,12 +331,10 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
                 labelText: 'Payment Terms Override',
               ),
               items: [
-                const DropdownMenuItem(
-                    value: null, child: Text('Use default')),
-                ...PaymentTerms.values.map((t) => DropdownMenuItem(
-                      value: t,
-                      child: Text(t.label),
-                    )),
+                const DropdownMenuItem(value: null, child: Text('Use default')),
+                ...PaymentTerms.values.map(
+                  (t) => DropdownMenuItem(value: t, child: Text(t.label)),
+                ),
               ],
               onChanged: (v) => setState(() => _paymentTerms = v),
             ),
@@ -351,8 +342,7 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _customDaysCtrl,
-                decoration:
-                    const InputDecoration(labelText: 'Custom Days'),
+                decoration: const InputDecoration(labelText: 'Custom Days'),
                 keyboardType: TextInputType.number,
               ),
             ],

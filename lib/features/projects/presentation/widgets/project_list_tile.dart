@@ -22,8 +22,11 @@ class ProjectListTile extends StatelessWidget {
         ),
         title: Text(project.name),
         subtitle: project.description != null
-            ? Text(project.description!,
-                maxLines: 1, overflow: TextOverflow.ellipsis)
+            ? Text(
+                project.description!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
             : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -40,8 +43,9 @@ class ProjectListTile extends StatelessWidget {
           ],
         ),
         onTap: () => context.push(
-            '/clients/$clientId/projects/${project.id}/edit',
-            extra: project),
+          '/clients/$clientId/projects/${project.id}/edit',
+          extra: project,
+        ),
       ),
     );
   }

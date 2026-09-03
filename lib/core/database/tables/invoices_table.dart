@@ -28,10 +28,8 @@ class Invoices extends Table {
   TextColumn get paymentMethod => text().nullable()();
   DateTimeColumn get paidDate => dateTime().nullable()();
   DateTimeColumn get sentDate => dateTime().nullable()();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

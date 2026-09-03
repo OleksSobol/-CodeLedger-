@@ -8,16 +8,14 @@ import '../tables/invoices_table.dart';
 part 'client_dao.g.dart';
 
 @DriftAccessor(tables: [Clients, TimeEntries, Invoices])
-class ClientDao extends DatabaseAccessor<AppDatabase>
-    with _$ClientDaoMixin {
+class ClientDao extends DatabaseAccessor<AppDatabase> with _$ClientDaoMixin {
   ClientDao(super.db);
 
   Stream<List<Client>> watchAllClients() {
-    return (select(clients)
-          ..orderBy([
-            (t) => OrderingTerm.asc(t.isArchived),
-            (t) => OrderingTerm.asc(t.name),
-          ]))
+    return (select(clients)..orderBy([
+          (t) => OrderingTerm.asc(t.isArchived),
+          (t) => OrderingTerm.asc(t.name),
+        ]))
         .watch();
   }
 
@@ -53,22 +51,21 @@ class ClientDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<bool> archiveClient(String id) {
-    return updateClient(
-      id,
-      const ClientsCompanion(isArchived: Value(true)),
-    );
+    return updateClient(id, const ClientsCompanion(isArchived: Value(true)));
   }
 
   Future<bool> hasLinkedRecords(String clientId) async {
-    final entryCount = await (select(timeEntries)
-          ..where((t) => t.clientId.equals(clientId))
-          ..limit(1))
-        .get();
+    final entryCount =
+        await (select(timeEntries)
+              ..where((t) => t.clientId.equals(clientId))
+              ..limit(1))
+            .get();
     if (entryCount.isNotEmpty) return true;
-    final invoiceCount = await (select(invoices)
-          ..where((t) => t.clientId.equals(clientId))
-          ..limit(1))
-        .get();
+    final invoiceCount =
+        await (select(invoices)
+              ..where((t) => t.clientId.equals(clientId))
+              ..limit(1))
+            .get();
     return invoiceCount.isNotEmpty;
   }
 
@@ -78,26 +75,28 @@ class ClientDao extends DatabaseAccessor<AppDatabase>
 
   Future<double> getUninvoicedHours(String clientId) async {
     final query = select(timeEntries)
-      ..where((t) =>
-          t.clientId.equals(clientId) &
-          t.isInvoiced.equals(false) &
-          t.endTime.isNotNull());
+      ..where(
+        (t) =>
+            t.clientId.equals(clientId) &
+            t.isInvoiced.equals(false) &
+            t.endTime.isNotNull(),
+      );
     final entries = await query.get();
     return entries.fold<double>(
-        0, (sum, e) => sum + (e.durationMinutes ?? 0) / 60.0);
+      0,
+      (sum, e) => sum + (e.durationMinutes ?? 0) / 60.0,
+    );
   }
 
   Future<double> getTotalBilled(String clientId) async {
-    final query = select(invoices)
-      ..where((t) => t.clientId.equals(clientId));
+    final query = select(invoices)..where((t) => t.clientId.equals(clientId));
     final inv = await query.get();
     return inv.fold<double>(0, (sum, i) => sum + i.total);
   }
 
   Future<double> getTotalPaid(String clientId) async {
     final query = select(invoices)
-      ..where((t) =>
-          t.clientId.equals(clientId) & t.status.equals('paid'));
+      ..where((t) => t.clientId.equals(clientId) & t.status.equals('paid'));
     final inv = await query.get();
     return inv.fold<double>(0, (sum, i) => sum + i.amountPaid);
   }

@@ -24,23 +24,23 @@ class TagFilterBar extends ConsumerWidget {
               padding: const EdgeInsets.only(right: 8),
               child: ActionChip(
                 label: const Text('Clear'),
-                onPressed: () =>
-                    ref.read(tagFilterProvider.notifier).set({}),
+                onPressed: () => ref.read(tagFilterProvider.notifier).set({}),
               ),
             ),
-          ...tags.map((tag) => Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: FilterChip(
-                  label: Text(tag),
-                  selected: selectedTags.contains(tag),
-                  onSelected: (selected) {
-                    final current =
-                        Set<String>.from(ref.read(tagFilterProvider));
-                    selected ? current.add(tag) : current.remove(tag);
-                    ref.read(tagFilterProvider.notifier).set(current);
-                  },
-                ),
-              )),
+          ...tags.map(
+            (tag) => Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                label: Text(tag),
+                selected: selectedTags.contains(tag),
+                onSelected: (selected) {
+                  final current = Set<String>.from(ref.read(tagFilterProvider));
+                  selected ? current.add(tag) : current.remove(tag);
+                  ref.read(tagFilterProvider.notifier).set(current);
+                },
+              ),
+            ),
+          ),
         ],
       ),
     );

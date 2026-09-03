@@ -13,12 +13,12 @@ class TaxReportTemplate {
   Future<pw.Document> build(TaxReportData data) async {
     final doc = await newPdfDocument();
 
-    const headers = [
+    final headers = [
       'Paid Date',
       'Client',
       'Invoice #',
       'Net Amount',
-      'Tax',
+      if (data.includeTax) 'Tax',
       'Total Paid',
       'Notes',
       'Paid',
@@ -31,15 +31,20 @@ class TaxReportTemplate {
       final taxCell = inv.taxAmount == 0.0
           ? formatCurrency(0.0, currency: inv.currency)
           : '${row.taxColumnLabel}\n'
-              '${formatCurrency(inv.taxAmount, currency: inv.currency)}';
+                '${formatCurrency(inv.taxAmount, currency: inv.currency)}';
 
       rows.add([
         _fmtDate(inv.paidDate ?? inv.issueDate),
         row.clientName,
         inv.invoiceNumber,
         formatCurrency(inv.subtotal, currency: inv.currency),
-        taxCell,
-        formatCurrency(inv.amountPaid, currency: inv.currency),
+        if (data.includeTax) taxCell,
+        formatCurrency(
+          data.includeTax
+              ? inv.amountPaid
+              : (inv.amountPaid - inv.taxAmount).clamp(0.0, double.infinity),
+          currency: inv.currency,
+        ),
         inv.notes ?? '',
         'Yes',
       ]);
@@ -51,7 +56,8 @@ class TaxReportTemplate {
       '',
       '',
       formatCurrency(data.totalSubtotal, currency: data.currency),
-      formatCurrency(data.totalTax, currency: data.currency),
+      if (data.includeTax)
+        formatCurrency(data.totalTax, currency: data.currency),
       formatCurrency(data.totalPaid, currency: data.currency),
       '',
       '',
@@ -59,15 +65,18 @@ class TaxReportTemplate {
 
     final totalRowIndex = rows.length - 1;
 
-    const columnWidths = {
-      0: pw.FlexColumnWidth(1.0), // Date
-      1: pw.FlexColumnWidth(2.2), // Client
-      2: pw.FlexColumnWidth(1.4), // Invoice #
-      3: pw.FlexColumnWidth(1.1), // Net Amount
-      4: pw.FlexColumnWidth(1.3), // Tax
-      5: pw.FlexColumnWidth(1.1), // Total Paid
-      6: pw.FlexColumnWidth(1.5), // Notes
-      7: pw.FlexColumnWidth(0.6), // Paid
+    final columnWidths = {
+      0: const pw.FlexColumnWidth(1.0), // Date
+      1: const pw.FlexColumnWidth(2.2), // Client
+      2: const pw.FlexColumnWidth(1.4), // Invoice #
+      3: const pw.FlexColumnWidth(1.1), // Net Amount
+      if (data.includeTax) 4: const pw.FlexColumnWidth(1.3), // Tax
+      if (data.includeTax) 5: const pw.FlexColumnWidth(1.1), // Total Paid
+      if (data.includeTax) 6: const pw.FlexColumnWidth(1.5), // Notes
+      if (data.includeTax) 7: const pw.FlexColumnWidth(0.6), // Paid
+      if (!data.includeTax) 4: const pw.FlexColumnWidth(1.1), // Total Paid
+      if (!data.includeTax) 5: const pw.FlexColumnWidth(1.8), // Notes
+      if (!data.includeTax) 6: const pw.FlexColumnWidth(0.6), // Paid
     };
 
     doc.addPage(
@@ -80,27 +89,32 @@ class TaxReportTemplate {
           pw.SizedBox(height: 8),
           pw.TableHelper.fromTextArray(
             border: pw.TableBorder(
-              bottom:
-                  const pw.BorderSide(width: 0.5, color: PdfColors.grey400),
-              horizontalInside:
-                  const pw.BorderSide(width: 0.3, color: PdfColors.grey200),
-              verticalInside:
-                  const pw.BorderSide(width: 0.3, color: PdfColors.grey200),
-              left:
-                  const pw.BorderSide(width: 0.3, color: PdfColors.grey300),
-              right:
-                  const pw.BorderSide(width: 0.3, color: PdfColors.grey300),
-              top:
-                  const pw.BorderSide(width: 0.5, color: PdfColors.grey400),
+              bottom: const pw.BorderSide(width: 0.5, color: PdfColors.grey400),
+              horizontalInside: const pw.BorderSide(
+                width: 0.3,
+                color: PdfColors.grey200,
+              ),
+              verticalInside: const pw.BorderSide(
+                width: 0.3,
+                color: PdfColors.grey200,
+              ),
+              left: const pw.BorderSide(width: 0.3, color: PdfColors.grey300),
+              right: const pw.BorderSide(width: 0.3, color: PdfColors.grey300),
+              top: const pw.BorderSide(width: 0.5, color: PdfColors.grey400),
             ),
-            headerStyle:
-                pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
-            headerDecoration:
-                const pw.BoxDecoration(color: PdfColors.blueGrey100),
+            headerStyle: pw.TextStyle(
+              fontWeight: pw.FontWeight.bold,
+              fontSize: 8,
+            ),
+            headerDecoration: const pw.BoxDecoration(
+              color: PdfColors.blueGrey100,
+            ),
             cellStyle: const pw.TextStyle(fontSize: 8),
             cellAlignment: pw.Alignment.centerLeft,
             cellPadding: const pw.EdgeInsets.symmetric(
-                horizontal: 5, vertical: 3),
+              horizontal: 5,
+              vertical: 3,
+            ),
             columnWidths: columnWidths,
             headers: headers,
             data: rows,
@@ -127,14 +141,15 @@ class TaxReportTemplate {
           children: [
             pw.Text(
               'TAX / INCOME REPORT',
-              style: pw.TextStyle(
-                  fontSize: 18, fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             ),
             if (data.profile.businessName.isNotEmpty)
               pw.Text(
                 data.profile.businessName,
                 style: pw.TextStyle(
-                    fontSize: 11, fontWeight: pw.FontWeight.bold),
+                  fontSize: 11,
+                  fontWeight: pw.FontWeight.bold,
+                ),
               ),
           ],
         ),
@@ -143,14 +158,15 @@ class TaxReportTemplate {
           children: [
             pw.Text(
               'Period: ${data.dateRangeText}',
-              style: const pw.TextStyle(
-                  fontSize: 9, color: PdfColors.grey700),
+              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
             ),
             if (data.clientFilterName != null)
               pw.Text(
                 '   |   Client: ${data.clientFilterName}',
                 style: const pw.TextStyle(
-                    fontSize: 9, color: PdfColors.grey700),
+                  fontSize: 9,
+                  color: PdfColors.grey700,
+                ),
               ),
           ],
         ),
@@ -168,13 +184,11 @@ class TaxReportTemplate {
           children: [
             pw.Text(
               'Generated ${DateFormat.yMMMd().format(DateTime.now())}',
-              style: const pw.TextStyle(
-                  fontSize: 8, color: PdfColors.grey600),
+              style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
             ),
             pw.Text(
               'Paid invoices only  |  ${data.rows.length} invoice(s)',
-              style: const pw.TextStyle(
-                  fontSize: 8, color: PdfColors.grey600),
+              style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
             ),
           ],
         ),

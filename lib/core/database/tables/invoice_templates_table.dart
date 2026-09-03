@@ -5,8 +5,7 @@ class InvoiceTemplates extends Table {
   TextColumn get name => text()();
   TextColumn get templateKey => text().unique()();
   TextColumn get description => text().nullable()();
-  BoolColumn get isDefault =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
   IntColumn get primaryColor =>
       integer().withDefault(const Constant(0xFF2196F3))();
   IntColumn get accentColor =>
@@ -38,10 +37,8 @@ class InvoiceTemplates extends Table {
   // 'full' | 'issue_desc' | 'desc_only'
   TextColumn get lineItemDisplayMode =>
       text().withDefault(const Constant('full'))();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

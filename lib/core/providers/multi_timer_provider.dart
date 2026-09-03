@@ -16,5 +16,6 @@ class MultiTimerNotifier extends AsyncNotifier<bool> {
   }
 }
 
-final multiTimerProvider =
-    AsyncNotifierProvider<MultiTimerNotifier, bool>(MultiTimerNotifier.new);
+final multiTimerProvider = AsyncNotifierProvider<MultiTimerNotifier, bool>(
+  MultiTimerNotifier.new,
+);

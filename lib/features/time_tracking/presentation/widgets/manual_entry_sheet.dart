@@ -84,9 +84,9 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
 
   Future<void> _save() async {
     if (_selectedClient == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a client')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a client')));
       return;
     }
 
@@ -102,7 +102,9 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
 
     setState(() => _saving = true);
     try {
-      await ref.read(timerNotifierProvider.notifier).addManualEntry(
+      await ref
+          .read(timerNotifierProvider.notifier)
+          .addManualEntry(
             clientId: _selectedClient!.id,
             projectId: _selectedProject?.id,
             startTime: start,
@@ -131,9 +133,9 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -145,8 +147,10 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
     final theme = Theme.of(context);
     final clientsAsync = ref.watch(activeClientsProvider);
     final dateFmt = DateFormat.yMMMEd();
-    final duration = _buildDateTime(_date, _endTime)
-        .difference(_buildDateTime(_date, _startTime));
+    final duration = _buildDateTime(
+      _date,
+      _endTime,
+    ).difference(_buildDateTime(_date, _startTime));
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -171,8 +175,9 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
                   width: 32,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurfaceVariant
-                        .withValues(alpha: 0.4),
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.4,
+                    ),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -180,8 +185,9 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
 
               Text(
                 'Manual Entry',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: Spacing.md),
 
@@ -194,11 +200,12 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
                     return const Text('No clients. Add one first.');
                   }
                   return DropdownButtonFormField<Client>(
-                    decoration:
-                        const InputDecoration(labelText: 'Client *'),
+                    decoration: const InputDecoration(labelText: 'Client *'),
                     items: clients
-                        .map((c) => DropdownMenuItem(
-                            value: c, child: Text(c.name)))
+                        .map(
+                          (c) =>
+                              DropdownMenuItem(value: c, child: Text(c.name)),
+                        )
                         .toList(),
                     onChanged: (c) {
                       setState(() {
@@ -213,25 +220,29 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
 
               // Project dropdown
               if (_selectedClient != null)
-                Consumer(builder: (context, ref, _) {
-                  final projectsAsync = ref.watch(
-                      projectsForClientProvider(_selectedClient!.id));
-                  return projectsAsync.when(
-                    loading: () => const LinearProgressIndicator(),
-                    error: (e, _) => Text('Error: $e'),
-                    data: (projects) {
-                      if (projects.isEmpty) return const SizedBox.shrink();
-                      return Padding(
-                        padding:
-                            const EdgeInsets.only(bottom: Spacing.sm),
-                        child: DropdownButtonFormField<Project?>(
-                          decoration: const InputDecoration(
-                              labelText: 'Project (optional)'),
-                          items: [
-                            const DropdownMenuItem(
+                Consumer(
+                  builder: (context, ref, _) {
+                    final projectsAsync = ref.watch(
+                      projectsForClientProvider(_selectedClient!.id),
+                    );
+                    return projectsAsync.when(
+                      loading: () => const LinearProgressIndicator(),
+                      error: (e, _) => Text('Error: $e'),
+                      data: (projects) {
+                        if (projects.isEmpty) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: Spacing.sm),
+                          child: DropdownButtonFormField<Project?>(
+                            decoration: const InputDecoration(
+                              labelText: 'Project (optional)',
+                            ),
+                            items: [
+                              const DropdownMenuItem(
                                 value: null,
-                                child: Text('No project')),
-                            ...projects.map((p) => DropdownMenuItem(
+                                child: Text('No project'),
+                              ),
+                              ...projects.map(
+                                (p) => DropdownMenuItem(
                                   value: p,
                                   child: Row(
                                     children: [
@@ -243,15 +254,17 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
                                       Text(p.name),
                                     ],
                                   ),
-                                )),
-                          ],
-                          onChanged: (p) =>
-                              setState(() => _selectedProject = p),
-                        ),
-                      );
-                    },
-                  );
-                }),
+                                ),
+                              ),
+                            ],
+                            onChanged: (p) =>
+                                setState(() => _selectedProject = p),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
 
               // Date + Time row
               const SizedBox(height: Spacing.sm),
@@ -262,16 +275,22 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
                   padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
                   child: Row(
                     children: [
-                      Icon(Icons.calendar_today,
-                          size: 20,
-                          color: theme.colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.calendar_today,
+                        size: 20,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: Spacing.sm),
-                      Text(dateFmt.format(_date),
-                          style: theme.textTheme.bodyMedium),
+                      Text(
+                        dateFmt.format(_date),
+                        style: theme.textTheme.bodyMedium,
+                      ),
                       const Spacer(),
-                      Icon(Icons.chevron_right,
-                          size: 20,
-                          color: theme.colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.chevron_right,
+                        size: 20,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ],
                   ),
                 ),
@@ -285,22 +304,27 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
                       onTap: _pickStartTime,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            vertical: Spacing.sm),
+                          vertical: Spacing.sm,
+                        ),
                         child: Row(
                           children: [
-                            Icon(Icons.login,
-                                size: 20,
-                                color:
-                                    theme.colorScheme.onSurfaceVariant),
+                            Icon(
+                              Icons.login,
+                              size: 20,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                             const SizedBox(width: Spacing.sm),
                             Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(_startTime.format(context),
-                                    style: theme.textTheme.bodyMedium),
-                                Text('Start',
-                                    style: theme.textTheme.labelSmall),
+                                Text(
+                                  _startTime.format(context),
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                                Text(
+                                  'Start',
+                                  style: theme.textTheme.labelSmall,
+                                ),
                               ],
                             ),
                           ],
@@ -314,22 +338,24 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
                       onTap: _pickEndTime,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            vertical: Spacing.sm),
+                          vertical: Spacing.sm,
+                        ),
                         child: Row(
                           children: [
-                            Icon(Icons.logout,
-                                size: 20,
-                                color:
-                                    theme.colorScheme.onSurfaceVariant),
+                            Icon(
+                              Icons.logout,
+                              size: 20,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                             const SizedBox(width: Spacing.sm),
                             Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(_endTime.format(context),
-                                    style: theme.textTheme.bodyMedium),
-                                Text('End',
-                                    style: theme.textTheme.labelSmall),
+                                Text(
+                                  _endTime.format(context),
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                                Text('End', style: theme.textTheme.labelSmall),
                               ],
                             ),
                           ],
@@ -345,8 +371,9 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
                   child: Text(
                     'Duration: ${duration.inHours}h ${duration.inMinutes % 60}m',
                     style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600),
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
 
@@ -365,14 +392,11 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
               InkWell(
                 onTap: () => setState(() => _showMore = !_showMore),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: Spacing.sm),
+                  padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
                   child: Row(
                     children: [
                       Icon(
-                        _showMore
-                            ? Icons.expand_less
-                            : Icons.expand_more,
+                        _showMore ? Icons.expand_less : Icons.expand_more,
                         size: 20,
                         color: theme.colorScheme.primary,
                       ),
@@ -380,7 +404,8 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
                       Text(
                         'More options',
                         style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.primary),
+                          color: theme.colorScheme.primary,
+                        ),
                       ),
                     ],
                   ),
@@ -422,8 +447,8 @@ class _ManualEntrySheetState extends ConsumerState<ManualEntrySheet> {
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2))
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Text('Add Entry'),
                 ),
               ),

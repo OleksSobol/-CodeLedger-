@@ -52,33 +52,48 @@ class MinimalTemplate extends BaseInvoiceTemplate {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               if (data.profile.businessName.isNotEmpty)
-                pw.Text(data.profile.businessName,
-                    style: pw.TextStyle(
-                        fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                pw.Text(
+                  data.profile.businessName,
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
               if (data.profile.ownerName.isNotEmpty)
-                pw.Text(data.profile.ownerName,
-                    style: const pw.TextStyle(fontSize: 10)),
+                pw.Text(
+                  data.profile.ownerName,
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
               if (data.formattedAddress.isNotEmpty)
-                pw.Text(data.formattedAddress,
-                    style: const pw.TextStyle(fontSize: 9)),
+                pw.Text(
+                  data.formattedAddress,
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
               if (data.profile.email != null)
-                pw.Text(data.profile.email!,
-                    style: const pw.TextStyle(fontSize: 9)),
+                pw.Text(
+                  data.profile.email!,
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
               if (data.profile.phone != null)
-                pw.Text(data.profile.phone!,
-                    style: const pw.TextStyle(fontSize: 9)),
+                pw.Text(
+                  data.profile.phone!,
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
             ],
           ),
         ),
         pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
-            pw.Text('INVOICE',
-                style: pw.TextStyle(
-                    fontSize: 24, fontWeight: pw.FontWeight.bold)),
+            pw.Text(
+              'INVOICE',
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+            ),
             pw.SizedBox(height: 4),
-            pw.Text(data.invoice.invoiceNumber,
-                style: const pw.TextStyle(fontSize: 12)),
+            pw.Text(
+              data.invoice.invoiceNumber,
+              style: const pw.TextStyle(fontSize: 12),
+            ),
           ],
         ),
       ],
@@ -93,22 +108,36 @@ class MinimalTemplate extends BaseInvoiceTemplate {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('Bill To:',
-                  style: pw.TextStyle(
-                      fontSize: 9, fontWeight: pw.FontWeight.bold)),
+              pw.Text(
+                'Bill To:',
+                style: pw.TextStyle(
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
               pw.SizedBox(height: 2),
-              pw.Text(data.client.name,
-                  style: pw.TextStyle(
-                      fontSize: 10, fontWeight: pw.FontWeight.bold)),
+              pw.Text(
+                data.client.name,
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
               if (data.client.contactName != null)
-                pw.Text(data.client.contactName!,
-                    style: const pw.TextStyle(fontSize: 9)),
+                pw.Text(
+                  data.client.contactName!,
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
               if (data.clientAddress.isNotEmpty)
-                pw.Text(data.clientAddress,
-                    style: const pw.TextStyle(fontSize: 9)),
+                pw.Text(
+                  data.clientAddress,
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
               if (data.client.email != null)
-                pw.Text(data.client.email!,
-                    style: const pw.TextStyle(fontSize: 9)),
+                pw.Text(
+                  data.client.email!,
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
             ],
           ),
         ),
@@ -125,8 +154,10 @@ class MinimalTemplate extends BaseInvoiceTemplate {
         _labelValue('Due Date:', fmtDate(inv.dueDate)),
         if (inv.periodStart != null && inv.periodEnd != null) ...[
           pw.SizedBox(width: 24),
-          _labelValue('Period:',
-              '${fmtDate(inv.periodStart!)} - ${fmtDate(inv.periodEnd!)}'),
+          _labelValue(
+            'Period:',
+            '${fmtDate(inv.periodStart!)} - ${fmtDate(inv.periodEnd!)}',
+          ),
         ],
       ],
     );
@@ -136,9 +167,10 @@ class MinimalTemplate extends BaseInvoiceTemplate {
     return pw.Row(
       mainAxisSize: pw.MainAxisSize.min,
       children: [
-        pw.Text(label,
-            style: pw.TextStyle(
-                fontSize: 9, fontWeight: pw.FontWeight.bold)),
+        pw.Text(
+          label,
+          style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+        ),
         pw.SizedBox(width: 4),
         pw.Text(value, style: const pw.TextStyle(fontSize: 9)),
       ],
@@ -151,8 +183,7 @@ class MinimalTemplate extends BaseInvoiceTemplate {
 
     return pw.TableHelper.fromTextArray(
       border: null,
-      headerStyle: pw.TextStyle(
-          fontWeight: pw.FontWeight.bold, fontSize: 9),
+      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
       headerDecoration: const pw.BoxDecoration(
         border: pw.Border(
           bottom: pw.BorderSide(width: 1, color: PdfColors.black),
@@ -186,52 +217,70 @@ class MinimalTemplate extends BaseInvoiceTemplate {
     final hours = data.totalHours;
     final rows = <pw.Widget>[];
 
-    if (hours > 0) rows.add(_totalLine('Total Hours', '${hours.toStringAsFixed(2)}h'));
+    if (hours > 0)
+      rows.add(_totalLine('Total Hours', '${hours.toStringAsFixed(2)}h'));
     rows.add(_totalLine('Subtotal', fmtCurrency(inv.subtotal)));
 
     if (inv.taxRate > 0) {
-      rows.add(_totalLine(
+      rows.add(
+        _totalLine(
           '${inv.taxLabel} (${inv.taxRate.toStringAsFixed(1)}%)',
-          fmtCurrency(inv.taxAmount)));
+          fmtCurrency(inv.taxAmount),
+        ),
+      );
     }
     if (inv.lateFeeAmount > 0) {
       rows.add(_totalLine('Late Fee', fmtCurrency(inv.lateFeeAmount)));
     }
 
     rows.add(pw.Divider(thickness: 0.5));
-    rows.add(pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 2),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Text('Total Due',
-              style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold, fontSize: 12)),
-          pw.Text(fmtCurrency(inv.total),
-              style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold, fontSize: 12)),
-        ],
+    rows.add(
+      pw.Padding(
+        padding: const pw.EdgeInsets.symmetric(vertical: 2),
+        child: pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Text(
+              'Total Due',
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+            ),
+            pw.Text(
+              fmtCurrency(inv.total),
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
+            ),
+          ],
+        ),
       ),
-    ));
+    );
 
     if (inv.amountPaid > 0) {
       rows.add(_totalLine('Amount Paid', fmtCurrency(inv.amountPaid)));
       final remaining = inv.total - inv.amountPaid;
       if (remaining > 0) {
-        rows.add(pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(vertical: 2),
-          child: pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text('Balance Due',
+        rows.add(
+          pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(vertical: 2),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  'Balance Due',
                   style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold, fontSize: 11)),
-              pw.Text(fmtCurrency(remaining),
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+                pw.Text(
+                  fmtCurrency(remaining),
                   style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold, fontSize: 11)),
-            ],
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ));
+        );
       }
     }
 
@@ -263,10 +312,12 @@ class MinimalTemplate extends BaseInvoiceTemplate {
       final days = data.invoice.dueDate
           .difference(data.invoice.issueDate)
           .inDays;
-      sections.add(pw.Text(
-        'Payment due within $days days of invoice date.',
-        style: const pw.TextStyle(fontSize: 9),
-      ));
+      sections.add(
+        pw.Text(
+          'Payment due within $days days of invoice date.',
+          style: const pw.TextStyle(fontSize: 9),
+        ),
+      );
       sections.add(pw.SizedBox(height: 6));
     }
 
@@ -284,14 +335,19 @@ class MinimalTemplate extends BaseInvoiceTemplate {
         bankLines.add('Account: $masked (${profile.bankAccountType})');
       }
       if (bankLines.isNotEmpty) {
-        sections.add(pw.Text('ACH Payment:',
-            style: pw.TextStyle(
-                fontSize: 9, fontWeight: pw.FontWeight.bold)));
+        sections.add(
+          pw.Text(
+            'ACH Payment:',
+            style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+          ),
+        );
         for (final line in bankLines) {
-          sections.add(pw.Padding(
-            padding: const pw.EdgeInsets.only(left: 8),
-            child: pw.Text(line, style: const pw.TextStyle(fontSize: 9)),
-          ));
+          sections.add(
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(left: 8),
+              child: pw.Text(line, style: const pw.TextStyle(fontSize: 9)),
+            ),
+          );
         }
         sections.add(pw.SizedBox(height: 6));
       }
@@ -300,30 +356,43 @@ class MinimalTemplate extends BaseInvoiceTemplate {
     if (tmpl.showStripeLink &&
         profile.showStripeLink &&
         profile.stripePaymentLink != null) {
-      sections.add(pw.Text('Online Payment:',
-          style:
-              pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)));
-      sections.add(pw.Padding(
-        padding: const pw.EdgeInsets.only(left: 8),
-        child: pw.Text(profile.stripePaymentLink!,
-            style: const pw.TextStyle(fontSize: 9)),
-      ));
+      sections.add(
+        pw.Text(
+          'Online Payment:',
+          style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+        ),
+      );
+      sections.add(
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(left: 8),
+          child: pw.Text(
+            profile.stripePaymentLink!,
+            style: const pw.TextStyle(fontSize: 9),
+          ),
+        ),
+      );
       sections.add(pw.SizedBox(height: 6));
     }
 
     if (profile.paymentInstructions != null &&
         profile.paymentInstructions!.isNotEmpty) {
-      sections.add(pw.Text(profile.paymentInstructions!,
-          style: const pw.TextStyle(fontSize: 9)));
+      sections.add(
+        pw.Text(
+          profile.paymentInstructions!,
+          style: const pw.TextStyle(fontSize: 9),
+        ),
+      );
     }
 
     if (tmpl.showLateFeeClause && profile.lateFeePercentage != null) {
       sections.add(pw.SizedBox(height: 4));
-      sections.add(pw.Text(
-        'A late fee of ${profile.lateFeePercentage!.toStringAsFixed(1)}% '
-        'may be applied to overdue balances.',
-        style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
-      ));
+      sections.add(
+        pw.Text(
+          'A late fee of ${profile.lateFeePercentage!.toStringAsFixed(1)}% '
+          'may be applied to overdue balances.',
+          style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+        ),
+      );
     }
 
     if (sections.isEmpty) return pw.SizedBox.shrink();
@@ -344,29 +413,45 @@ class MinimalTemplate extends BaseInvoiceTemplate {
     if (data.template.showTaxId &&
         data.profile.showTaxId &&
         data.profile.taxId != null) {
-      parts.add(pw.Text('Tax ID: ${data.profile.taxId}',
-          style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)));
+      parts.add(
+        pw.Text(
+          'Tax ID: ${data.profile.taxId}',
+          style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+        ),
+      );
     }
 
     if (data.template.showBusinessLicense &&
         data.profile.showWaLicense &&
         data.profile.waBusinessLicense != null) {
-      parts.add(pw.Text(
+      parts.add(
+        pw.Text(
           'WA Business License: ${data.profile.waBusinessLicense}',
-          style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)));
+          style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+        ),
+      );
     }
 
     if (data.template.footerText != null) {
-      parts.add(pw.Text(data.template.footerText!,
-          style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)));
+      parts.add(
+        pw.Text(
+          data.template.footerText!,
+          style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+        ),
+      );
     }
 
     if (data.invoice.notes != null && data.invoice.notes!.isNotEmpty) {
       if (parts.isNotEmpty) parts.add(pw.SizedBox(height: 6));
-      parts.add(pw.Text('Notes:',
-          style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)));
-      parts.add(pw.Text(data.invoice.notes!,
-          style: const pw.TextStyle(fontSize: 9)));
+      parts.add(
+        pw.Text(
+          'Notes:',
+          style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+        ),
+      );
+      parts.add(
+        pw.Text(data.invoice.notes!, style: const pw.TextStyle(fontSize: 9)),
+      );
     }
 
     if (parts.isEmpty) return pw.SizedBox.shrink();

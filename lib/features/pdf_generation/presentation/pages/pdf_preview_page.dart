@@ -134,12 +134,15 @@ class _PdfPreviewPageState extends ConsumerState<PdfPreviewPage> {
 
       final dir = await getApplicationDocumentsDirectory();
       final file = File(
-          '${dir.path}/${invoice.invoiceNumber.replaceAll(RegExp(r'[^\w]'), '_')}.pdf');
+        '${dir.path}/${invoice.invoiceNumber.replaceAll(RegExp(r'[^\w]'), '_')}.pdf',
+      );
       await file.writeAsBytes(bytes);
 
       final clientRepo = ref.read(clientRepositoryProvider);
       final client = await clientRepo.getClient(invoice.clientId);
-      final profile = await ref.read(userProfileRepositoryProvider).getProfile();
+      final profile = await ref
+          .read(userProfileRepositoryProvider)
+          .getProfile();
       final subject = profile.defaultEmailSubjectFormat
           .replaceAll('{number}', invoice.invoiceNumber)
           .replaceAll('{client}', client.name)
@@ -190,8 +193,8 @@ class _TemplateSelector extends StatelessWidget {
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final t = templates[index];
-          final isSelected = selectedId == t.id ||
-              (selectedId == null && index == 0);
+          final isSelected =
+              selectedId == t.id || (selectedId == null && index == 0);
           return ChoiceChip(
             label: Text(t.name),
             selected: isSelected,

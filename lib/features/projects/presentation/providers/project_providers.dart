@@ -8,13 +8,16 @@ final allActiveProjectsProvider = StreamProvider<List<Project>>((ref) {
   return ref.watch(projectRepositoryProvider).watchAllActiveProjects();
 });
 
-final projectsForClientProvider =
-    StreamProvider.family<List<Project>, String>((ref, clientId) {
+final projectsForClientProvider = StreamProvider.family<List<Project>, String>((
+  ref,
+  clientId,
+) {
   return ref.watch(projectRepositoryProvider).watchProjectsForClient(clientId);
 });
 
-final projectNotifierProvider =
-    AsyncNotifierProvider<ProjectNotifier, void>(ProjectNotifier.new);
+final projectNotifierProvider = AsyncNotifierProvider<ProjectNotifier, void>(
+  ProjectNotifier.new,
+);
 
 class ProjectNotifier extends AsyncNotifier<void> {
   late ProjectRepository _dao;
@@ -32,20 +35,25 @@ class ProjectNotifier extends AsyncNotifier<void> {
     String? githubRepo,
     int color = 0xFF2196F3,
   }) async {
-    final id = await _dao.insertProject(ProjectsCompanion(
-      clientId: Value(clientId),
-      name: Value(name),
-      description: Value(description),
-      hourlyRateOverride: Value(hourlyRateOverride),
-      githubRepo: Value(githubRepo),
-      color: Value(color),
-    ));
+    final id = await _dao.insertProject(
+      ProjectsCompanion(
+        clientId: Value(clientId),
+        name: Value(name),
+        description: Value(description),
+        hourlyRateOverride: Value(hourlyRateOverride),
+        githubRepo: Value(githubRepo),
+        color: Value(color),
+      ),
+    );
     ref.invalidate(projectsForClientProvider(clientId));
     return id;
   }
 
   Future<bool> updateProject(
-      String id, String clientId, ProjectsCompanion companion) async {
+    String id,
+    String clientId,
+    ProjectsCompanion companion,
+  ) async {
     final result = await _dao.updateProject(id, companion);
     if (result) {
       ref.invalidate(projectsForClientProvider(clientId));

@@ -10,11 +10,7 @@ class ProjectFormPage extends ConsumerStatefulWidget {
   final String clientId;
   final Project? project;
 
-  const ProjectFormPage({
-    super.key,
-    required this.clientId,
-    this.project,
-  });
+  const ProjectFormPage({super.key, required this.clientId, this.project});
 
   @override
   ConsumerState<ProjectFormPage> createState() => _ProjectFormPageState();
@@ -39,7 +35,8 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
     _nameCtrl = TextEditingController(text: p?.name ?? '');
     _descriptionCtrl = TextEditingController(text: p?.description ?? '');
     _rateCtrl = TextEditingController(
-        text: p?.hourlyRateOverride?.toString() ?? '');
+      text: p?.hourlyRateOverride?.toString() ?? '',
+    );
     _githubRepoCtrl = TextEditingController(text: p?.githubRepo ?? '');
     _color = Color(p?.color ?? 0xFF2196F3);
     _isActive = p?.isActive ?? true;
@@ -90,9 +87,11 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
           widget.clientId,
           ProjectsCompanion(
             name: Value(_nameCtrl.text.trim()),
-            description: Value(_descriptionCtrl.text.trim().isEmpty
-                ? null
-                : _descriptionCtrl.text.trim()),
+            description: Value(
+              _descriptionCtrl.text.trim().isEmpty
+                  ? null
+                  : _descriptionCtrl.text.trim(),
+            ),
             hourlyRateOverride: Value(rate),
             githubRepo: Value(githubRepo),
             color: Value(_color.toARGB32()),
@@ -115,9 +114,9 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -130,7 +129,8 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
       builder: (context) => AlertDialog(
         title: const Text('Archive Project'),
         content: Text(
-            'Archive "${widget.project!.name}"? It will be hidden from active lists.'),
+          'Archive "${widget.project!.name}"? It will be hidden from active lists.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -172,8 +172,7 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
           children: [
             TextFormField(
               controller: _nameCtrl,
-              decoration:
-                  const InputDecoration(labelText: 'Project Name *'),
+              decoration: const InputDecoration(labelText: 'Project Name *'),
               validator: (v) =>
                   v == null || v.trim().isEmpty ? 'Name is required' : null,
               autofocus: !_isEditing,
@@ -181,8 +180,7 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _descriptionCtrl,
-              decoration:
-                  const InputDecoration(labelText: 'Description'),
+              decoration: const InputDecoration(labelText: 'Description'),
               maxLines: 2,
             ),
             const SizedBox(height: 12),
@@ -192,8 +190,9 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
                 labelText: 'Hourly Rate Override',
                 hintText: 'Uses client/default if empty',
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -211,10 +210,7 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
               title: const Text('Color'),
               trailing: GestureDetector(
                 onTap: _pickColor,
-                child: CircleAvatar(
-                  backgroundColor: _color,
-                  radius: 20,
-                ),
+                child: CircleAvatar(backgroundColor: _color, radius: 20),
               ),
             ),
             if (_isEditing)

@@ -29,21 +29,22 @@ class CompanyFilterBar extends ConsumerWidget {
                     ref.read(clientIdFilterProvider.notifier).set({}),
               ),
             ),
-          ...clients.map((client) => Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: FilterChip(
-                  label: Text(client.name),
-                  selected: selectedIds.contains(client.id),
-                  onSelected: (selected) {
-                    final current =
-                        Set<String>.from(ref.read(clientIdFilterProvider));
-                    selected
-                        ? current.add(client.id)
-                        : current.remove(client.id);
-                    ref.read(clientIdFilterProvider.notifier).set(current);
-                  },
-                ),
-              )),
+          ...clients.map(
+            (client) => Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                label: Text(client.name),
+                selected: selectedIds.contains(client.id),
+                onSelected: (selected) {
+                  final current = Set<String>.from(
+                    ref.read(clientIdFilterProvider),
+                  );
+                  selected ? current.add(client.id) : current.remove(client.id);
+                  ref.read(clientIdFilterProvider.notifier).set(current);
+                },
+              ),
+            ),
+          ),
         ],
       ),
     );

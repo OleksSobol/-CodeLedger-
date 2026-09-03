@@ -49,10 +49,7 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
     return pw.Column(
       children: [
         // Accent bar at top
-        pw.Container(
-          height: 4,
-          color: primary,
-        ),
+        pw.Container(height: 4, color: primary),
         pw.SizedBox(height: 16),
         pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -61,15 +58,18 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('INVOICE',
-                      style: pw.TextStyle(
-                        fontSize: 32,
-                        fontWeight: pw.FontWeight.bold,
-                        color: primary,
-                      )),
-                  pw.Text(data.invoice.invoiceNumber,
-                      style: pw.TextStyle(
-                          fontSize: 14, color: PdfColors.grey700)),
+                  pw.Text(
+                    'INVOICE',
+                    style: pw.TextStyle(
+                      fontSize: 32,
+                      fontWeight: pw.FontWeight.bold,
+                      color: primary,
+                    ),
+                  ),
+                  pw.Text(
+                    data.invoice.invoiceNumber,
+                    style: pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
+                  ),
                 ],
               ),
             ),
@@ -77,19 +77,27 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
                 if (data.profile.businessName.isNotEmpty)
-                  pw.Text(data.profile.businessName,
-                      style: pw.TextStyle(
-                        fontSize: 16,
-                        fontWeight: pw.FontWeight.bold,
-                      )),
+                  pw.Text(
+                    data.profile.businessName,
+                    style: pw.TextStyle(
+                      fontSize: 16,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
                 if (data.profile.ownerName.isNotEmpty)
-                  pw.Text(data.profile.ownerName,
-                      style: const pw.TextStyle(fontSize: 10)),
+                  pw.Text(
+                    data.profile.ownerName,
+                    style: const pw.TextStyle(fontSize: 10),
+                  ),
                 pw.SizedBox(height: 6),
-                pw.Text('Issued: ${fmtDate(data.invoice.issueDate)}',
-                    style: const pw.TextStyle(fontSize: 9)),
-                pw.Text('Due: ${fmtDate(data.invoice.dueDate)}',
-                    style: const pw.TextStyle(fontSize: 9)),
+                pw.Text(
+                  'Issued: ${fmtDate(data.invoice.issueDate)}',
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
+                pw.Text(
+                  'Due: ${fmtDate(data.invoice.dueDate)}',
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
               ],
             ),
           ],
@@ -104,7 +112,10 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
       RegExp(r'^[A-Za-z]+ \d+, \d{4}$').hasMatch(s.trim());
 
   pw.Widget _buildDevTable(
-      PdfInvoiceData data, PdfColor accent, PdfColor primary) {
+    PdfInvoiceData data,
+    PdfColor accent,
+    PdfColor primary,
+  ) {
     final mode = data.template.lineItemDisplayMode;
     final showDesc = data.template.showDescription;
 
@@ -115,7 +126,8 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
 
     for (final item in data.lineItems) {
       final parts = item.description.split(' | ');
-      final isTimeBased = item.timeEntryId != null ||
+      final isTimeBased =
+          item.timeEntryId != null ||
           (parts.length > 1 && _looksLikeDate(parts.first));
       if (isTimeBased) {
         timeItems.add(item);
@@ -137,9 +149,10 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
       horizontalInside: pw.BorderSide(color: PdfColors.grey200, width: 0.5),
     );
     final headerStyle = pw.TextStyle(
-        fontWeight: pw.FontWeight.bold,
-        fontSize: 9,
-        color: PdfColors.grey700);
+      fontWeight: pw.FontWeight.bold,
+      fontSize: 9,
+      color: PdfColors.grey700,
+    );
 
     for (final entry in byProject.entries) {
       final projectName = entry.key != null
@@ -148,112 +161,134 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
       final items = entry.value;
       final projectTotal = items.fold<double>(0, (sum, i) => sum + i.total);
 
-      widgets.add(pw.Container(
-        margin: const pw.EdgeInsets.only(bottom: 12),
-        child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            // Project header
-            pw.Container(
-              padding:
-                  const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: pw.BoxDecoration(
-                color: primary.shade(0.9),
-                borderRadius: pw.BorderRadius.circular(2),
+      widgets.add(
+        pw.Container(
+          margin: const pw.EdgeInsets.only(bottom: 12),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Project header
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: pw.BoxDecoration(
+                  color: primary.shade(0.9),
+                  borderRadius: pw.BorderRadius.circular(2),
+                ),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      projectName,
+                      style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 10,
+                        color: primary,
+                      ),
+                    ),
+                    pw.Text(
+                      fmtCurrency(projectTotal),
+                      style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 10,
+                        color: primary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text(projectName,
-                      style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
-                        fontSize: 10,
-                        color: primary,
-                      )),
-                  pw.Text(fmtCurrency(projectTotal),
-                      style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
-                        fontSize: 10,
-                        color: primary,
-                      )),
+              // Items
+              pw.TableHelper.fromTextArray(
+                border: tableBorder,
+                headerStyle: headerStyle,
+                headerAlignment: pw.Alignment.centerLeft,
+                cellStyle: const pw.TextStyle(fontSize: 9),
+                cellAlignment: pw.Alignment.centerLeft,
+                columnWidths: colWidthsForMode(mode, showDescription: showDesc),
+                headers: [
+                  ...lineItemPrefixHeaders(mode, showDescription: showDesc),
+                  'Hours',
+                  'Rate',
+                  'Amount',
                 ],
+                data: items.map((item) {
+                  final prefix = lineItemPrefix(
+                    item,
+                    mode,
+                    showDescription: showDesc,
+                  );
+                  return [
+                    ...prefix,
+                    '${item.quantity.toStringAsFixed(2)}h',
+                    fmtCurrency(item.unitPrice),
+                    fmtCurrency(item.total),
+                  ];
+                }).toList(),
               ),
-            ),
-            // Items
-            pw.TableHelper.fromTextArray(
-              border: tableBorder,
-              headerStyle: headerStyle,
-              headerAlignment: pw.Alignment.centerLeft,
-              cellStyle: const pw.TextStyle(fontSize: 9),
-              cellAlignment: pw.Alignment.centerLeft,
-              columnWidths: colWidthsForMode(mode, showDescription: showDesc),
-              headers: [
-                ...lineItemPrefixHeaders(mode, showDescription: showDesc),
-                'Hours',
-                'Rate',
-                'Amount',
-              ],
-              data: items.map((item) {
-                final prefix = lineItemPrefix(item, mode, showDescription: showDesc);
-                return [
-                  ...prefix,
-                  '${item.quantity.toStringAsFixed(2)}h',
-                  fmtCurrency(item.unitPrice),
-                  fmtCurrency(item.total),
-                ];
-              }).toList(),
-            ),
-          ],
+            ],
+          ),
         ),
-      ));
+      );
     }
 
     // Manual items (no date prefix)
     if (manualItems.isNotEmpty) {
-      widgets.add(pw.Container(
-        margin: const pw.EdgeInsets.only(bottom: 12),
-        child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Container(
-              padding:
-                  const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: pw.BoxDecoration(
-                color: PdfColors.grey100,
-                borderRadius: pw.BorderRadius.circular(2),
-              ),
-              child: pw.Text('Additional Items',
+      widgets.add(
+        pw.Container(
+          margin: const pw.EdgeInsets.only(bottom: 12),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.grey100,
+                  borderRadius: pw.BorderRadius.circular(2),
+                ),
+                child: pw.Text(
+                  'Additional Items',
                   style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold,
                     fontSize: 10,
-                  )),
-            ),
-            pw.TableHelper.fromTextArray(
-              border: tableBorder,
-              headerStyle: headerStyle,
-              headerAlignment: pw.Alignment.centerLeft,
-              cellStyle: const pw.TextStyle(fontSize: 9),
-              cellAlignment: pw.Alignment.centerLeft,
-              columnWidths: colWidthsForMode(mode, showDescription: showDesc),
-              headers: [
-                ...lineItemPrefixHeaders(mode, showDescription: showDesc),
-                'Qty',
-                'Rate',
-                'Amount',
-              ],
-              data: manualItems.map((item) {
-                final prefix = lineItemPrefix(item, mode, showDescription: showDesc);
-                return [
-                  ...prefix,
-                  item.quantity.toStringAsFixed(2),
-                  fmtCurrency(item.unitPrice),
-                  fmtCurrency(item.total),
-                ];
-              }).toList(),
-            ),
-          ],
+                  ),
+                ),
+              ),
+              pw.TableHelper.fromTextArray(
+                border: tableBorder,
+                headerStyle: headerStyle,
+                headerAlignment: pw.Alignment.centerLeft,
+                cellStyle: const pw.TextStyle(fontSize: 9),
+                cellAlignment: pw.Alignment.centerLeft,
+                columnWidths: colWidthsForMode(mode, showDescription: showDesc),
+                headers: [
+                  ...lineItemPrefixHeaders(mode, showDescription: showDesc),
+                  'Qty',
+                  'Rate',
+                  'Amount',
+                ],
+                data: manualItems.map((item) {
+                  final prefix = lineItemPrefix(
+                    item,
+                    mode,
+                    showDescription: showDesc,
+                  );
+                  return [
+                    ...prefix,
+                    item.quantity.toStringAsFixed(2),
+                    fmtCurrency(item.unitPrice),
+                    fmtCurrency(item.total),
+                  ];
+                }).toList(),
+              ),
+            ],
+          ),
         ),
-      ));
+      );
     }
 
     return pw.Column(children: widgets);

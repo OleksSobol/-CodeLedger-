@@ -21,12 +21,9 @@ class Clients extends Table {
   TextColumn get paymentTermsOverride => text().nullable()();
   IntColumn get paymentTermsDaysOverride => integer().nullable()();
   TextColumn get notes => text().nullable()();
-  BoolColumn get isArchived =>
-      boolean().withDefault(const Constant(false))();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isArchived => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

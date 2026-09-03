@@ -45,16 +45,11 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
       _category = e.category;
       _frequency = e.frequency;
       _method = e.deductionMethod;
-      _manualPctCtrl.text =
-          e.manualPercentage?.toStringAsFixed(1) ?? '';
-      _workHoursCtrl.text =
-          e.workHoursPerDay?.toStringAsFixed(1) ?? '';
-      _totalHoursCtrl.text =
-          e.totalHoursPerDay?.toStringAsFixed(1) ?? '24';
-      _workSqftCtrl.text =
-          e.workSpaceSqft?.toStringAsFixed(0) ?? '';
-      _totalSqftCtrl.text =
-          e.totalSpaceSqft?.toStringAsFixed(0) ?? '';
+      _manualPctCtrl.text = e.manualPercentage?.toStringAsFixed(1) ?? '';
+      _workHoursCtrl.text = e.workHoursPerDay?.toStringAsFixed(1) ?? '';
+      _totalHoursCtrl.text = e.totalHoursPerDay?.toStringAsFixed(1) ?? '24';
+      _workSqftCtrl.text = e.workSpaceSqft?.toStringAsFixed(0) ?? '';
+      _totalSqftCtrl.text = e.totalSpaceSqft?.toStringAsFixed(0) ?? '';
       _notesCtrl.text = e.notes ?? '';
       _startDate = e.startDate;
       _endDate = e.endDate;
@@ -79,15 +74,13 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
   // ── Calculated preview ────────────────────────────────────────────────────
 
   double get _amount => double.tryParse(_amountCtrl.text) ?? 0;
-  double get _monthlyAmount =>
-      _frequency == 'annual' ? _amount / 12 : _amount;
+  double get _monthlyAmount => _frequency == 'annual' ? _amount / 12 : _amount;
 
   double get _fraction {
     switch (_method) {
       case 'hours':
         final work = double.tryParse(_workHoursCtrl.text) ?? 0;
-        final total =
-            double.tryParse(_totalHoursCtrl.text) ?? 24;
+        final total = double.tryParse(_totalHoursCtrl.text) ?? 24;
         return total > 0 ? work / total : 0;
       case 'space':
         final work = double.tryParse(_workSqftCtrl.text) ?? 0;
@@ -133,7 +126,8 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
         startDate: Value(_startDate),
         endDate: Value(_endDate),
         notes: Value(
-            _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim()),
+          _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+        ),
       );
 
       if (widget.expense == null) {
@@ -145,9 +139,9 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Save failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -187,15 +181,13 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
             const Padding(
               padding: EdgeInsets.all(16),
               child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2)),
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
             )
           else
-            TextButton(
-              onPressed: _save,
-              child: const Text('Save'),
-            ),
+            TextButton(onPressed: _save, child: const Text('Save')),
         ],
       ),
       body: Form(
@@ -234,10 +226,12 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                 prefixIcon: Icon(Icons.category_outlined),
               ),
               items: kExpenseCategories
-                  .map((c) => DropdownMenuItem(
-                        value: c,
-                        child: Text(kExpenseCategoryLabels[c] ?? c),
-                      ))
+                  .map(
+                    (c) => DropdownMenuItem(
+                      value: c,
+                      child: Text(kExpenseCategoryLabels[c] ?? c),
+                    ),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => _category = v!),
             ),
@@ -255,10 +249,10 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                       prefixText: '\$ ',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
+                      decimal: true,
+                    ),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*\.?\d*'))
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                     ],
                     validator: (v) {
                       if (v == null || v.isEmpty) return 'Required';
@@ -275,16 +269,20 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Frequency',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant)),
+                      Text(
+                        'Frequency',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       SegmentedButton<String>(
                         segments: const [
                           ButtonSegment(
-                              value: 'monthly', label: Text('Monthly')),
-                          ButtonSegment(
-                              value: 'annual', label: Text('Annual')),
+                            value: 'monthly',
+                            label: Text('Monthly'),
+                          ),
+                          ButtonSegment(value: 'annual', label: Text('Annual')),
                         ],
                         selected: {_frequency},
                         onSelectionChanged: (s) =>
@@ -298,21 +296,21 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
             const SizedBox(height: 20),
 
             // ── Deduction Method ──────────────────────────────────────────
-            Text('Tax Deduction Method',
-                style: theme.textTheme.labelLarge
-                    ?.copyWith(color: theme.colorScheme.primary)),
+            Text(
+              'Tax Deduction Method',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
+            ),
             const SizedBox(height: 8),
             SegmentedButton<String>(
               segments: const [
                 ButtonSegment(value: 'manual', label: Text('Manual %')),
-                ButtonSegment(
-                    value: 'hours', label: Text('By Hours')),
-                ButtonSegment(
-                    value: 'space', label: Text('By Space')),
+                ButtonSegment(value: 'hours', label: Text('By Hours')),
+                ButtonSegment(value: 'space', label: Text('By Space')),
               ],
               selected: {_method},
-              onSelectionChanged: (s) =>
-                  setState(() => _method = s.first),
+              onSelectionChanged: (s) => setState(() => _method = s.first),
             ),
             const SizedBox(height: 12),
 
@@ -325,9 +323,10 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                   hintText: '100 for fully deductible',
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true),
+                  decimal: true,
+                ),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                 ],
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Required';
@@ -341,8 +340,9 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
               Text(
                 'Enter 100% for software subscriptions used only for work. '
                 'Enter a partial % for mixed-use expenses.',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
 
@@ -357,10 +357,12 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                         hintText: 'e.g. 8',
                       ),
                       keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                        decimal: true,
+                      ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d*'))
+                          RegExp(r'^\d*\.?\d*'),
+                        ),
                       ],
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
@@ -384,10 +386,12 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                         hintText: '24',
                       ),
                       keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                        decimal: true,
+                      ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d*'))
+                          RegExp(r'^\d*\.?\d*'),
+                        ),
                       ],
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
@@ -405,8 +409,9 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
               Text(
                 'For internet: if you use it 10 hours/day for work out of 24, '
                 'deductible = 10/24 ≈ 42%.',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
 
@@ -423,14 +428,14 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d*'))
+                          RegExp(r'^\d*\.?\d*'),
+                        ),
                       ],
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
                         final work = double.tryParse(v);
                         if (work == null || work <= 0) return 'Must be > 0';
-                        final total =
-                            double.tryParse(_totalSqftCtrl.text) ?? 0;
+                        final total = double.tryParse(_totalSqftCtrl.text) ?? 0;
                         if (total > 0 && work > total) {
                           return 'Cannot exceed total area';
                         }
@@ -450,7 +455,8 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d*'))
+                          RegExp(r'^\d*\.?\d*'),
+                        ),
                       ],
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
@@ -467,17 +473,21 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
               Text(
                 'For rent: if your home office is 120 sq ft of a 900 sq ft '
                 'apartment, deductible = 120/900 ≈ 13%.',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
 
             const SizedBox(height: 20),
 
             // ── Active Period ─────────────────────────────────────────────
-            Text('Active Period',
-                style: theme.textTheme.labelLarge
-                    ?.copyWith(color: theme.colorScheme.primary)),
+            Text(
+              'Active Period',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -485,7 +495,8 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.calendar_today_outlined, size: 18),
                     label: Text(
-                        'Start: \${DateFormat(\'MMM d, yyyy\').format(_startDate)}'),
+                      'Start: \${DateFormat(\'MMM d, yyyy\').format(_startDate)}',
+                    ),
                     onPressed: () => _pickDate(isStart: true),
                   ),
                 ),
@@ -493,9 +504,11 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                 Expanded(
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.event_outlined, size: 18),
-                    label: Text(_endDate == null
-                        ? 'End: Ongoing'
-                        : 'End: \${DateFormat(\'MMM d, yyyy\').format(_endDate!)}'),
+                    label: Text(
+                      _endDate == null
+                          ? 'End: Ongoing'
+                          : 'End: \${DateFormat(\'MMM d, yyyy\').format(_endDate!)}',
+                    ),
                     onPressed: () async {
                       await _pickDate(isStart: false);
                     },
@@ -554,16 +567,22 @@ class _PreviewCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.calculate_outlined,
-              color: theme.colorScheme.primary, size: 28),
+          Icon(
+            Icons.calculate_outlined,
+            color: theme.colorScheme.primary,
+            size: 28,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Monthly deductible',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant)),
+                Text(
+                  'Monthly deductible',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
                 Text(
                   fmt.format(monthlyDeductible),
                   style: theme.textTheme.titleLarge?.copyWith(
@@ -577,9 +596,12 @@ class _PreviewCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('Deduction',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant)),
+              Text(
+                'Deduction',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
               Text(
                 '\$pct%',
                 style: theme.textTheme.titleMedium?.copyWith(

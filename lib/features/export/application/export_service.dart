@@ -13,7 +13,7 @@ class ExportService {
     required Map<String, String> clientNames,
   }) async {
     final rows = <List<dynamic>>[];
-    
+
     // Header
     rows.add([
       'Date',
@@ -35,10 +35,12 @@ class ExportService {
     for (final e in entries) {
       final date = dateFormat.format(e.startTime);
       final clientName = clientNames[e.clientId] ?? 'Unknown Client';
-      final projectName = e.projectId != null ? (projectNames[e.projectId] ?? '') : '';
+      final projectName = e.projectId != null
+          ? (projectNames[e.projectId] ?? '')
+          : '';
       final start = timeFormat.format(e.startTime);
       final end = e.endTime != null ? timeFormat.format(e.endTime!) : '';
-      
+
       rows.add([
         date,
         clientName,
@@ -56,9 +58,10 @@ class ExportService {
 
     final csv = const CsvEncoder().convert(rows);
     final dir = await getTemporaryDirectory();
-    final filename = 'time_entries_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
+    final filename =
+        'time_entries_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
     final file = File('${dir.path}/$filename');
-    
+
     await file.writeAsString(csv);
     return file;
   }
@@ -112,26 +115,38 @@ class ExportService {
     return file;
   }
 
-  Future<File> generateTaxReportCsv({required List<TaxReportRow> rows}) async {
+  Future<File> generateTaxReportCsv({required TaxReportData data}) async {
     final csvRows = <List<dynamic>>[];
-    csvRows.add([
-      'Paid Date', 'Client', 'Invoice #', 'Net Amount',
-      'Tax Label', 'Tax Rate %', 'Tax Amount',
-      'Total Paid', 'Currency', 'Notes', 'Paid',
-    ]);
+    final headers = [
+      'Paid Date',
+      'Client',
+      'Invoice #',
+      'Net Amount',
+      if (data.includeTax) 'Tax Label',
+      if (data.includeTax) 'Tax Rate %',
+      if (data.includeTax) 'Tax Amount',
+      'Total Paid',
+      'Currency',
+      'Notes',
+      'Paid',
+    ];
+    csvRows.add(headers);
 
     final fmt = DateFormat('M/d/yyyy');
-    for (final row in rows) {
+    for (final row in data.rows) {
       final inv = row.invoice;
+      final totalPaid = data.includeTax
+          ? inv.amountPaid
+          : (inv.amountPaid - inv.taxAmount).clamp(0.0, double.infinity);
       csvRows.add([
         fmt.format(inv.paidDate ?? inv.issueDate),
         row.clientName,
         inv.invoiceNumber,
         inv.subtotal.toStringAsFixed(2),
-        inv.taxLabel,
-        inv.taxRate.toStringAsFixed(2),
-        inv.taxAmount.toStringAsFixed(2),
-        inv.amountPaid.toStringAsFixed(2),
+        if (data.includeTax) inv.taxLabel,
+        if (data.includeTax) inv.taxRate.toStringAsFixed(2),
+        if (data.includeTax) inv.taxAmount.toStringAsFixed(2),
+        totalPaid.toStringAsFixed(2),
         inv.currency,
         inv.notes ?? '',
         'Yes',
@@ -139,17 +154,23 @@ class ExportService {
     }
 
     csvRows.add([
-      'TOTALS', '', '',
-      rows.fold(0.0, (s, r) => s + r.invoice.subtotal).toStringAsFixed(2),
-      '', '',
-      rows.fold(0.0, (s, r) => s + r.invoice.taxAmount).toStringAsFixed(2),
-      rows.fold(0.0, (s, r) => s + r.invoice.amountPaid).toStringAsFixed(2),
-      '', '', '',
+      'TOTALS',
+      '',
+      '',
+      data.totalSubtotal.toStringAsFixed(2),
+      if (data.includeTax) '',
+      if (data.includeTax) '',
+      if (data.includeTax) data.totalTax.toStringAsFixed(2),
+      data.totalPaid.toStringAsFixed(2),
+      '',
+      '',
+      '',
     ]);
 
     final csv = const CsvEncoder().convert(csvRows);
     final dir = await getTemporaryDirectory();
-    final filename = 'tax_report_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
+    final filename =
+        'tax_report_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
     final file = File('${dir.path}/$filename');
     await file.writeAsString(csv);
     return file;

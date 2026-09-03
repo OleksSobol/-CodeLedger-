@@ -13,11 +13,9 @@ class InvoiceLineItems extends Table {
   RealColumn get total => real()();
   TextColumn get timeEntryId =>
       text().nullable().references(TimeEntries, #id)();
-  TextColumn get projectId =>
-      text().nullable().references(Projects, #id)();
+  TextColumn get projectId => text().nullable().references(Projects, #id)();
   TextColumn get issueReference => text().nullable()();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

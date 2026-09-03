@@ -22,22 +22,29 @@ class TaxReportData {
   final List<TaxReportRow> rows;
   final String? clientFilterName; // null = all clients
 
+  final bool includeTax;
+
   const TaxReportData({
     required this.profile,
     required this.startDate,
     required this.endDate,
     required this.rows,
     this.clientFilterName,
+    this.includeTax = true,
   });
 
-  double get totalSubtotal =>
-      rows.fold(0.0, (s, r) => s + r.invoice.subtotal);
+  double get totalSubtotal => rows.fold(0.0, (s, r) => s + r.invoice.subtotal);
   double get totalTax =>
-      rows.fold(0.0, (s, r) => s + r.invoice.taxAmount);
-  double get totalPaid =>
-      rows.fold(0.0, (s, r) => s + r.invoice.amountPaid);
-  String get currency =>
-      rows.isEmpty ? 'USD' : rows.first.invoice.currency;
+      rows.fold(0.0, (s, r) => s + (includeTax ? r.invoice.taxAmount : 0.0));
+  double get totalPaid => rows.fold(0.0, (s, r) {
+    if (includeTax) return s + r.invoice.amountPaid;
+    return s +
+        (r.invoice.amountPaid - r.invoice.taxAmount).clamp(
+          0.0,
+          double.infinity,
+        );
+  });
+  String get currency => rows.isEmpty ? 'USD' : rows.first.invoice.currency;
 
   String _fmt(DateTime d) =>
       '${d.month.toString().padLeft(2, '0')}/'

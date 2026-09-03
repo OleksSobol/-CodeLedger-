@@ -21,8 +21,9 @@ class _AddTimeToInvoicePageState extends ConsumerState<AddTimeToInvoicePage> {
 
   @override
   Widget build(BuildContext context) {
-    final entriesAsync =
-        ref.watch(uninvoicedEntriesProvider(widget.invoice.clientId));
+    final entriesAsync = ref.watch(
+      uninvoicedEntriesProvider(widget.invoice.clientId),
+    );
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -40,7 +41,8 @@ class _AddTimeToInvoicePageState extends ConsumerState<AddTimeToInvoicePage> {
                 child: Text(
                   'No uninvoiced time entries for this client.',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.outline),
+                    color: theme.colorScheme.outline,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -83,16 +85,14 @@ class _AddTimeToInvoicePageState extends ConsumerState<AddTimeToInvoicePage> {
   }
 
   Future<void> _append(List<TimeEntry> available) async {
-    final picked =
-        available.where((e) => _selectedIds.contains(e.id)).toList();
+    final picked = available.where((e) => _selectedIds.contains(e.id)).toList();
     if (picked.isEmpty) return;
 
     setState(() => _saving = true);
     try {
-      await ref.read(invoiceNotifierProvider.notifier).addEntriesToInvoice(
-            invoiceId: widget.invoice.id,
-            entries: picked,
-          );
+      await ref
+          .read(invoiceNotifierProvider.notifier)
+          .addEntriesToInvoice(invoiceId: widget.invoice.id, entries: picked);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Added ${picked.length} entries')),
@@ -101,9 +101,9 @@ class _AddTimeToInvoicePageState extends ConsumerState<AddTimeToInvoicePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);

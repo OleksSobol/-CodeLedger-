@@ -18,8 +18,7 @@ class GitHubSyncPreviewPage extends ConsumerStatefulWidget {
       _GitHubSyncPreviewPageState();
 }
 
-class _GitHubSyncPreviewPageState
-    extends ConsumerState<GitHubSyncPreviewPage> {
+class _GitHubSyncPreviewPageState extends ConsumerState<GitHubSyncPreviewPage> {
   GitHubSyncPreview? _preview;
   bool _loading = true;
   final List<SyncLog> _liveLog = [];
@@ -123,8 +122,9 @@ class _GitHubSyncPreviewPageState
                         if (_selected.length == preview.matches.length) {
                           _selected.clear();
                         } else {
-                          _selected.addAll(List.generate(
-                              preview.matches.length, (i) => i));
+                          _selected.addAll(
+                            List.generate(preview.matches.length, (i) => i),
+                          );
                         }
                       });
                     },
@@ -139,8 +139,8 @@ class _GitHubSyncPreviewPageState
       body: _loading
           ? _buildLiveLog(theme)
           : preview == null
-              ? const SizedBox.shrink()
-              : _buildResults(theme, preview),
+          ? const SizedBox.shrink()
+          : _buildResults(theme, preview),
       bottomNavigationBar: _buildBottom(theme),
     );
   }
@@ -164,7 +164,8 @@ class _GitHubSyncPreviewPageState
             'Checking linked repos for branches and commits '
             'that match Issue-XXXX in the selected date range.',
             style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant),
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
         const Divider(height: 1),
@@ -235,10 +236,13 @@ class _GitHubSyncPreviewPageState
         children: [
           Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
           const SizedBox(height: 12),
-          Text(error,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.error)),
+          Text(
+            error,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
         ],
       ),
     );
@@ -254,16 +258,18 @@ class _GitHubSyncPreviewPageState
           Text(
             'No issue refs found for this date range.',
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Make sure your branches are named Issue-XXXX and that '
             'you committed within the selected date range.',
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -281,20 +287,21 @@ class _GitHubSyncPreviewPageState
             style: theme.textTheme.titleSmall,
           ),
         ),
-        ...preview.matches.asMap().entries.map((e) =>
-            _MatchTile(
-              idx: e.key,
-              match: e.value,
-              selected: _selected.contains(e.key),
-              enabled: !_applying,
-              onChanged: (v) => setState(() {
-                if (v == true) {
-                  _selected.add(e.key);
-                } else {
-                  _selected.remove(e.key);
-                }
-              }),
-            )),
+        ...preview.matches.asMap().entries.map(
+          (e) => _MatchTile(
+            idx: e.key,
+            match: e.value,
+            selected: _selected.contains(e.key),
+            enabled: !_applying,
+            onChanged: (v) => setState(() {
+              if (v == true) {
+                _selected.add(e.key);
+              } else {
+                _selected.remove(e.key);
+              }
+            }),
+          ),
+        ),
       ],
     );
   }
@@ -441,8 +448,9 @@ class _MatchTile extends StatelessWidget {
           Expanded(
             child: Text(
               match.projectName,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w500),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -451,7 +459,8 @@ class _MatchTile extends StatelessWidget {
             Text(
               durationLabel,
               style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant),
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ],
@@ -470,20 +479,21 @@ class _MatchTile extends StatelessWidget {
                   '${timeFmt.format(entry.startTime)} - ${timeFmt.format(entry.endTime!)}',
               ].join('  ·  '),
               style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant),
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             if (description.isNotEmpty) ...[
               const SizedBox(height: 2),
               Text(
                 description,
                 style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant),
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
-            if (match.existingRef != null &&
-                match.existingRef!.isNotEmpty) ...[
+            if (match.existingRef != null && match.existingRef!.isNotEmpty) ...[
               const SizedBox(height: 2),
               Text(
                 'Appending to: ${match.existingRef}',
@@ -497,7 +507,9 @@ class _MatchTile extends StatelessWidget {
             Text(
               match.repo,
               style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.primary, fontSize: 10),
+                color: theme.colorScheme.primary,
+                fontSize: 10,
+              ),
             ),
           ],
         ),

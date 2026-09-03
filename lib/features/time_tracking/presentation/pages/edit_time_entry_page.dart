@@ -40,7 +40,8 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
     _repoCtrl = TextEditingController(text: e.repository ?? '');
     _tagsCtrl = TextEditingController(text: tagsToDisplay(e.tags));
     _rateCtrl = TextEditingController(
-        text: e.hourlyRateSnapshot.toStringAsFixed(2));
+      text: e.hourlyRateSnapshot.toStringAsFixed(2),
+    );
     _date = DateTime(e.startTime.year, e.startTime.month, e.startTime.day);
     _startTime = TimeOfDay.fromDateTime(e.startTime);
     _endTime = e.endTime != null
@@ -131,8 +132,7 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
 
         if (!end.isAfter(start)) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('End time must be after start time')),
+            const SnackBar(content: Text('End time must be after start time')),
           );
           setState(() => _saving = false);
           return;
@@ -170,9 +170,9 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: \$e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: \$e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -182,11 +182,15 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
   @override
   Widget build(BuildContext context) {
     final dateFmt = DateFormat.yMMMEd();
-    final duration = _buildDateTime(_endDate, _endTime)
-        .difference(_buildDateTime(_date, _startTime));
+    final duration = _buildDateTime(
+      _endDate,
+      _endTime,
+    ).difference(_buildDateTime(_date, _startTime));
     final isOvernight = _endDate != _date;
     final isCompleted = widget.entry.endTime != null;
-    final projectsAsync = ref.watch(projectsForClientProvider(widget.entry.clientId));
+    final projectsAsync = ref.watch(
+      projectsForClientProvider(widget.entry.clientId),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -201,8 +205,9 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
                   context: context,
                   builder: (ctx) => AlertDialog(
                     title: const Text('Delete Entry'),
-                    content:
-                        const Text('Are you sure you want to delete this entry?'),
+                    content: const Text(
+                      'Are you sure you want to delete this entry?',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, false),
@@ -210,8 +215,7 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
                       ),
                       FilledButton(
                         style: FilledButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.error,
+                          backgroundColor: Theme.of(context).colorScheme.error,
                         ),
                         onPressed: () => Navigator.pop(ctx, true),
                         child: const Text('Delete'),
@@ -241,17 +245,18 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    Icon(Icons.lock_outline,
-                        color:
-                            Theme.of(context).colorScheme.onTertiaryContainer),
+                    Icon(
+                      Icons.lock_outline,
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'This entry is invoiced. Only description and metadata can be edited.',
                         style: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onTertiaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onTertiaryContainer,
                         ),
                       ),
                     ),
@@ -324,10 +329,12 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
                     value: null,
                     child: Text('None'),
                   ),
-                  ...projects.map((p) => DropdownMenuItem<String?>(
-                        value: p.id,
-                        child: Text(p.name),
-                      )),
+                  ...projects.map(
+                    (p) => DropdownMenuItem<String?>(
+                      value: p.id,
+                      child: Text(p.name),
+                    ),
+                  ),
                 ],
                 onChanged: widget.entry.isInvoiced
                     ? null
@@ -343,11 +350,12 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Hourly Rate (\$)',
               hintText: 'e.g. 30.00',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 18,
+              ),
             ),
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             enabled: !widget.entry.isInvoiced,
           ),
           const SizedBox(height: 12),
@@ -356,8 +364,10 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Description',
               hintText: 'What did you work on?',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 18,
+              ),
             ),
             maxLines: 3,
           ),
@@ -367,8 +377,10 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Repository',
               hintText: 'e.g. org/repo',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 18,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -377,8 +389,10 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Issue Reference',
               hintText: 'e.g. org/repo#42',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 18,
+              ),
             ),
             minLines: 1,
             maxLines: 6,
@@ -389,8 +403,10 @@ class _EditTimeEntryPageState extends ConsumerState<EditTimeEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Tags (comma separated)',
               hintText: 'e.g. bugfix, frontend, review',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 18,
+              ),
             ),
           ),
           const SizedBox(height: 24),

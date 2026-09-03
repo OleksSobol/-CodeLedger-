@@ -54,8 +54,9 @@ final invoiceRepositoryProvider = Provider<InvoiceRepository>((ref) {
   return DriftInvoiceRepository(ref.watch(invoiceDaoProvider));
 });
 
-final invoiceTemplateRepositoryProvider =
-    Provider<InvoiceTemplateRepository>((ref) {
+final invoiceTemplateRepositoryProvider = Provider<InvoiceTemplateRepository>((
+  ref,
+) {
   if (kIsWeb) {
     return SupabaseInvoiceTemplateRepository(ref.watch(supabaseProvider));
   }

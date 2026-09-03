@@ -34,8 +34,9 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
   @override
   void initState() {
     super.initState();
-    _amountCtrl =
-        TextEditingController(text: widget.balanceDue.toStringAsFixed(2));
+    _amountCtrl = TextEditingController(
+      text: widget.balanceDue.toStringAsFixed(2),
+    );
   }
 
   @override
@@ -48,7 +49,9 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     try {
-      await ref.read(invoiceNotifierProvider.notifier).recordPayment(
+      await ref
+          .read(invoiceNotifierProvider.notifier)
+          .recordPayment(
             invoiceId: widget.invoiceId,
             amount: double.parse(_amountCtrl.text.trim()),
             method: _method,
@@ -56,8 +59,9 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -76,8 +80,9 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
           children: [
             Text(
               'Balance due: ${formatCurrency(widget.balanceDue, currency: widget.currency)}',
-              style:
-                  theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.tertiary),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.tertiary,
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -87,8 +92,9 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                 prefixText: '\$ ',
                 border: OutlineInputBorder(),
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
               ],

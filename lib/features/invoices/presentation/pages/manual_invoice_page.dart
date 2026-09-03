@@ -91,9 +91,9 @@ class _ManualInvoicePageState extends ConsumerState<ManualInvoicePage> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedClientId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a client.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a client.')));
       return;
     }
 
@@ -125,9 +125,9 @@ class _ManualInvoicePageState extends ConsumerState<ManualInvoicePage> {
           total: Value(total),
           amountPaid: Value(amountPaid),
           currency: Value(_currency),
-          notes: Value(_notesCtrl.text.trim().isEmpty
-              ? null
-              : _notesCtrl.text.trim()),
+          notes: Value(
+            _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+          ),
           paidDate: Value(paidDate),
         ),
         lineItems: [],
@@ -138,20 +138,22 @@ class _ManualInvoicePageState extends ConsumerState<ManualInvoicePage> {
       // (user may have typed a custom number)
       final prefix = profile.invoiceNumberPrefix;
       if (_invoiceNumberCtrl.text.trim().startsWith(prefix)) {
-        await profileDao.getNextInvoiceNumber(); // already incremented in _prefillFromProfile
+        await profileDao
+            .getNextInvoiceNumber(); // already incremented in _prefillFromProfile
       }
 
       ref.invalidate(allInvoicesProvider);
 
       if (!mounted) return;
       context.pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invoice saved.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invoice saved.')));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -171,7 +173,11 @@ class _ManualInvoicePageState extends ConsumerState<ManualInvoicePage> {
         key: _formKey,
         child: ListView(
           padding: EdgeInsets.fromLTRB(
-              Spacing.md, Spacing.md, Spacing.md, Spacing.md + bottomInset),
+            Spacing.md,
+            Spacing.md,
+            Spacing.md,
+            Spacing.md + bottomInset,
+          ),
           children: [
             // ── Client ───────────────────────────────────────────────
             clientsAsync.when(
@@ -185,7 +191,9 @@ class _ManualInvoicePageState extends ConsumerState<ManualInvoicePage> {
                   prefixIcon: Icon(Icons.people_outline),
                 ),
                 items: clients
-                    .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                    .map(
+                      (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                    )
                     .toList(),
                 onChanged: (v) => setState(() => _selectedClientId = v),
                 validator: (v) => v == null ? 'Select a client' : null,
@@ -251,11 +259,14 @@ class _ManualInvoicePageState extends ConsumerState<ManualInvoicePage> {
                       border: OutlineInputBorder(),
                     ),
                     items: _statuses
-                        .map((s) => DropdownMenuItem(
-                              value: s,
-                              child: Text(
-                                  '${s[0].toUpperCase()}${s.substring(1)}'),
-                            ))
+                        .map(
+                          (s) => DropdownMenuItem(
+                            value: s,
+                            child: Text(
+                              '${s[0].toUpperCase()}${s.substring(1)}',
+                            ),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() => _status = v!),
                   ),
@@ -271,8 +282,7 @@ class _ManualInvoicePageState extends ConsumerState<ManualInvoicePage> {
                       border: OutlineInputBorder(),
                     ),
                     items: _currencies
-                        .map((c) =>
-                            DropdownMenuItem(value: c, child: Text(c)))
+                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                         .toList(),
                     onChanged: (v) => setState(() => _currency = v!),
                   ),
@@ -289,8 +299,9 @@ class _ManualInvoicePageState extends ConsumerState<ManualInvoicePage> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.attach_money),
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
               ],
@@ -314,15 +325,15 @@ class _ManualInvoicePageState extends ConsumerState<ManualInvoicePage> {
                 prefixIcon: Icon(Icons.percent),
                 helperText: '0 = no tax',
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
               ],
               onChanged: (_) => setState(() {}),
               validator: (v) {
-                if (v != null && v.isNotEmpty &&
-                    double.tryParse(v) == null) {
+                if (v != null && v.isNotEmpty && double.tryParse(v) == null) {
                   return 'Enter a valid number';
                 }
                 return null;
@@ -339,16 +350,18 @@ class _ManualInvoicePageState extends ConsumerState<ManualInvoicePage> {
                   child: Column(
                     children: [
                       _TotalRow(
-                          label: 'Subtotal',
-                          amount: _subtotal,
-                          currency: _currency),
+                        label: 'Subtotal',
+                        amount: _subtotal,
+                        currency: _currency,
+                      ),
                       if (_taxRate > 0) ...[
                         const SizedBox(height: Spacing.xs),
                         _TotalRow(
-                            label:
-                                'Tax (${_taxRate.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}%)',
-                            amount: _taxAmount,
-                            currency: _currency),
+                          label:
+                              'Tax (${_taxRate.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}%)',
+                          amount: _taxAmount,
+                          currency: _currency,
+                        ),
                       ],
                       const Divider(),
                       _TotalRow(
@@ -421,10 +434,10 @@ class _TotalRow extends StatelessWidget {
       symbol: currency == 'USD'
           ? '\$'
           : currency == 'EUR'
-              ? '€'
-              : currency == 'GBP'
-                  ? '£'
-                  : '$currency ',
+          ? '€'
+          : currency == 'GBP'
+          ? '£'
+          : '$currency ',
       decimalDigits: 2,
     );
 

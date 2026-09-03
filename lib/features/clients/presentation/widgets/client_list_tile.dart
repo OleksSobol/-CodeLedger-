@@ -24,11 +24,13 @@ class ClientListTile extends ConsumerWidget {
             final parts = <String>[];
             if (summary.uninvoicedHours > 0) {
               parts.add(
-                  '${summary.uninvoicedHours.toStringAsFixed(1)}h uninvoiced');
+                '${summary.uninvoicedHours.toStringAsFixed(1)}h uninvoiced',
+              );
             }
             if (summary.totalBilled > 0) {
               parts.add(
-                  '${formatCurrency(summary.totalBilled, currency: client.currency)} billed');
+                '${formatCurrency(summary.totalBilled, currency: client.currency)} billed',
+              );
             }
             if (parts.isEmpty) return const Text('No activity yet');
             return Text(parts.join(' · '));

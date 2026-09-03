@@ -50,14 +50,16 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
 
   Future<void> _clockIn() async {
     if (_selectedClient == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a client')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a client')));
       return;
     }
     setState(() => _saving = true);
     try {
-      await ref.read(timerNotifierProvider.notifier).clockIn(
+      await ref
+          .read(timerNotifierProvider.notifier)
+          .clockIn(
             clientId: _selectedClient!.id,
             projectId: _selectedProject?.id,
             description: _trimOrNull(_descriptionCtrl.text),
@@ -69,9 +71,9 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -106,7 +108,9 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
                   width: 32,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.4,
+                    ),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -114,8 +118,9 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
 
               Text(
                 'Start Timer',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: Spacing.md),
 
@@ -128,19 +133,20 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
                     return Card(
                       child: Padding(
                         padding: const EdgeInsets.all(Spacing.md),
-                        child: Text('No clients yet. Add one first.',
-                            style: theme.textTheme.bodyMedium),
+                        child: Text(
+                          'No clients yet. Add one first.',
+                          style: theme.textTheme.bodyMedium,
+                        ),
                       ),
                     );
                   }
                   return DropdownButtonFormField<Client>(
-                    decoration:
-                        const InputDecoration(labelText: 'Client *'),
+                    decoration: const InputDecoration(labelText: 'Client *'),
                     items: clients
-                        .map((c) => DropdownMenuItem(
-                              value: c,
-                              child: Text(c.name),
-                            ))
+                        .map(
+                          (c) =>
+                              DropdownMenuItem(value: c, child: Text(c.name)),
+                        )
                         .toList(),
                     onChanged: (c) {
                       setState(() {
@@ -155,25 +161,29 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
 
               // Project dropdown
               if (_selectedClient != null)
-                Consumer(builder: (context, ref, _) {
-                  final projectsAsync = ref.watch(
-                      projectsForClientProvider(_selectedClient!.id));
-                  return projectsAsync.when(
-                    loading: () => const LinearProgressIndicator(),
-                    error: (e, _) => Text('Error: $e'),
-                    data: (projects) {
-                      if (projects.isEmpty) return const SizedBox.shrink();
-                      return Padding(
-                        padding:
-                            const EdgeInsets.only(bottom: Spacing.sm),
-                        child: DropdownButtonFormField<Project?>(
-                          decoration: const InputDecoration(
-                              labelText: 'Project (optional)'),
-                          items: [
-                            const DropdownMenuItem(
+                Consumer(
+                  builder: (context, ref, _) {
+                    final projectsAsync = ref.watch(
+                      projectsForClientProvider(_selectedClient!.id),
+                    );
+                    return projectsAsync.when(
+                      loading: () => const LinearProgressIndicator(),
+                      error: (e, _) => Text('Error: $e'),
+                      data: (projects) {
+                        if (projects.isEmpty) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: Spacing.sm),
+                          child: DropdownButtonFormField<Project?>(
+                            decoration: const InputDecoration(
+                              labelText: 'Project (optional)',
+                            ),
+                            items: [
+                              const DropdownMenuItem(
                                 value: null,
-                                child: Text('No project')),
-                            ...projects.map((p) => DropdownMenuItem(
+                                child: Text('No project'),
+                              ),
+                              ...projects.map(
+                                (p) => DropdownMenuItem(
                                   value: p,
                                   child: Row(
                                     children: [
@@ -185,15 +195,17 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
                                       Text(p.name),
                                     ],
                                   ),
-                                )),
-                          ],
-                          onChanged: (p) =>
-                              setState(() => _selectedProject = p),
-                        ),
-                      );
-                    },
-                  );
-                }),
+                                ),
+                              ),
+                            ],
+                            onChanged: (p) =>
+                                setState(() => _selectedProject = p),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
 
               // Description
               TextFormField(
@@ -209,14 +221,11 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
               InkWell(
                 onTap: () => setState(() => _showMore = !_showMore),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: Spacing.sm),
+                  padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
                   child: Row(
                     children: [
                       Icon(
-                        _showMore
-                            ? Icons.expand_less
-                            : Icons.expand_more,
+                        _showMore ? Icons.expand_less : Icons.expand_more,
                         size: 20,
                         color: theme.colorScheme.primary,
                       ),
@@ -224,7 +233,8 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
                       Text(
                         'More options',
                         style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.primary),
+                          color: theme.colorScheme.primary,
+                        ),
                       ),
                     ],
                   ),
@@ -266,8 +276,8 @@ class _ClockInSheetState extends ConsumerState<ClockInSheet> {
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2))
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Icon(Icons.play_arrow),
                   label: const Text('Start Timer'),
                 ),

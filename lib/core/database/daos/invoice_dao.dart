@@ -9,8 +9,7 @@ import '../tables/projects_table.dart';
 part 'invoice_dao.g.dart';
 
 @DriftAccessor(tables: [Invoices, InvoiceLineItems, TimeEntries, Projects])
-class InvoiceDao extends DatabaseAccessor<AppDatabase>
-    with _$InvoiceDaoMixin {
+class InvoiceDao extends DatabaseAccessor<AppDatabase> with _$InvoiceDaoMixin {
   InvoiceDao(super.db);
 
   Stream<List<Invoice>> watchInvoices({String? clientId}) {
@@ -58,13 +57,15 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
       }
 
       if (timeEntryIds.isNotEmpty) {
-        await (update(timeEntries)
-              ..where((t) => t.id.isIn(timeEntryIds)))
-            .write(TimeEntriesCompanion(
-              isInvoiced: const Value(true),
-              invoiceId: Value(invoiceId),
-              updatedAt: Value(DateTime.now()),
-            ));
+        await (update(
+          timeEntries,
+        )..where((t) => t.id.isIn(timeEntryIds))).write(
+          TimeEntriesCompanion(
+            isInvoiced: const Value(true),
+            invoiceId: Value(invoiceId),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
       }
 
       return invoiceId;
@@ -83,9 +84,9 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
           .then((rows) => rows > 0);
     }
 
-    return (update(invoices)..where((t) => t.id.equals(id)))
-        .write(companion)
-        .then((rows) => rows > 0);
+    return (update(
+      invoices,
+    )..where((t) => t.id.equals(id))).write(companion).then((rows) => rows > 0);
   }
 
   Future<bool> recordPayment({
@@ -99,29 +100,33 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
       final isPaid = newPaid >= invoice.total - 0.005;
 
       return (update(invoices)..where((t) => t.id.equals(invoiceId)))
-          .write(InvoicesCompanion(
-            amountPaid: Value(newPaid),
-            paymentMethod: Value(method),
-            status: isPaid ? const Value('paid') : const Value.absent(),
-            paidDate: isPaid ? Value(DateTime.now()) : const Value.absent(),
-            updatedAt: Value(DateTime.now()),
-          ))
+          .write(
+            InvoicesCompanion(
+              amountPaid: Value(newPaid),
+              paymentMethod: Value(method),
+              status: isPaid ? const Value('paid') : const Value.absent(),
+              paidDate: isPaid ? Value(DateTime.now()) : const Value.absent(),
+              updatedAt: Value(DateTime.now()),
+            ),
+          )
           .then((rows) => rows > 0);
     });
   }
 
   Future<void> deleteDraftInvoice(String invoiceId) {
     return transaction(() async {
-      await (update(timeEntries)
-            ..where((t) => t.invoiceId.equals(invoiceId)))
-          .write(const TimeEntriesCompanion(
-            isInvoiced: Value(false),
-            invoiceId: Value(null),
-          ));
+      await (update(
+        timeEntries,
+      )..where((t) => t.invoiceId.equals(invoiceId))).write(
+        const TimeEntriesCompanion(
+          isInvoiced: Value(false),
+          invoiceId: Value(null),
+        ),
+      );
 
-      await (delete(invoiceLineItems)
-            ..where((t) => t.invoiceId.equals(invoiceId)))
-          .go();
+      await (delete(
+        invoiceLineItems,
+      )..where((t) => t.invoiceId.equals(invoiceId))).go();
 
       await (delete(invoices)..where((t) => t.id.equals(invoiceId))).go();
     });
@@ -129,34 +134,40 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
 
   Future<bool> archiveInvoice(String invoiceId) {
     return (update(invoices)..where((t) => t.id.equals(invoiceId)))
-        .write(InvoicesCompanion(
-          status: const Value('archived'),
-          updatedAt: Value(DateTime.now()),
-        ))
+        .write(
+          InvoicesCompanion(
+            status: const Value('archived'),
+            updatedAt: Value(DateTime.now()),
+          ),
+        )
         .then((rows) => rows > 0);
   }
 
   Future<bool> unarchiveInvoice(String invoiceId) {
     return (update(invoices)..where((t) => t.id.equals(invoiceId)))
-        .write(InvoicesCompanion(
-          status: const Value('paid'),
-          updatedAt: Value(DateTime.now()),
-        ))
+        .write(
+          InvoicesCompanion(
+            status: const Value('paid'),
+            updatedAt: Value(DateTime.now()),
+          ),
+        )
         .then((rows) => rows > 0);
   }
 
   Future<void> deleteInvoice(String invoiceId) {
     return transaction(() async {
-      await (update(timeEntries)
-            ..where((t) => t.invoiceId.equals(invoiceId)))
-          .write(const TimeEntriesCompanion(
-            isInvoiced: Value(false),
-            invoiceId: Value(null),
-          ));
+      await (update(
+        timeEntries,
+      )..where((t) => t.invoiceId.equals(invoiceId))).write(
+        const TimeEntriesCompanion(
+          isInvoiced: Value(false),
+          invoiceId: Value(null),
+        ),
+      );
 
-      await (delete(invoiceLineItems)
-            ..where((t) => t.invoiceId.equals(invoiceId)))
-          .go();
+      await (delete(
+        invoiceLineItems,
+      )..where((t) => t.invoiceId.equals(invoiceId))).go();
 
       await (delete(invoices)..where((t) => t.id.equals(invoiceId))).go();
     });
@@ -172,10 +183,8 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
       final existing = await getLineItems(invoiceId);
       var sortOrder = existing.isEmpty
           ? 0
-          : (existing
-                  .map((e) => e.sortOrder)
-                  .reduce((a, b) => a > b ? a : b) +
-              1);
+          : (existing.map((e) => e.sortOrder).reduce((a, b) => a > b ? a : b) +
+                1);
 
       for (final item in lineItems) {
         final lineItemId = uuid.v4();
@@ -189,13 +198,15 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
       }
 
       if (timeEntryIds.isNotEmpty) {
-        await (update(timeEntries)
-              ..where((t) => t.id.isIn(timeEntryIds)))
-            .write(TimeEntriesCompanion(
-          isInvoiced: const Value(true),
-          invoiceId: Value(invoiceId),
-          updatedAt: Value(DateTime.now()),
-        ));
+        await (update(
+          timeEntries,
+        )..where((t) => t.id.isIn(timeEntryIds))).write(
+          TimeEntriesCompanion(
+            isInvoiced: const Value(true),
+            invoiceId: Value(invoiceId),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
       }
 
       final items = await getLineItems(invoiceId);
@@ -207,9 +218,9 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
       DateTime? periodStart = inv.periodStart;
       DateTime? periodEnd = inv.periodEnd;
       if (timeEntryIds.isNotEmpty) {
-        final added = await (select(timeEntries)
-              ..where((t) => t.id.isIn(timeEntryIds)))
-            .get();
+        final added = await (select(
+          timeEntries,
+        )..where((t) => t.id.isIn(timeEntryIds))).get();
         for (final e in added) {
           final s = e.startTime;
           final eEnd = e.endTime ?? e.startTime;
@@ -222,15 +233,16 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
         }
       }
 
-      await (update(invoices)..where((t) => t.id.equals(invoiceId)))
-          .write(InvoicesCompanion(
-        subtotal: Value(subtotal),
-        taxAmount: Value(taxAmount),
-        total: Value(total),
-        periodStart: Value(periodStart),
-        periodEnd: Value(periodEnd),
-        updatedAt: Value(DateTime.now()),
-      ));
+      await (update(invoices)..where((t) => t.id.equals(invoiceId))).write(
+        InvoicesCompanion(
+          subtotal: Value(subtotal),
+          taxAmount: Value(taxAmount),
+          total: Value(total),
+          periodStart: Value(periodStart),
+          periodEnd: Value(periodEnd),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
     });
   }
 
@@ -244,14 +256,16 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
     return transaction(() async {
       final itemTotal = quantity * unitPrice;
 
-      await (update(invoiceLineItems)
-            ..where((t) => t.id.equals(lineItemId)))
-          .write(InvoiceLineItemsCompanion(
-        description: Value(description),
-        quantity: Value(quantity),
-        unitPrice: Value(unitPrice),
-        total: Value(itemTotal),
-      ));
+      await (update(
+        invoiceLineItems,
+      )..where((t) => t.id.equals(lineItemId))).write(
+        InvoiceLineItemsCompanion(
+          description: Value(description),
+          quantity: Value(quantity),
+          unitPrice: Value(unitPrice),
+          total: Value(itemTotal),
+        ),
+      );
 
       final items = await getLineItems(invoiceId);
       final subtotal = items.fold<double>(0, (sum, i) => sum + i.total);
@@ -259,23 +273,26 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
       final taxAmount = subtotal * (inv.taxRate / 100);
       final total = subtotal + taxAmount + inv.lateFeeAmount;
 
-      await (update(invoices)..where((t) => t.id.equals(invoiceId)))
-          .write(InvoicesCompanion(
-        subtotal: Value(subtotal),
-        taxAmount: Value(taxAmount),
-        total: Value(total),
-        updatedAt: Value(DateTime.now()),
-      ));
+      await (update(invoices)..where((t) => t.id.equals(invoiceId))).write(
+        InvoicesCompanion(
+          subtotal: Value(subtotal),
+          taxAmount: Value(taxAmount),
+          total: Value(total),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
     });
   }
 
   Future<bool> revertToDraft(String invoiceId) {
     return (update(invoices)..where((t) => t.id.equals(invoiceId)))
-        .write(InvoicesCompanion(
-          status: const Value('draft'),
-          sentDate: const Value(null),
-          updatedAt: Value(DateTime.now()),
-        ))
+        .write(
+          InvoicesCompanion(
+            status: const Value('draft'),
+            sentDate: const Value(null),
+            updatedAt: Value(DateTime.now()),
+          ),
+        )
         .then((rows) => rows > 0);
   }
 
@@ -287,19 +304,22 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<Invoice>> getOverdueInvoices() {
-    return (select(invoices)
-          ..where((t) =>
+    return (select(invoices)..where(
+          (t) =>
               t.status.equals('sent') &
-              t.dueDate.isSmallerThanValue(DateTime.now())))
+              t.dueDate.isSmallerThanValue(DateTime.now()),
+        ))
         .get();
   }
 
   Future<bool> updateInvoiceNumber(String invoiceId, String invoiceNumber) {
     return (update(invoices)..where((t) => t.id.equals(invoiceId)))
-        .write(InvoicesCompanion(
-          invoiceNumber: Value(invoiceNumber),
-          updatedAt: Value(DateTime.now()),
-        ))
+        .write(
+          InvoicesCompanion(
+            invoiceNumber: Value(invoiceNumber),
+            updatedAt: Value(DateTime.now()),
+          ),
+        )
         .then((rows) => rows > 0);
   }
 
@@ -319,48 +339,59 @@ class InvoiceDao extends DatabaseAccessor<AppDatabase>
     final inv = await getInvoice(invoiceId);
     final total = subtotal + taxAmount + inv.lateFeeAmount;
     return (update(invoices)..where((t) => t.id.equals(invoiceId)))
-        .write(InvoicesCompanion(
-          clientId: Value(clientId),
-          invoiceNumber: Value(invoiceNumber),
-          issueDate: Value(issueDate),
-          dueDate: Value(dueDate),
-          subtotal: Value(subtotal),
-          taxRate: Value(taxRate),
-          taxLabel: Value(taxLabel),
-          taxAmount: Value(taxAmount),
-          total: Value(total),
-          currency: Value(currency),
-          notes: Value(notes),
-          updatedAt: Value(DateTime.now()),
-        ))
+        .write(
+          InvoicesCompanion(
+            clientId: Value(clientId),
+            invoiceNumber: Value(invoiceNumber),
+            issueDate: Value(issueDate),
+            dueDate: Value(dueDate),
+            subtotal: Value(subtotal),
+            taxRate: Value(taxRate),
+            taxLabel: Value(taxLabel),
+            taxAmount: Value(taxAmount),
+            total: Value(total),
+            currency: Value(currency),
+            notes: Value(notes),
+            updatedAt: Value(DateTime.now()),
+          ),
+        )
         .then((rows) => rows > 0);
   }
 
   Future<bool> updateTemplate(String invoiceId, String? templateId) {
     return (update(invoices)..where((t) => t.id.equals(invoiceId)))
-        .write(InvoicesCompanion(
-          templateId: Value(templateId),
-          updatedAt: Value(DateTime.now()),
-        ))
+        .write(
+          InvoicesCompanion(
+            templateId: Value(templateId),
+            updatedAt: Value(DateTime.now()),
+          ),
+        )
         .then((rows) => rows > 0);
   }
 
   Future<bool> updatePdfPath(String invoiceId, String path) {
     return (update(invoices)..where((t) => t.id.equals(invoiceId)))
-        .write(InvoicesCompanion(
-          pdfPath: Value(path),
-          updatedAt: Value(DateTime.now()),
-        ))
+        .write(
+          InvoicesCompanion(
+            pdfPath: Value(path),
+            updatedAt: Value(DateTime.now()),
+          ),
+        )
         .then((rows) => rows > 0);
   }
 
   Future<List<LineItemWithDetails>> getLineItemsWithDetails(
-      String invoiceId) async {
+    String invoiceId,
+  ) async {
     final query = select(invoiceLineItems).join([
-      leftOuterJoin(timeEntries,
-          timeEntries.id.equalsExp(invoiceLineItems.timeEntryId)),
       leftOuterJoin(
-          projects, projects.id.equalsExp(invoiceLineItems.projectId)),
+        timeEntries,
+        timeEntries.id.equalsExp(invoiceLineItems.timeEntryId),
+      ),
+      leftOuterJoin(
+        projects,
+        projects.id.equalsExp(invoiceLineItems.projectId),
+      ),
     ]);
     query.where(invoiceLineItems.invoiceId.equals(invoiceId));
     query.orderBy([OrderingTerm.asc(invoiceLineItems.sortOrder)]);
@@ -381,9 +412,5 @@ class LineItemWithDetails {
   final TimeEntry? timeEntry;
   final Project? project;
 
-  LineItemWithDetails({
-    required this.lineItem,
-    this.timeEntry,
-    this.project,
-  });
+  LineItemWithDetails({required this.lineItem, this.timeEntry, this.project});
 }

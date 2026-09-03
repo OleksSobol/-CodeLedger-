@@ -23,11 +23,7 @@ class EmailService {
       // Fallback to share_plus (works on Windows/Desktop and if no email app configured)
       // On Windows, this opens the system share dialog which includes Mail.
       await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path)],
-          subject: subject,
-          text: body,
-        ),
+        ShareParams(files: [XFile(file.path)], subject: subject, text: body),
       );
     }
   }

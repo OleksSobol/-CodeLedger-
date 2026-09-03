@@ -20,9 +20,8 @@ class TimeEntriesSliver extends ConsumerWidget {
       loading: () => const SliverFillRemaining(
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (e, _) => SliverFillRemaining(
-        child: Center(child: Text('Error: $e')),
-      ),
+      error: (e, _) =>
+          SliverFillRemaining(child: Center(child: Text('Error: $e'))),
       data: (entries) {
         if (entries.isEmpty) {
           return SliverFillRemaining(
@@ -30,18 +29,22 @@ class TimeEntriesSliver extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.access_time_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline),
+                  Icon(
+                    Icons.access_time_outlined,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                   const SizedBox(height: Spacing.md),
-                  Text('No time entries',
-                      style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'No time entries',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: Spacing.sm),
                   Text(
                     'Start a timer or add a manual entry',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -58,10 +61,10 @@ class TimeEntriesSliver extends ConsumerWidget {
             final item = items[index];
             return switch (item) {
               _DateHeader() => _DateHeaderWidget(
-                  dateLabel: item.label,
-                  totalMinutes: item.totalMinutes,
-                  totalEarnings: item.totalEarnings,
-                ),
+                dateLabel: item.label,
+                totalMinutes: item.totalMinutes,
+                totalEarnings: item.totalEarnings,
+              ),
               _EntryItem() => TimeEntryTile(entry: item.entry),
             };
           },
@@ -84,17 +87,22 @@ class TimeEntriesSliver extends ConsumerWidget {
       final dayEntries = grouped[dateKey]!;
       final completed = dayEntries.where((e) => e.endTime != null);
       final dayMinutes = completed.fold<int>(
-          0, (sum, e) => sum + (e.durationMinutes ?? 0));
+        0,
+        (sum, e) => sum + (e.durationMinutes ?? 0),
+      );
       final dayEarnings = completed.fold<double>(
-          0,
-          (sum, e) =>
-              sum + (e.durationMinutes ?? 0) / 60.0 * e.hourlyRateSnapshot);
+        0,
+        (sum, e) =>
+            sum + (e.durationMinutes ?? 0) / 60.0 * e.hourlyRateSnapshot,
+      );
 
-      items.add(_DateHeader(
-        label: dateKey,
-        totalMinutes: dayMinutes,
-        totalEarnings: dayEarnings,
-      ));
+      items.add(
+        _DateHeader(
+          label: dateKey,
+          totalMinutes: dayMinutes,
+          totalEarnings: dayEarnings,
+        ),
+      );
       for (final entry in dayEntries) {
         items.add(_EntryItem(entry: entry));
       }
@@ -139,13 +147,18 @@ class _DateHeaderWidget extends StatelessWidget {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-          Spacing.md, Spacing.sm + 4, Spacing.md, 4),
+        Spacing.md,
+        Spacing.sm + 4,
+        Spacing.md,
+        4,
+      ),
       child: Row(
         children: [
           Text(
             dateLabel,
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const Spacer(),
           Text(

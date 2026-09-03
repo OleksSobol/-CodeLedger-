@@ -49,12 +49,16 @@ class _ClientsListPageState extends ConsumerState<ClientsListPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.people_outline,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline),
+                  Icon(
+                    Icons.people_outline,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                   const SizedBox(height: 16),
-                  Text('No clients yet',
-                      style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'No clients yet',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 8),
                   const Text('Tap + to add your first client'),
                 ],

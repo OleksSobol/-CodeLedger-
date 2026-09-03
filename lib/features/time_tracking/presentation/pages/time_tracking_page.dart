@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/utils/duration_formatter.dart';
 import '../../../../shared/widgets/spacing.dart';
+import '../../../../shared/widgets/responsive_layout.dart';
 import '../providers/time_entry_providers.dart';
 import '../widgets/active_timer_widget.dart';
 import '../widgets/time_entries_list.dart';
@@ -23,16 +24,16 @@ class TimeTrackingPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final runningEntries =
-        ref.watch(runningEntriesProvider).value ?? [];
+    final runningEntries = ref.watch(runningEntriesProvider).value ?? [];
     final filter = ref.watch(dateRangeFilterProvider);
 
     final entriesAsync = ref.watch(filteredEntriesProvider);
-    final totalMinutes = entriesAsync.whenOrNull(
-            data: (entries) => entries
-                .where((e) => e.endTime != null)
-                .fold<int>(
-                    0, (sum, e) => sum + (e.durationMinutes ?? 0))) ??
+    final totalMinutes =
+        entriesAsync.whenOrNull(
+          data: (entries) => entries
+              .where((e) => e.endTime != null)
+              .fold<int>(0, (sum, e) => sum + (e.durationMinutes ?? 0)),
+        ) ??
         0;
 
     return Scaffold(
@@ -59,75 +60,83 @@ class TimeTrackingPage extends ConsumerWidget {
             },
             itemBuilder: (_) => const [
               PopupMenuItem(
-                  value: 'export',
-                  child: ListTile(
-                    leading: Icon(Icons.file_download_outlined),
-                    title: Text('Export CSV'),
-                    contentPadding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  )),
+                value: 'export',
+                child: ListTile(
+                  leading: Icon(Icons.file_download_outlined),
+                  title: Text('Export CSV'),
+                  contentPadding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
               PopupMenuItem(
-                  value: 'manual',
-                  child: ListTile(
-                    leading: Icon(Icons.edit_note),
-                    title: Text('Manual Entry'),
-                    contentPadding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  )),
+                value: 'manual',
+                child: ListTile(
+                  leading: Icon(Icons.edit_note),
+                  title: Text('Manual Entry'),
+                  contentPadding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
               PopupMenuItem(
-                  value: 'github_sync',
-                  child: ListTile(
-                    leading: Icon(Icons.sync),
-                    title: Text('Sync GitHub Issues'),
-                    contentPadding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  )),
+                value: 'github_sync',
+                child: ListTile(
+                  leading: Icon(Icons.sync),
+                  title: Text('Sync GitHub Issues'),
+                  contentPadding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
             ],
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(filteredEntriesProvider);
-          ref.invalidate(runningEntryProvider);
-          ref.invalidate(runningEntriesProvider);
-          await Future.delayed(const Duration(milliseconds: 300));
-        },
-        child: CustomScrollView(
-          slivers: [
-            // Active Timers (one per running entry)
-            for (final entry in runningEntries)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      Spacing.md, Spacing.md, Spacing.md, 0),
-                  child: ActiveTimerWidget(entry: entry),
+      body: ResponsiveAlign(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(filteredEntriesProvider);
+            ref.invalidate(runningEntryProvider);
+            ref.invalidate(runningEntriesProvider);
+            await Future.delayed(const Duration(milliseconds: 300));
+          },
+          child: CustomScrollView(
+            slivers: [
+              // Active Timers (one per running entry)
+              for (final entry in runningEntries)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      Spacing.md,
+                      Spacing.md,
+                      Spacing.md,
+                      0,
+                    ),
+                    child: ActiveTimerWidget(entry: entry),
+                  ),
                 ),
+              if (runningEntries.isNotEmpty)
+                const SliverToBoxAdapter(child: SizedBox(height: Spacing.md)),
+
+              // Date Filter
+              SliverToBoxAdapter(child: DateRangeSelector()),
+
+              // Company Filter Bar
+              const SliverToBoxAdapter(child: CompanyFilterBar()),
+
+              // Tag Filter Bar
+              const SliverToBoxAdapter(child: TagFilterBar()),
+
+              // Insight Strip
+              const SliverToBoxAdapter(child: TimeSummaryBar()),
+
+              // Entries Timeline
+              const TimeEntriesSliver(),
+
+              // Bottom padding for FAB
+              const SliverToBoxAdapter(
+                child: SizedBox(height: Spacing.xl + 80),
               ),
-            if (runningEntries.isNotEmpty)
-              const SliverToBoxAdapter(child: SizedBox(height: Spacing.md)),
-
-            // Date Filter
-            SliverToBoxAdapter(
-              child: DateRangeSelector(),
-            ),
-
-            // Company Filter Bar
-            const SliverToBoxAdapter(child: CompanyFilterBar()),
-
-            // Tag Filter Bar
-            const SliverToBoxAdapter(child: TagFilterBar()),
-
-            // Insight Strip
-            const SliverToBoxAdapter(child: TimeSummaryBar()),
-
-            // Entries Timeline
-            const TimeEntriesSliver(),
-
-            // Bottom padding for FAB
-            const SliverToBoxAdapter(
-                child: SizedBox(height: Spacing.xl + 80)),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -145,11 +154,14 @@ class TimeTrackingPage extends ConsumerWidget {
   }
 
   void _syncGitHub(
-      BuildContext context, WidgetRef ref, DateRangeFilter filter) {
-    context.push('/github-sync', extra: {
-      'start': filter.start,
-      'end': filter.end,
-    });
+    BuildContext context,
+    WidgetRef ref,
+    DateRangeFilter filter,
+  ) {
+    context.push(
+      '/github-sync',
+      extra: {'start': filter.start, 'end': filter.end},
+    );
   }
 
   Future<void> _exportCsv(BuildContext context, WidgetRef ref) async {
@@ -163,9 +175,9 @@ class TimeTrackingPage extends ConsumerWidget {
 
       if (entries.isEmpty) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No entries to export')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('No entries to export')));
         }
         return;
       }
@@ -185,8 +197,10 @@ class TimeTrackingPage extends ConsumerWidget {
         }
       }
 
-      final projectIds =
-          entries.map((e) => e.projectId).whereType<String>().toSet();
+      final projectIds = entries
+          .map((e) => e.projectId)
+          .whereType<String>()
+          .toSet();
       final projectNames = <String, String>{};
       for (final id in projectIds) {
         try {
@@ -204,14 +218,12 @@ class TimeTrackingPage extends ConsumerWidget {
         clientNames: clientNames,
       );
 
-      await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path)]),
-      );
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export error: $e')));
       }
     }
   }

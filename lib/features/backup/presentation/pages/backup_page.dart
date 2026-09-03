@@ -75,9 +75,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
       final file = await backup.createBackup(passphrase);
 
       _setState(const BackupIdle());
-      await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path)]),
-      );
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
       _showSnack('Backup created');
     } catch (e) {
       _setState(const BackupIdle());
@@ -87,9 +85,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
 
   Future<void> _restoreLocalBackup() async {
     // Pick file
-    final result = await FilePicker.pickFiles(
-      type: FileType.any,
-    );
+    final result = await FilePicker.pickFiles(type: FileType.any);
     if (result.isEmpty) return;
 
     final filePath = result.single.path;
@@ -124,7 +120,8 @@ class _BackupPageState extends ConsumerState<BackupPage> {
           builder: (ctx) => AlertDialog(
             title: const Text('Restore Complete'),
             content: const Text(
-                'Restore complete. Restart the app to load your data.'),
+              'Restore complete. Restart the app to load your data.',
+            ),
             actions: [
               FilledButton(
                 onPressed: () => Navigator.pop(ctx),
@@ -258,7 +255,8 @@ class _BackupPageState extends ConsumerState<BackupPage> {
           builder: (ctx) => AlertDialog(
             title: const Text('Restore Complete'),
             content: const Text(
-                'Restore complete. Restart the app to load your data.'),
+              'Restore complete. Restart the app to load your data.',
+            ),
             actions: [
               FilledButton(
                 onPressed: () => Navigator.pop(ctx),
@@ -306,7 +304,8 @@ class _BackupPageState extends ConsumerState<BackupPage> {
           builder: (ctx) => AlertDialog(
             title: const Text('Data Erased'),
             content: const Text(
-                'All data has been erased. Restart the app to continue.'),
+              'All data has been erased. Restart the app to continue.',
+            ),
             actions: [
               FilledButton(
                 onPressed: () => Navigator.pop(ctx),
@@ -392,10 +391,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
 
           // -- Danger Zone --
           const SizedBox(height: Spacing.lg),
-          _DangerZoneSection(
-            isWorking: isWorking,
-            onErase: _eraseAllData,
-          ),
+          _DangerZoneSection(isWorking: isWorking, onErase: _eraseAllData),
         ],
       ),
     );
@@ -520,8 +516,9 @@ class _GoogleDriveSection extends StatelessWidget {
   }
 
   Widget _buildSignedIn(ThemeData theme) {
-    final workingMessage =
-        uiState is BackupWorking ? (uiState as BackupWorking).message : null;
+    final workingMessage = uiState is BackupWorking
+        ? (uiState as BackupWorking).message
+        : null;
 
     return Padding(
       padding: const EdgeInsets.all(Spacing.md),
@@ -531,8 +528,10 @@ class _GoogleDriveSection extends StatelessWidget {
           // Account row
           Row(
             children: [
-              Icon(Icons.account_circle,
-                  color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.account_circle,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: Spacing.sm),
               Expanded(
                 child: Text(
@@ -608,8 +607,10 @@ class _DriveBackupsList extends ConsumerWidget {
           ),
           error: (e, _) => Padding(
             padding: const EdgeInsets.all(Spacing.md),
-            child: Text('Error loading backups: $e',
-                style: TextStyle(color: theme.colorScheme.error)),
+            child: Text(
+              'Error loading backups: $e',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
           ),
           data: (backups) {
             if (backups.isEmpty) {
@@ -617,11 +618,13 @@ class _DriveBackupsList extends ConsumerWidget {
                 padding: const EdgeInsets.all(Spacing.lg),
                 child: Column(
                   children: [
-                    Icon(Icons.cloud_off_outlined,
-                        size: 48, color: theme.colorScheme.outline),
+                    Icon(
+                      Icons.cloud_off_outlined,
+                      size: 48,
+                      color: theme.colorScheme.outline,
+                    ),
                     const SizedBox(height: Spacing.sm),
-                    Text('No backups yet',
-                        style: theme.textTheme.bodyMedium),
+                    Text('No backups yet', style: theme.textTheme.bodyMedium),
                   ],
                 ),
               );
@@ -634,8 +637,10 @@ class _DriveBackupsList extends ConsumerWidget {
                     : 'Unknown date';
 
                 return ListTile(
-                  leading: Icon(Icons.lock_outline,
-                      color: theme.colorScheme.onSurfaceVariant),
+                  leading: Icon(
+                    Icons.lock_outline,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   title: Text(b.name, overflow: TextOverflow.ellipsis),
                   subtitle: Text('$dateStr - ${b.formattedSize}'),
                   trailing: PopupMenuButton<String>(
@@ -690,8 +695,11 @@ class _LocalBackupWebUnavailable extends StatelessWidget {
           padding: const EdgeInsets.all(Spacing.lg),
           child: Column(
             children: [
-              Icon(Icons.folder_off_outlined,
-                  size: 48, color: theme.colorScheme.outline),
+              Icon(
+                Icons.folder_off_outlined,
+                size: 48,
+                color: theme.colorScheme.outline,
+              ),
               const SizedBox(height: Spacing.md),
               Text(
                 'Local file backup is not available on web.\nUse the mobile or desktop app.',
@@ -721,8 +729,11 @@ class _GoogleDriveWebUnavailable extends StatelessWidget {
           padding: const EdgeInsets.all(Spacing.lg),
           child: Column(
             children: [
-              Icon(Icons.cloud_off_outlined,
-                  size: 48, color: theme.colorScheme.outline),
+              Icon(
+                Icons.cloud_off_outlined,
+                size: 48,
+                color: theme.colorScheme.outline,
+              ),
               const SizedBox(height: Spacing.md),
               Text(
                 'Google Drive backup is not available on web.\nUse the mobile or desktop app.',
@@ -747,10 +758,7 @@ class _DangerZoneSection extends StatelessWidget {
   final bool isWorking;
   final VoidCallback onErase;
 
-  const _DangerZoneSection({
-    required this.isWorking,
-    required this.onErase,
-  });
+  const _DangerZoneSection({required this.isWorking, required this.onErase});
 
   @override
   Widget build(BuildContext context) {
@@ -768,13 +776,16 @@ class _DangerZoneSection extends StatelessWidget {
                 'and projects. Your backup passphrase is kept. '
                 'This cannot be undone.',
                 style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant),
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: Spacing.md),
               OutlinedButton.icon(
                 onPressed: isWorking ? null : onErase,
-                icon: Icon(Icons.delete_forever_outlined,
-                    color: theme.colorScheme.error),
+                icon: Icon(
+                  Icons.delete_forever_outlined,
+                  color: theme.colorScheme.error,
+                ),
                 label: Text(
                   'Erase All Data',
                   style: TextStyle(color: theme.colorScheme.error),
@@ -810,10 +821,17 @@ class _BackupPickerSheet extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                Spacing.lg, Spacing.lg, Spacing.lg, Spacing.sm),
-            child: Text('Select Backup',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+              Spacing.lg,
+              Spacing.lg,
+              Spacing.lg,
+              Spacing.sm,
+            ),
+            child: Text(
+              'Select Backup',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           const Divider(height: 1),
           ConstrainedBox(

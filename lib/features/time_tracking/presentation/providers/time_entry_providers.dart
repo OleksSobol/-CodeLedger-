@@ -29,14 +29,20 @@ class DateRangeFilter {
   factory DateRangeFilter.today() {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, now.day);
-    return DateRangeFilter(start: start, end: start.add(const Duration(days: 1)));
+    return DateRangeFilter(
+      start: start,
+      end: start.add(const Duration(days: 1)),
+    );
   }
 
   factory DateRangeFilter.thisWeek() {
     final now = DateTime.now();
     final weekday = now.weekday;
     final start = DateTime(now.year, now.month, now.day - (weekday - 1));
-    return DateRangeFilter(start: start, end: start.add(const Duration(days: 7)));
+    return DateRangeFilter(
+      start: start,
+      end: start.add(const Duration(days: 7)),
+    );
   }
 
   factory DateRangeFilter.thisMonth() {
@@ -55,7 +61,8 @@ class DateRangeFilterNotifier extends Notifier<DateRangeFilter> {
 
 final dateRangeFilterProvider =
     NotifierProvider<DateRangeFilterNotifier, DateRangeFilter>(
-        DateRangeFilterNotifier.new);
+      DateRangeFilterNotifier.new,
+    );
 
 class TagFilterNotifier extends Notifier<Set<String>> {
   @override
@@ -63,8 +70,9 @@ class TagFilterNotifier extends Notifier<Set<String>> {
   void set(Set<String> v) => state = v;
 }
 
-final tagFilterProvider =
-    NotifierProvider<TagFilterNotifier, Set<String>>(TagFilterNotifier.new);
+final tagFilterProvider = NotifierProvider<TagFilterNotifier, Set<String>>(
+  TagFilterNotifier.new,
+);
 
 final allTagsProvider = FutureProvider<Set<String>>((ref) {
   return ref.watch(timeEntryRepositoryProvider).getAllTags();
@@ -78,7 +86,8 @@ class ClientIdFilterNotifier extends Notifier<Set<String>> {
 
 final clientIdFilterProvider =
     NotifierProvider<ClientIdFilterNotifier, Set<String>>(
-        ClientIdFilterNotifier.new);
+      ClientIdFilterNotifier.new,
+    );
 
 final filteredEntriesProvider = StreamProvider<List<TimeEntry>>((ref) {
   final filter = ref.watch(dateRangeFilterProvider);
@@ -88,23 +97,25 @@ final filteredEntriesProvider = StreamProvider<List<TimeEntry>>((ref) {
       .watch(timeEntryRepositoryProvider)
       .watchEntriesForDateRange(filter.start, filter.end)
       .map((entries) {
-    var result = entries;
-    if (tagFilter.isNotEmpty) {
-      result = result.where((e) {
-        final entryTags = parseTags(e.tags);
-        return tagFilter.every((t) => entryTags.contains(t));
-      }).toList();
-    }
-    if (clientFilter.isNotEmpty) {
-      result =
-          result.where((e) => clientFilter.contains(e.clientId)).toList();
-    }
-    return result;
-  });
+        var result = entries;
+        if (tagFilter.isNotEmpty) {
+          result = result.where((e) {
+            final entryTags = parseTags(e.tags);
+            return tagFilter.every((t) => entryTags.contains(t));
+          }).toList();
+        }
+        if (clientFilter.isNotEmpty) {
+          result = result
+              .where((e) => clientFilter.contains(e.clientId))
+              .toList();
+        }
+        return result;
+      });
 });
 
-final timerNotifierProvider =
-    AsyncNotifierProvider<TimerNotifier, void>(TimerNotifier.new);
+final timerNotifierProvider = AsyncNotifierProvider<TimerNotifier, void>(
+  TimerNotifier.new,
+);
 
 class TimerNotifier extends AsyncNotifier<void> {
   late TimeEntryRepository _dao;
@@ -136,13 +147,13 @@ class TimerNotifier extends AsyncNotifier<void> {
     }
 
     final profile = await ref.read(userProfileRepositoryProvider).getProfile();
-    final client =
-        await ref.read(clientRepositoryProvider).getClient(clientId);
+    final client = await ref.read(clientRepositoryProvider).getClient(clientId);
 
     double? projectRate;
     if (projectId != null) {
-      final project =
-          await ref.read(projectRepositoryProvider).getProject(projectId);
+      final project = await ref
+          .read(projectRepositoryProvider)
+          .getProject(projectId);
       projectRate = project.hourlyRateOverride;
     }
 
@@ -254,13 +265,13 @@ class TimerNotifier extends AsyncNotifier<void> {
     String? tags,
   }) async {
     final profile = await ref.read(userProfileRepositoryProvider).getProfile();
-    final client =
-        await ref.read(clientRepositoryProvider).getClient(clientId);
+    final client = await ref.read(clientRepositoryProvider).getClient(clientId);
 
     double? projectRate;
     if (projectId != null) {
-      final project =
-          await ref.read(projectRepositoryProvider).getProject(projectId);
+      final project = await ref
+          .read(projectRepositoryProvider)
+          .getProject(projectId);
       projectRate = project.hourlyRateOverride;
     }
 
@@ -300,7 +311,6 @@ class TimerNotifier extends AsyncNotifier<void> {
     ref.invalidate(uninvoicedByClientProvider);
   }
 
-  Future<bool> updateEntry(
-          String entryId, TimeEntriesCompanion companion) =>
+  Future<bool> updateEntry(String entryId, TimeEntriesCompanion companion) =>
       _dao.updateEntry(entryId, companion);
 }

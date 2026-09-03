@@ -6,10 +6,7 @@ import '../../data/report_generator.dart';
 class ReportPreviewPage extends StatelessWidget {
   final WorkReportData data;
 
-  const ReportPreviewPage({
-    super.key,
-    required this.data,
-  });
+  const ReportPreviewPage({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -17,8 +14,8 @@ class ReportPreviewPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Report Preview')),
       body: PdfPreview(
         build: (format) async {
-            final doc = await ReportGenerator.generateReport(data);
-            return doc.save();
+          final doc = await ReportGenerator.generateReport(data);
+          return doc.save();
         },
         canChangeOrientation: false,
         canDebug: false,

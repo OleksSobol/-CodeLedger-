@@ -26,8 +26,9 @@ class DriveSignedInNotifier extends Notifier<bool> {
 }
 
 /// Tracks the Drive sign-in state.
-final driveSignedInProvider =
-    NotifierProvider<DriveSignedInNotifier, bool>(DriveSignedInNotifier.new);
+final driveSignedInProvider = NotifierProvider<DriveSignedInNotifier, bool>(
+  DriveSignedInNotifier.new,
+);
 
 class DriveEmailNotifier extends Notifier<String?> {
   @override
@@ -36,12 +37,14 @@ class DriveEmailNotifier extends Notifier<String?> {
 }
 
 /// Tracks the signed-in email.
-final driveEmailProvider =
-    NotifierProvider<DriveEmailNotifier, String?>(DriveEmailNotifier.new);
+final driveEmailProvider = NotifierProvider<DriveEmailNotifier, String?>(
+  DriveEmailNotifier.new,
+);
 
 /// Lists backups on Drive (refreshed manually).
-final driveBackupsProvider =
-    FutureProvider<List<DriveBackupEntry>>((ref) async {
+final driveBackupsProvider = FutureProvider<List<DriveBackupEntry>>((
+  ref,
+) async {
   final drive = ref.watch(driveBackupServiceProvider);
   if (!drive.isSignedIn) return [];
   return drive.listBackups();
@@ -80,4 +83,5 @@ class BackupUiStateNotifier extends Notifier<BackupUiState> {
 
 final backupUiStateProvider =
     NotifierProvider<BackupUiStateNotifier, BackupUiState>(
-        BackupUiStateNotifier.new);
+      BackupUiStateNotifier.new,
+    );

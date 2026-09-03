@@ -66,11 +66,7 @@ class EncryptionService {
 
     final key = await _deriveKey(passphrase, salt);
 
-    final secretBox = SecretBox(
-      cipherText,
-      nonce: nonce,
-      mac: Mac(mac),
-    );
+    final secretBox = SecretBox(cipherText, nonce: nonce, mac: Mac(mac));
 
     final decrypted = await _algorithm.decrypt(secretBox, secretKey: key);
     return Uint8List.fromList(decrypted);

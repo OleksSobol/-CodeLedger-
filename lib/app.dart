@@ -35,7 +35,9 @@ class _CodeLedgerAppState extends ConsumerState<CodeLedgerApp> {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: themeMode,
-          home: const Scaffold(body: Center(child: CircularProgressIndicator())),
+          home: const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
         ),
         error: (_, __) => MaterialApp(
           debugShowCheckedModeBanner: false,

@@ -39,14 +39,16 @@ class _ClockInPageState extends ConsumerState<ClockInPage> {
 
   Future<void> _clockIn() async {
     if (_selectedClient == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a client')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a client')));
       return;
     }
     setState(() => _saving = true);
     try {
-      await ref.read(timerNotifierProvider.notifier).clockIn(
+      await ref
+          .read(timerNotifierProvider.notifier)
+          .clockIn(
             clientId: _selectedClient!.id,
             projectId: _selectedProject?.id,
             description: _trimOrNull(_descriptionCtrl.text),
@@ -58,9 +60,9 @@ class _ClockInPageState extends ConsumerState<ClockInPage> {
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -85,19 +87,17 @@ class _ClockInPageState extends ConsumerState<ClockInPage> {
                 return Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Text('No clients yet. Add one first.',
-                        style: Theme.of(context).textTheme.bodyMedium),
+                    child: Text(
+                      'No clients yet. Add one first.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ),
                 );
               }
               return DropdownButtonFormField<Client>(
-                decoration:
-                    const InputDecoration(labelText: 'Client *'),
+                decoration: const InputDecoration(labelText: 'Client *'),
                 items: clients
-                    .map((c) => DropdownMenuItem(
-                          value: c,
-                          child: Text(c.name),
-                        ))
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c.name)))
                     .toList(),
                 onChanged: (c) {
                   setState(() {
@@ -112,23 +112,29 @@ class _ClockInPageState extends ConsumerState<ClockInPage> {
 
           // Project selector (filtered by client)
           if (_selectedClient != null)
-            Consumer(builder: (context, ref, _) {
-              final projectsAsync = ref
-                  .watch(projectsForClientProvider(_selectedClient!.id));
-              return projectsAsync.when(
-                loading: () => const LinearProgressIndicator(),
-                error: (e, _) => Text('Error: $e'),
-                data: (projects) {
-                  if (projects.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
-                  return DropdownButtonFormField<Project?>(
-                    decoration: const InputDecoration(
-                        labelText: 'Project (optional)'),
-                    items: [
-                      const DropdownMenuItem(
-                          value: null, child: Text('No project')),
-                      ...projects.map((p) => DropdownMenuItem(
+            Consumer(
+              builder: (context, ref, _) {
+                final projectsAsync = ref.watch(
+                  projectsForClientProvider(_selectedClient!.id),
+                );
+                return projectsAsync.when(
+                  loading: () => const LinearProgressIndicator(),
+                  error: (e, _) => Text('Error: $e'),
+                  data: (projects) {
+                    if (projects.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return DropdownButtonFormField<Project?>(
+                      decoration: const InputDecoration(
+                        labelText: 'Project (optional)',
+                      ),
+                      items: [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('No project'),
+                        ),
+                        ...projects.map(
+                          (p) => DropdownMenuItem(
                             value: p,
                             child: Row(
                               children: [
@@ -140,14 +146,15 @@ class _ClockInPageState extends ConsumerState<ClockInPage> {
                                 Text(p.name),
                               ],
                             ),
-                          )),
-                    ],
-                    onChanged: (p) =>
-                        setState(() => _selectedProject = p),
-                  );
-                },
-              );
-            }),
+                          ),
+                        ),
+                      ],
+                      onChanged: (p) => setState(() => _selectedProject = p),
+                    );
+                  },
+                );
+              },
+            ),
           const SizedBox(height: 12),
 
           TextFormField(
@@ -189,7 +196,8 @@ class _ClockInPageState extends ConsumerState<ClockInPage> {
                 ? const SizedBox(
                     height: 20,
                     width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2))
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(Icons.play_arrow),
             label: const Text('Start Timer'),
           ),

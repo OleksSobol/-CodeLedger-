@@ -38,13 +38,13 @@ class ExpensesPage extends ConsumerWidget {
       body: Column(
         children: [
           _SummaryCard(
-              totalMonthly: totalMonthly,
-              yearlyDeductible: thisYearDeductible,
-              fmt: fmt),
+            totalMonthly: totalMonthly,
+            yearlyDeductible: thisYearDeductible,
+            fmt: fmt,
+          ),
           Expanded(
             child: expensesAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Error: \$e')),
               data: (expenses) => expenses.isEmpty
                   ? _EmptyState(onAdd: () => context.push('/expenses/add'))
@@ -69,29 +69,35 @@ class ExpensesPage extends ConsumerWidget {
   Future<void> _exportCsv(BuildContext context, WidgetRef ref) async {
     final expenses = ref.read(expensesProvider).value ?? [];
     if (expenses.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No expenses to export')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No expenses to export')));
       return;
     }
     try {
       final service = ref.read(exportServiceProvider);
       final file = await service.generateExpensesCsv(expenses: expenses);
       if (!context.mounted) return;
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path, mimeType: 'text/csv')],
-        subject: 'Expenses export',
-      ));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'text/csv')],
+          subject: 'Expenses export',
+        ),
+      );
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Export failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
       }
     }
   }
 
   Future<void> _delete(
-      BuildContext context, WidgetRef ref, Expense expense) async {
+    BuildContext context,
+    WidgetRef ref,
+    Expense expense,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -99,12 +105,13 @@ class ExpensesPage extends ConsumerWidget {
         content: Text('Remove "\${expense.name}"?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child:
-                  Text('Delete', style: TextStyle(color: Colors.red.shade400))),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Delete', style: TextStyle(color: Colors.red.shade400)),
+          ),
         ],
       ),
     );
@@ -237,8 +244,9 @@ class _ExpenseTile extends StatelessWidget {
               fmt.format(expense.monthlyDeductible),
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color:
-                    isActive ? theme.colorScheme.primary : theme.colorScheme.outline,
+                color: isActive
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outline,
               ),
             ),
             Text(
@@ -256,14 +264,14 @@ class _ExpenseTile extends StatelessWidget {
   }
 
   IconData _categoryIcon(String category) => switch (category) {
-        'internet' => Icons.wifi,
-        'rent' => Icons.home_outlined,
-        'software' => Icons.apps_outlined,
-        'phone' => Icons.phone_outlined,
-        'equipment' => Icons.computer_outlined,
-        'utilities' => Icons.bolt_outlined,
-        _ => Icons.receipt_outlined,
-      };
+    'internet' => Icons.wifi,
+    'rent' => Icons.home_outlined,
+    'software' => Icons.apps_outlined,
+    'phone' => Icons.phone_outlined,
+    'equipment' => Icons.computer_outlined,
+    'utilities' => Icons.bolt_outlined,
+    _ => Icons.receipt_outlined,
+  };
 }
 
 class _EmptyState extends StatelessWidget {
@@ -277,13 +285,18 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.savings_outlined,
-              size: 64, color: theme.colorScheme.outline),
+          Icon(
+            Icons.savings_outlined,
+            size: 64,
+            color: theme.colorScheme.outline,
+          ),
           const SizedBox(height: 16),
-          Text('No expenses yet',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              )),
+          Text(
+            'No expenses yet',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             'Track recurring business expenses\nfor tax deduction.',

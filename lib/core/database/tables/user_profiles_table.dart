@@ -45,12 +45,9 @@ class UserProfiles extends Table {
   TextColumn get paymentInstructions => text().nullable()();
 
   // Defaults
-  TextColumn get defaultCurrency =>
-      text().withDefault(const Constant('USD'))();
-  RealColumn get defaultHourlyRate =>
-      real().withDefault(const Constant(0.0))();
-  TextColumn get defaultTaxLabel =>
-      text().withDefault(const Constant('Tax'))();
+  TextColumn get defaultCurrency => text().withDefault(const Constant('USD'))();
+  RealColumn get defaultHourlyRate => real().withDefault(const Constant(0.0))();
+  TextColumn get defaultTaxLabel => text().withDefault(const Constant('Tax'))();
   RealColumn get defaultTaxRate => real().withDefault(const Constant(0.0))();
   TextColumn get defaultPaymentTerms =>
       text().withDefault(const Constant('net_30'))();
@@ -59,20 +56,17 @@ class UserProfiles extends Table {
   RealColumn get lateFeePercentage => real().nullable()();
   TextColumn get defaultTemplateId =>
       text().nullable().references(InvoiceTemplates, #id)();
-  TextColumn get defaultEmailSubjectFormat => text()
-      .withDefault(const Constant('Invoice #{number} - {period}'))();
+  TextColumn get defaultEmailSubjectFormat =>
+      text().withDefault(const Constant('Invoice #{number} - {period}'))();
 
   // Invoice numbering
-  IntColumn get nextInvoiceNumber =>
-      integer().withDefault(const Constant(1))();
+  IntColumn get nextInvoiceNumber => integer().withDefault(const Constant(1))();
   TextColumn get invoiceNumberPrefix =>
       text().withDefault(const Constant('INV-'))();
 
   // Timestamps
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

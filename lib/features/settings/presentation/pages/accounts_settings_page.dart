@@ -69,15 +69,15 @@ class _AccountsSettingsPageState extends ConsumerState<AccountsSettingsPage> {
       ref.invalidate(githubUsernameProvider);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Saved')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Saved')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -108,13 +108,11 @@ class _AccountsSettingsPageState extends ConsumerState<AccountsSettingsPage> {
     try {
       final result = await ref
           .read(githubSyncNotifierProvider.notifier)
-          .testConnection(
-            _patCtrl.text.trim(),
-            _usernameCtrl.text.trim(),
-          )
+          .testConnection(_patCtrl.text.trim(), _usernameCtrl.text.trim())
           .timeout(
             const Duration(seconds: 20),
-            onTimeout: () => throw 'Connection timed out — check your network or token.',
+            onTimeout: () =>
+                throw 'Connection timed out — check your network or token.',
           );
 
       if (!mounted) return;
@@ -126,9 +124,9 @@ class _AccountsSettingsPageState extends ConsumerState<AccountsSettingsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Test failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Test failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _testing = false);
@@ -194,8 +192,7 @@ class _AccountsSettingsPageState extends ConsumerState<AccountsSettingsPage> {
                 icon: Icon(
                   _obscurePat ? Icons.visibility_off : Icons.visibility,
                 ),
-                onPressed: () =>
-                    setState(() => _obscurePat = !_obscurePat),
+                onPressed: () => setState(() => _obscurePat = !_obscurePat),
               ),
             ),
             autocorrect: false,
@@ -301,7 +298,8 @@ class _ConnectionResultDialog extends StatelessWidget {
             Text(
               'No repos linked yet. Edit a project to add a GitHub repo.',
               style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant),
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
           if (!result.patOk) ...[
@@ -309,7 +307,8 @@ class _ConnectionResultDialog extends StatelessWidget {
             Text(
               'Make sure the token has the "repo" scope and matches this account.',
               style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant),
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ],
@@ -343,9 +342,7 @@ class _ResultRow extends StatelessWidget {
             color: ok ? Colors.green : theme.colorScheme.error,
           ),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(label, style: theme.textTheme.bodySmall),
-          ),
+          Expanded(child: Text(label, style: theme.textTheme.bodySmall)),
         ],
       ),
     );
@@ -372,9 +369,9 @@ class _SupabaseAccountTileState extends ConsumerState<_SupabaseAccountTile> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign in failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Sign in failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -387,9 +384,9 @@ class _SupabaseAccountTileState extends ConsumerState<_SupabaseAccountTile> {
       await Supabase.instance.client.auth.signOut();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign out failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Sign out failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -413,10 +410,7 @@ class _SupabaseAccountTileState extends ConsumerState<_SupabaseAccountTile> {
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : TextButton(
-                onPressed: _signOut,
-                child: const Text('Sign out'),
-              ),
+            : TextButton(onPressed: _signOut, child: const Text('Sign out')),
       );
     }
 
@@ -431,10 +425,7 @@ class _SupabaseAccountTileState extends ConsumerState<_SupabaseAccountTile> {
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : TextButton(
-              onPressed: _signIn,
-              child: const Text('Sign in'),
-            ),
+          : TextButton(onPressed: _signIn, child: const Text('Sign in')),
     );
   }
 }

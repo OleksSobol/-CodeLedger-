@@ -110,13 +110,20 @@ class _ProfileHeader extends StatelessWidget {
               backgroundColor: theme.colorScheme.primary,
               child: profile.logoPath != null
                   ? ClipOval(
-                      child: Image.asset(profile.logoPath!,
-                          width: 64, height: 64, fit: BoxFit.cover),
+                      child: Image.asset(
+                        profile.logoPath!,
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                      ),
                     )
-                  : Text(initial,
+                  : Text(
+                      initial,
                       style: theme.textTheme.headlineMedium?.copyWith(
-                          color: theme.colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold)),
+                        color: theme.colorScheme.onPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -127,15 +134,19 @@ class _ProfileHeader extends StatelessWidget {
                     profile.businessName.isNotEmpty
                         ? profile.businessName
                         : 'Your Business',
-                    style: theme.textTheme.titleLarge
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (profile.ownerName.isNotEmpty)
-                    Text(profile.ownerName,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant)),
+                    Text(
+                      profile.ownerName,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   const SizedBox(height: 8),
                   // Completion bar
                   Row(
@@ -152,10 +163,13 @@ class _ProfileHeader extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text('$pct%',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.primary)),
+                      Text(
+                        '$pct%',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -186,11 +200,14 @@ class _SectionLabel extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
-          Text(label,
-              style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5)),
+          Text(
+            label,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
         ],
       ),
     );
@@ -229,7 +246,11 @@ class _ProfileExpansionCard extends StatelessWidget {
           children: [
             Expanded(child: Text(title)),
             if (isConfigured)
-              Icon(Icons.check_circle, size: 18, color: theme.colorScheme.primary)
+              Icon(
+                Icons.check_circle,
+                size: 18,
+                color: theme.colorScheme.primary,
+              )
             else
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -237,17 +258,23 @@ class _ProfileExpansionCard extends StatelessWidget {
                   color: theme.colorScheme.tertiaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text('Set up',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onTertiaryContainer)),
+                child: Text(
+                  'Set up',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onTertiaryContainer,
+                  ),
+                ),
               ),
           ],
         ),
-        subtitle: Text(subtitle,
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis),
+        subtitle: Text(
+          subtitle,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
         children: children,
@@ -299,8 +326,16 @@ class _BusinessInfoTileState extends ConsumerState<_BusinessInfoTile> {
   @override
   void dispose() {
     for (final c in [
-      _businessName, _ownerName, _email, _phone,
-      _addr1, _addr2, _city, _state, _postal, _country,
+      _businessName,
+      _ownerName,
+      _email,
+      _phone,
+      _addr1,
+      _addr2,
+      _city,
+      _state,
+      _postal,
+      _country,
     ]) {
       c.dispose();
     }
@@ -313,7 +348,9 @@ class _BusinessInfoTileState extends ConsumerState<_BusinessInfoTile> {
   }
 
   Future<void> _save() async {
-    await ref.read(profileNotifierProvider.notifier).updateBusinessInfo(
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateBusinessInfo(
           businessName: _businessName.text.trim(),
           ownerName: _ownerName.text.trim(),
           email: _t(_email),
@@ -326,8 +363,9 @@ class _BusinessInfoTileState extends ConsumerState<_BusinessInfoTile> {
           country: _t(_country),
         );
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Business info saved')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Business info saved')));
     }
   }
 
@@ -341,7 +379,8 @@ class _BusinessInfoTileState extends ConsumerState<_BusinessInfoTile> {
 
   @override
   Widget build(BuildContext context) {
-    final configured = widget.profile.businessName.isNotEmpty &&
+    final configured =
+        widget.profile.businessName.isNotEmpty &&
         widget.profile.ownerName.isNotEmpty;
 
     return _ProfileExpansionCard(
@@ -492,8 +531,9 @@ class _TaxInfoTileState extends ConsumerState<_TaxInfoTile> {
   void initState() {
     super.initState();
     _taxId = TextEditingController(text: widget.profile.taxId ?? '');
-    _waLicense =
-        TextEditingController(text: widget.profile.waBusinessLicense ?? '');
+    _waLicense = TextEditingController(
+      text: widget.profile.waBusinessLicense ?? '',
+    );
     _showTaxId = widget.profile.showTaxId;
     _showWaLicense = widget.profile.showWaLicense;
   }
@@ -508,15 +548,18 @@ class _TaxInfoTileState extends ConsumerState<_TaxInfoTile> {
   Future<void> _save() async {
     final tid = _taxId.text.trim();
     final wal = _waLicense.text.trim();
-    await ref.read(profileNotifierProvider.notifier).updateTaxInfo(
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateTaxInfo(
           taxId: tid.isEmpty ? null : tid,
           showTaxId: _showTaxId,
           waBusinessLicense: wal.isEmpty ? null : wal,
           showWaLicense: _showWaLicense,
         );
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Tax info saved')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Tax info saved')));
     }
   }
 
@@ -528,7 +571,9 @@ class _TaxInfoTileState extends ConsumerState<_TaxInfoTile> {
     return _ProfileExpansionCard(
       title: 'Tax Information',
       icon: Icons.receipt_long_outlined,
-      subtitle: hasTaxId ? 'Tax ID: ${widget.profile.taxId}' : 'EIN, VAT, licenses',
+      subtitle: hasTaxId
+          ? 'Tax ID: ${widget.profile.taxId}'
+          : 'EIN, VAT, licenses',
       isConfigured: hasTaxId,
       children: [
         const SizedBox(height: 8),
@@ -614,8 +659,12 @@ class _BankDetailsTileState extends ConsumerState<_BankDetailsTile> {
   @override
   void dispose() {
     for (final c in [
-      _bankName, _accountName, _accountNumber,
-      _routingNumber, _swift, _iban,
+      _bankName,
+      _accountName,
+      _accountNumber,
+      _routingNumber,
+      _swift,
+      _iban,
     ]) {
       c.dispose();
     }
@@ -628,7 +677,9 @@ class _BankDetailsTileState extends ConsumerState<_BankDetailsTile> {
   }
 
   Future<void> _save() async {
-    await ref.read(profileNotifierProvider.notifier).updateBankDetails(
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateBankDetails(
           bankName: _t(_bankName),
           bankAccountName: _t(_accountName),
           bankAccountNumber: _t(_accountNumber),
@@ -639,15 +690,16 @@ class _BankDetailsTileState extends ConsumerState<_BankDetailsTile> {
           showBankDetails: _showBankDetails,
         );
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bank details saved')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Bank details saved')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasBank = widget.profile.bankName != null &&
-        widget.profile.bankName!.isNotEmpty;
+    final hasBank =
+        widget.profile.bankName != null && widget.profile.bankName!.isNotEmpty;
 
     return _ProfileExpansionCard(
       title: 'Bank Details',
@@ -785,10 +837,12 @@ class _PaymentLinksTileState extends ConsumerState<_PaymentLinksTile> {
   @override
   void initState() {
     super.initState();
-    _stripeLink =
-        TextEditingController(text: widget.profile.stripePaymentLink ?? '');
-    _instructions =
-        TextEditingController(text: widget.profile.paymentInstructions ?? '');
+    _stripeLink = TextEditingController(
+      text: widget.profile.stripePaymentLink ?? '',
+    );
+    _instructions = TextEditingController(
+      text: widget.profile.paymentInstructions ?? '',
+    );
     _showStripeLink = widget.profile.showStripeLink;
   }
 
@@ -802,26 +856,32 @@ class _PaymentLinksTileState extends ConsumerState<_PaymentLinksTile> {
   Future<void> _save() async {
     final sl = _stripeLink.text.trim();
     final ins = _instructions.text.trim();
-    await ref.read(profileNotifierProvider.notifier).updatePaymentLinks(
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updatePaymentLinks(
           stripePaymentLink: sl.isEmpty ? null : sl,
           showStripeLink: _showStripeLink,
           paymentInstructions: ins.isEmpty ? null : ins,
         );
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payment links saved')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Payment links saved')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasLink = widget.profile.stripePaymentLink != null &&
+    final hasLink =
+        widget.profile.stripePaymentLink != null &&
         widget.profile.stripePaymentLink!.isNotEmpty;
 
     return _ProfileExpansionCard(
       title: 'Payment Links',
       icon: Icons.link_outlined,
-      subtitle: hasLink ? 'Stripe link configured' : 'Stripe, PayPal, Venmo, etc.',
+      subtitle: hasLink
+          ? 'Stripe link configured'
+          : 'Stripe, PayPal, Venmo, etc.',
       isConfigured: hasLink,
       children: [
         const SizedBox(height: 8),
@@ -895,16 +955,23 @@ class _DefaultsTileState extends ConsumerState<_DefaultsTile> {
     _taxLabel = TextEditingController(text: p.defaultTaxLabel);
     _taxRate = TextEditingController(text: p.defaultTaxRate.toString());
     _paymentTerms = PaymentTerms.fromString(p.defaultPaymentTerms);
-    _customDays =
-        TextEditingController(text: p.defaultPaymentTermsDays.toString());
+    _customDays = TextEditingController(
+      text: p.defaultPaymentTermsDays.toString(),
+    );
     _lateFee = TextEditingController(
-        text: p.lateFeePercentage?.toString() ?? '');
+      text: p.lateFeePercentage?.toString() ?? '',
+    );
   }
 
   @override
   void dispose() {
     for (final c in [
-      _currency, _hourlyRate, _taxLabel, _taxRate, _customDays, _lateFee,
+      _currency,
+      _hourlyRate,
+      _taxLabel,
+      _taxRate,
+      _customDays,
+      _lateFee,
     ]) {
       c.dispose();
     }
@@ -919,19 +986,21 @@ class _DefaultsTileState extends ConsumerState<_DefaultsTile> {
         ? null
         : double.tryParse(_lateFee.text);
 
-    await ref.read(profileNotifierProvider.notifier).updateDefaults(
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateDefaults(
           defaultCurrency: _currency.text.trim().toUpperCase(),
           defaultHourlyRate: rate,
           defaultTaxLabel: _taxLabel.text.trim(),
           defaultTaxRate: taxR,
           defaultPaymentTerms: _paymentTerms.value,
-          defaultPaymentTermsDays:
-              _paymentTerms.resolveDays(customDays: days),
+          defaultPaymentTermsDays: _paymentTerms.resolveDays(customDays: days),
           lateFeePercentage: lf,
         );
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Defaults saved')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Defaults saved')));
     }
   }
 
@@ -970,8 +1039,9 @@ class _DefaultsTileState extends ConsumerState<_DefaultsTile> {
                   prefixText: '\$ ',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
               ),
             ),
           ],
@@ -996,8 +1066,9 @@ class _DefaultsTileState extends ConsumerState<_DefaultsTile> {
                   labelText: 'Tax Rate %',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
               ),
             ),
           ],
@@ -1035,8 +1106,7 @@ class _DefaultsTileState extends ConsumerState<_DefaultsTile> {
             hintText: 'e.g. 1.5',
             border: OutlineInputBorder(),
           ),
-          keyboardType:
-              const TextInputType.numberWithOptions(decimal: true),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
         const SizedBox(height: 16),
         Align(
@@ -1076,9 +1146,11 @@ class _InvoiceSettingsTileState extends ConsumerState<_InvoiceSettingsTile> {
     super.initState();
     _prefix = TextEditingController(text: widget.profile.invoiceNumberPrefix);
     _counter = TextEditingController(
-        text: widget.profile.nextInvoiceNumber.toString());
+      text: widget.profile.nextInvoiceNumber.toString(),
+    );
     _emailSubject = TextEditingController(
-        text: widget.profile.defaultEmailSubjectFormat);
+      text: widget.profile.defaultEmailSubjectFormat,
+    );
     _selectedTemplateId = widget.profile.defaultTemplateId;
   }
 
@@ -1094,18 +1166,22 @@ class _InvoiceSettingsTileState extends ConsumerState<_InvoiceSettingsTile> {
     final counterVal = int.tryParse(_counter.text.trim());
     if (counterVal == null || counterVal < 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Next invoice number must be >= 1')));
+        const SnackBar(content: Text('Next invoice number must be >= 1')),
+      );
       return;
     }
-    await ref.read(profileNotifierProvider.notifier).updateInvoiceSettings(
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateInvoiceSettings(
           invoiceNumberPrefix: _prefix.text.trim(),
           defaultEmailSubjectFormat: _emailSubject.text.trim(),
           defaultTemplateId: _selectedTemplateId,
           nextInvoiceNumber: counterVal,
         );
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invoice settings saved')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invoice settings saved')));
     }
   }
 
@@ -1119,7 +1195,8 @@ class _InvoiceSettingsTileState extends ConsumerState<_InvoiceSettingsTile> {
     return _ProfileExpansionCard(
       title: 'Invoice Settings',
       icon: Icons.description_outlined,
-      subtitle: 'Next: ${widget.profile.invoiceNumberPrefix}${widget.profile.nextInvoiceNumber.toString().padLeft(4, '0')}',
+      subtitle:
+          'Next: ${widget.profile.invoiceNumberPrefix}${widget.profile.nextInvoiceNumber.toString().padLeft(4, '0')}',
       isConfigured: true,
       children: [
         const SizedBox(height: 8),
@@ -1161,9 +1238,12 @@ class _InvoiceSettingsTileState extends ConsumerState<_InvoiceSettingsTile> {
         ),
         Padding(
           padding: const EdgeInsets.only(top: 4, bottom: 12),
-          child: Text('Tokens: {number}, {period}, {client}',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          child: Text(
+            'Tokens: {number}, {period}, {client}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
         ),
         templatesAsync.when(
           loading: () => const LinearProgressIndicator(),
@@ -1175,10 +1255,12 @@ class _InvoiceSettingsTileState extends ConsumerState<_InvoiceSettingsTile> {
               border: OutlineInputBorder(),
             ),
             items: templates
-                .map((t) => DropdownMenuItem<String?>(
-                      value: t.id,
-                      child: Text(t.name),
-                    ))
+                .map(
+                  (t) => DropdownMenuItem<String?>(
+                    value: t.id,
+                    child: Text(t.name),
+                  ),
+                )
                 .toList(),
             onChanged: (v) => setState(() => _selectedTemplateId = v),
           ),
@@ -1223,19 +1305,22 @@ class _BackupTileState extends ConsumerState<_BackupTile> {
     final pass = _ctrl.text.trim();
     if (pass.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passphrase cannot be empty')));
+        const SnackBar(content: Text('Passphrase cannot be empty')),
+      );
       return;
     }
     if (pass != _confirmCtrl.text.trim()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passphrases do not match')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Passphrases do not match')));
       return;
     }
     await ref.read(appSettingsDaoProvider).setValue(_passphraseKey, pass);
     ref.invalidate(backupPassphraseProvider);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Backup passphrase saved')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Backup passphrase saved')));
     }
   }
 
@@ -1246,7 +1331,8 @@ class _BackupTileState extends ConsumerState<_BackupTile> {
     _confirmCtrl.clear();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Backup passphrase removed')));
+        const SnackBar(content: Text('Backup passphrase removed')),
+      );
     }
   }
 
@@ -1282,7 +1368,8 @@ class _BackupTileState extends ConsumerState<_BackupTile> {
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: Icon(
-                      _obscure ? Icons.visibility_off : Icons.visibility),
+                    _obscure ? Icons.visibility_off : Icons.visibility,
+                  ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
@@ -1301,10 +1388,7 @@ class _BackupTileState extends ConsumerState<_BackupTile> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 if (hasStored)
-                  TextButton(
-                    onPressed: _clear,
-                    child: const Text('Remove'),
-                  ),
+                  TextButton(onPressed: _clear, child: const Text('Remove')),
                 const SizedBox(width: 8),
                 FilledButton.icon(
                   onPressed: _save,

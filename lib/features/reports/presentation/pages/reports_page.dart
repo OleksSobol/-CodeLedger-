@@ -43,8 +43,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   void initState() {
     super.initState();
     final now = DateTime.now();
-    _dateRange =
-        DateTimeRange(start: DateTime(now.year, now.month, 1), end: now);
+    _dateRange = DateTimeRange(
+      start: DateTime(now.year, now.month, 1),
+      end: now,
+    );
   }
 
   Future<void> _pickDateRange() async {
@@ -85,8 +87,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       project = await projectDao.getProject(_selectedProjectId!);
     }
 
-    final projectIds =
-        entries.map((e) => e.projectId).whereType<String>().toSet();
+    final projectIds = entries
+        .map((e) => e.projectId)
+        .whereType<String>()
+        .toSet();
     final projectNames = <String, String>{};
     for (final pid in projectIds) {
       try {
@@ -113,13 +117,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     try {
       final data = await _fetchData();
       if (data == null || !mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => ReportPreviewPage(data: data)),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => ReportPreviewPage(data: data)));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -145,16 +150,15 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => _TimesheetPreviewPage(
-            pdfBytes: bytes,
-            title: 'Timesheet',
-          ),
+          builder: (_) =>
+              _TimesheetPreviewPage(pdfBytes: bytes, title: 'Timesheet'),
         ),
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -174,11 +178,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       _dateRange!.end.year,
       _dateRange!.end.month,
       _dateRange!.end.day,
-      23, 59, 59,
+      23,
+      59,
+      59,
     );
 
     final filtered = allInvoices.where((inv) {
-      final validStatus = inv.status == 'paid' ||
+      final validStatus =
+          inv.status == 'paid' ||
           (_includeArchived && inv.status == 'archived');
       if (!validStatus) return false;
       // Use paidDate for cash-basis filtering; fall back to issueDate for
@@ -190,15 +197,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
         return false;
       }
       return true;
-    }).toList()
-      ..sort((a, b) => a.issueDate.compareTo(b.issueDate));
+    }).toList()..sort((a, b) => a.issueDate.compareTo(b.issueDate));
 
     final names = <String, String>{};
     for (final inv in filtered) {
       if (!names.containsKey(inv.clientId)) {
         try {
-          names[inv.clientId] =
-              (await clientDao.getClient(inv.clientId)).name;
+          names[inv.clientId] = (await clientDao.getClient(inv.clientId)).name;
         } catch (_) {
           names[inv.clientId] = 'Unknown Client';
         }
@@ -210,11 +215,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       startDate: _dateRange!.start,
       endDate: _dateRange!.end,
       rows: filtered
-          .map((inv) =>
-              TaxReportRow(invoice: inv, clientName: names[inv.clientId]!))
+          .map(
+            (inv) =>
+                TaxReportRow(invoice: inv, clientName: names[inv.clientId]!),
+          )
           .toList(),
-      clientFilterName:
-          _selectedClientId != null ? names[_selectedClientId] : null,
+      clientFilterName: _selectedClientId != null
+          ? names[_selectedClientId]
+          : null,
     );
   }
 
@@ -224,23 +232,30 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       final data = await _fetchTaxReportData();
       if (data == null || !mounted) return;
       if (data.rows.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(_includeArchived
-                ? 'No paid or archived invoices in the selected period.'
-                : 'No paid invoices in the selected period.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _includeArchived
+                  ? 'No paid or archived invoices in the selected period.'
+                  : 'No paid invoices in the selected period.',
+            ),
+          ),
+        );
         return;
       }
-      final bytes =
-          await (await const TaxReportTemplate().build(data)).save();
+      final bytes = await (await const TaxReportTemplate().build(data)).save();
       if (!mounted) return;
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) =>
-            _TimesheetPreviewPage(pdfBytes: bytes, title: 'Tax Report'),
-      ));
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) =>
+              _TimesheetPreviewPage(pdfBytes: bytes, title: 'Tax Report'),
+        ),
+      );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -253,24 +268,31 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       final data = await _fetchTaxReportData();
       if (data == null || !mounted) return;
       if (data.rows.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(_includeArchived
-                ? 'No paid or archived invoices in the selected period.'
-                : 'No paid invoices in the selected period.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _includeArchived
+                  ? 'No paid or archived invoices in the selected period.'
+                  : 'No paid invoices in the selected period.',
+            ),
+          ),
+        );
         return;
       }
       final exportService = ref.read(exportServiceProvider);
-      final file =
-          await exportService.generateTaxReportCsv(rows: data.rows);
+      final file = await exportService.generateTaxReportCsv(data: data);
       if (!mounted) return;
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path, mimeType: 'text/csv')],
-        subject: 'Tax Report',
-      ));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'text/csv')],
+          subject: 'Tax Report',
+        ),
+      );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -311,8 +333,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -371,11 +394,15 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                             isDense: true,
                             items: [
                               const DropdownMenuItem(
-                                  value: null, child: Text('All Clients')),
-                              ...clients.map((c) => DropdownMenuItem(
-                                    value: c.id,
-                                    child: Text(c.name),
-                                  )),
+                                value: null,
+                                child: Text('All Clients'),
+                              ),
+                              ...clients.map(
+                                (c) => DropdownMenuItem(
+                                  value: c.id,
+                                  child: Text(c.name),
+                                ),
+                              ),
                             ],
                             onChanged: (val) => setState(() {
                               _selectedClientId = val;
@@ -394,9 +421,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                         final filtered = _selectedClientId == null
                             ? projects
                             : projects
-                                .where(
-                                    (p) => p.clientId == _selectedClientId)
-                                .toList();
+                                  .where((p) => p.clientId == _selectedClientId)
+                                  .toList();
                         return InputDecorator(
                           decoration: const InputDecoration(
                             labelText: 'Project (optional)',
@@ -408,12 +434,15 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                               isDense: true,
                               items: [
                                 const DropdownMenuItem(
-                                    value: null,
-                                    child: Text('All Projects')),
-                                ...filtered.map((p) => DropdownMenuItem(
-                                      value: p.id,
-                                      child: Text(p.name),
-                                    )),
+                                  value: null,
+                                  child: Text('All Projects'),
+                                ),
+                                ...filtered.map(
+                                  (p) => DropdownMenuItem(
+                                    value: p.id,
+                                    child: Text(p.name),
+                                  ),
+                                ),
                               ],
                               onChanged: (val) =>
                                   setState(() => _selectedProjectId = val),
@@ -422,8 +451,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                         );
                       },
                       loading: () => const LinearProgressIndicator(),
-                      error: (_, _) =>
-                          const Text('Error loading projects'),
+                      error: (_, _) => const Text('Error loading projects'),
                     ),
                   ],
                 ),
@@ -444,7 +472,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                       'Clean hours sheet for employers - choose which '
                       'columns to include.',
                       style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
@@ -453,8 +482,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                         FilterChip(
                           label: const Text('Start / End'),
                           selected: _showStartEnd,
-                          onSelected: (v) =>
-                              setState(() => _showStartEnd = v),
+                          onSelected: (v) => setState(() => _showStartEnd = v),
                         ),
                         FilterChip(
                           label: const Text('Description'),
@@ -465,8 +493,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                         FilterChip(
                           label: const Text('Project'),
                           selected: _showProject,
-                          onSelected: (v) =>
-                              setState(() => _showProject = v),
+                          onSelected: (v) => setState(() => _showProject = v),
                         ),
                       ],
                     ),
@@ -498,7 +525,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                       'Detailed PDF grouped by day with project, '
                       'description, and issue references.',
                       style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
@@ -528,7 +556,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                       'Export all fields to a spreadsheet-compatible '
                       'CSV file.',
                       style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
@@ -553,14 +582,17 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Tax / Income Report',
-                        style: theme.textTheme.titleMedium),
+                    Text(
+                      'Tax / Income Report',
+                      style: theme.textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       'Net income, tax collected, and total paid. '
                       'Uses the date range and client filter above.',
                       style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     CheckboxListTile(
@@ -603,15 +635,18 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('WA Excise Tax (B&O)',
-                        style: theme.textTheme.titleMedium),
+                    Text(
+                      'WA Excise Tax (B&O)',
+                      style: theme.textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       'Quarterly B&O return for WA state. Generates a '
                       'DOR-format CSV ready to upload at MyDOR. Tracks '
                       'which quarters have been submitted.',
                       style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant),
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
@@ -647,8 +682,7 @@ class _TimesheetPreviewPage extends StatelessWidget {
   final Uint8List pdfBytes;
   final String title;
 
-  const _TimesheetPreviewPage(
-      {required this.pdfBytes, required this.title});
+  const _TimesheetPreviewPage({required this.pdfBytes, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -673,8 +707,7 @@ class _TimesheetPreviewPage extends StatelessWidget {
 
   Future<void> _share() async {
     final dir = await Directory.systemTemp.createTemp('timesheet_');
-    final file =
-        File('${dir.path}/${title.replaceAll(' ', '_')}.pdf');
+    final file = File('${dir.path}/${title.replaceAll(' ', '_')}.pdf');
     await file.writeAsBytes(pdfBytes);
     await SharePlus.instance.share(
       ShareParams(

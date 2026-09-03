@@ -38,7 +38,8 @@ class PdfInvoiceData {
     double total = 0;
     for (final item in lineItems) {
       final parts = item.description.split(' | ');
-      final isTimeBased = item.timeEntryId != null ||
+      final isTimeBased =
+          item.timeEntryId != null ||
           (parts.length > 1 && _datePattern.hasMatch(parts.first.trim()));
       if (isTimeBased) total += item.quantity;
     }

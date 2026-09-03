@@ -241,8 +241,7 @@ final appRouter = GoRouter(
               builder: (context, state) {
                 final clientId = state.pathParameters['clientId']!;
                 final project = state.extra as dynamic;
-                return ProjectFormPage(
-                    clientId: clientId, project: project);
+                return ProjectFormPage(clientId: clientId, project: project);
               },
             ),
           ],

@@ -7,38 +7,34 @@ import 'app.dart';
 import 'core/constants/supabase_constants.dart';
 
 void main() {
-  runZonedGuarded(() async {
-    WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
 
-    await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
-    );
+      await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
-    // Catch Flutter framework errors (layout, rendering, etc.)
-    FlutterError.onError = (details) {
-      FlutterError.presentError(details);
+      // Catch Flutter framework errors (layout, rendering, etc.)
+      FlutterError.onError = (details) {
+        FlutterError.presentError(details);
+        if (kDebugMode) {
+          debugPrint('FlutterError: ${details.exceptionAsString()}');
+        }
+      };
+
+      // Catch errors in platform channels and other async gaps
+      PlatformDispatcher.instance.onError = (error, stack) {
+        if (kDebugMode) {
+          debugPrint('PlatformDispatcher error: $error\n$stack');
+        }
+        return true;
+      };
+
+      runApp(const ProviderScope(child: CodeLedgerApp()));
+    },
+    (error, stack) async {
       if (kDebugMode) {
-        debugPrint('FlutterError: ${details.exceptionAsString()}');
+        debugPrint('Uncaught error: $error\n$stack');
       }
-    };
-
-    // Catch errors in platform channels and other async gaps
-    PlatformDispatcher.instance.onError = (error, stack) {
-      if (kDebugMode) {
-        debugPrint('PlatformDispatcher error: $error\n$stack');
-      }
-      return true;
-    };
-
-    runApp(
-      const ProviderScope(
-        child: CodeLedgerApp(),
-      ),
-    );
-  }, (error, stack) async {
-    if (kDebugMode) {
-      debugPrint('Uncaught error: $error\n$stack');
-    }
-  });
+    },
+  );
 }

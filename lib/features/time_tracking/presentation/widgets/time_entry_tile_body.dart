@@ -23,10 +23,10 @@ class TimeEntryTileBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visible = (configs.toList()
-          ..sort((a, b) => a.order.compareTo(b.order)))
-        .where((c) => c.isVisible)
-        .toList();
+    final visible =
+        (configs.toList()..sort((a, b) => a.order.compareTo(b.order)))
+            .where((c) => c.isVisible)
+            .toList();
 
     final rows = <Widget>[];
     for (final cfg in visible) {
@@ -37,28 +37,26 @@ class TimeEntryTileBody extends StatelessWidget {
     }
 
     if (rows.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: rows,
-    );
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
   }
 
   Widget? _buildField(BuildContext context, TimeEntryField field) {
     return switch (field) {
       TimeEntryField.timeRange => _TimeRangeRow(entry: entry),
-      TimeEntryField.client => clientName != null
-          ? _ClientRow(name: clientName!)
-          : null,
+      TimeEntryField.client =>
+        clientName != null ? _ClientRow(name: clientName!) : null,
       TimeEntryField.description =>
         (entry.description?.isNotEmpty ?? false)
             ? _DescriptionRow(text: entry.description!)
             : null,
-      TimeEntryField.issue => entry.issueReference != null
-          ? _BadgeRow(icon: Icons.tag, text: entry.issueReference!)
-          : null,
-      TimeEntryField.repository => entry.repository != null
-          ? _BadgeRow(icon: Icons.folder_outlined, text: entry.repository!)
-          : null,
+      TimeEntryField.issue =>
+        entry.issueReference != null
+            ? _BadgeRow(icon: Icons.tag, text: entry.issueReference!)
+            : null,
+      TimeEntryField.repository =>
+        entry.repository != null
+            ? _BadgeRow(icon: Icons.folder_outlined, text: entry.repository!)
+            : null,
       TimeEntryField.tags => _TagsRow(tagsJson: entry.tags),
       TimeEntryField.status => _StatusRow(entry: entry),
     };
@@ -91,8 +89,9 @@ class _TimeRangeRow extends StatelessWidget {
         if (!isRunning) ...[
           Text(
             formatDuration(minutes),
-            style:
-                theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(width: 8),
           Text(formatCurrency(earnings), style: theme.textTheme.bodySmall),
@@ -106,7 +105,10 @@ class _TimeRangeRow extends StatelessWidget {
             child: const Text(
               'Running',
               style: TextStyle(
-                  color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                color: Colors.red,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
       ],
@@ -123,8 +125,9 @@ class _ClientRow extends StatelessWidget {
     final theme = Theme.of(context);
     return Text(
       name,
-      style: theme.textTheme.bodySmall
-          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
@@ -161,8 +164,8 @@ class _BadgeRow extends StatelessWidget {
           child: Text(
             text,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+              color: Theme.of(context).colorScheme.outline,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -185,18 +188,15 @@ class _TagsRow extends StatelessWidget {
     final visible = tags.take(_maxVisible).toList();
     final extra = tags.length - _maxVisible;
     Chip chip(String label) => Chip(
-          label: Text(label, style: Theme.of(context).textTheme.labelSmall),
-          padding: EdgeInsets.zero,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: VisualDensity.compact,
-        );
+      label: Text(label, style: Theme.of(context).textTheme.labelSmall),
+      padding: EdgeInsets.zero,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+    );
     return Wrap(
       spacing: 4,
       runSpacing: 4,
-      children: [
-        ...visible.map(chip),
-        if (extra > 0) chip('+$extra'),
-      ],
+      children: [...visible.map(chip), if (extra > 0) chip('+$extra')],
     );
   }
 }
@@ -234,8 +234,8 @@ class _MetaBadge extends StatelessWidget {
         Text(
           text,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+            color: Theme.of(context).colorScheme.outline,
+          ),
         ),
       ],
     );

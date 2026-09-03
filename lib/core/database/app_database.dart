@@ -18,17 +18,19 @@ import 'tables/expenses_table.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [
-  UserProfiles,
-  Clients,
-  Projects,
-  TimeEntries,
-  Invoices,
-  InvoiceLineItems,
-  InvoiceTemplates,
-  AppSettings,
-  Expenses,
-])
+@DriftDatabase(
+  tables: [
+    UserProfiles,
+    Clients,
+    Projects,
+    TimeEntries,
+    Invoices,
+    InvoiceLineItems,
+    InvoiceTemplates,
+    AppSettings,
+    Expenses,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -40,53 +42,53 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (Migrator m) async {
-          await m.createAll();
-          await _seedDefaults();
-        },
-        beforeOpen: (details) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-          if (!kIsWeb) {
-            await customStatement('PRAGMA journal_mode = WAL');
-          }
-        },
-        onUpgrade: (Migrator m, int from, int to) async {
-          if (from < 2) {
-            await customStatement(
-              "ALTER TABLE invoice_templates ADD COLUMN "
-              "line_item_display_mode TEXT NOT NULL DEFAULT 'full'",
-            );
-            await customStatement(
-              'ALTER TABLE invoice_line_items ADD COLUMN '
-              'issue_reference TEXT',
-            );
-          }
-          if (from < 3) {
-            await customStatement(
-              'ALTER TABLE projects ADD COLUMN github_repo TEXT',
-            );
-          }
-          if (from < 4) {
-            await customStatement(
-              'ALTER TABLE invoice_templates ADD COLUMN '
-              'show_description INTEGER NOT NULL DEFAULT 1',
-            );
-          }
-          if (from < 5) {
-            await _migrateIntPksToUuids(m);
-          }
-          if (from < 6) {
-            await m.createTable(expenses);
-          }
-        },
-      );
+    onCreate: (Migrator m) async {
+      await m.createAll();
+      await _seedDefaults();
+    },
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+      if (!kIsWeb) {
+        await customStatement('PRAGMA journal_mode = WAL');
+      }
+    },
+    onUpgrade: (Migrator m, int from, int to) async {
+      if (from < 2) {
+        await customStatement(
+          "ALTER TABLE invoice_templates ADD COLUMN "
+          "line_item_display_mode TEXT NOT NULL DEFAULT 'full'",
+        );
+        await customStatement(
+          'ALTER TABLE invoice_line_items ADD COLUMN '
+          'issue_reference TEXT',
+        );
+      }
+      if (from < 3) {
+        await customStatement(
+          'ALTER TABLE projects ADD COLUMN github_repo TEXT',
+        );
+      }
+      if (from < 4) {
+        await customStatement(
+          'ALTER TABLE invoice_templates ADD COLUMN '
+          'show_description INTEGER NOT NULL DEFAULT 1',
+        );
+      }
+      if (from < 5) {
+        await _migrateIntPksToUuids(m);
+      }
+      if (from < 6) {
+        await m.createTable(expenses);
+      }
+    },
+  );
 
   Future<void> _seedDefaults() async {
     const uuid = Uuid();
 
-    await into(userProfiles).insert(UserProfilesCompanion.insert(
-      id: uuid.v4(),
-    ));
+    await into(
+      userProfiles,
+    ).insert(UserProfilesCompanion.insert(id: uuid.v4()));
 
     await batch((b) {
       b.insertAll(invoiceTemplates, [
@@ -102,8 +104,7 @@ class AppDatabase extends _$AppDatabase {
           id: uuid.v4(),
           name: 'Detailed Breakdown',
           templateKey: 'detailed',
-          description:
-              const Value('Grouped by date with session descriptions'),
+          description: const Value('Grouped by date with session descriptions'),
           showDetailedBreakdown: const Value(true),
         ),
         InvoiceTemplatesCompanion.insert(
@@ -111,7 +112,8 @@ class AppDatabase extends _$AppDatabase {
           name: 'Modern Developer',
           templateKey: 'modern_developer',
           description: const Value(
-              'Tech-focused with repository and issue references'),
+            'Tech-focused with repository and issue references',
+          ),
           primaryColor: const Value(0xFF00897B),
           accentColor: const Value(0xFF004D40),
           showDetailedBreakdown: const Value(true),
@@ -162,15 +164,17 @@ class AppDatabase extends _$AppDatabase {
     const uuid = Uuid();
 
     // Read all rows from the old int-PK tables
-    final templateRows =
-        await customSelect('SELECT * FROM invoice_templates').get();
+    final templateRows = await customSelect(
+      'SELECT * FROM invoice_templates',
+    ).get();
     final clientRows = await customSelect('SELECT * FROM clients').get();
     final profileRows = await customSelect('SELECT * FROM user_profiles').get();
     final projectRows = await customSelect('SELECT * FROM projects').get();
     final invoiceRows = await customSelect('SELECT * FROM invoices').get();
     final entryRows = await customSelect('SELECT * FROM time_entries').get();
-    final lineItemRows =
-        await customSelect('SELECT * FROM invoice_line_items').get();
+    final lineItemRows = await customSelect(
+      'SELECT * FROM invoice_line_items',
+    ).get();
 
     // Build old-int-id → new-UUID maps
     final templateUuids = <int, String>{};
@@ -228,8 +232,9 @@ class AppDatabase extends _$AppDatabase {
       final row = Map<String, Object?>.from(r.data);
       row['id'] = clientUuids[oldId]!;
       final oldTpl = r.data['default_template_id'] as int?;
-      row['default_template_id'] =
-          oldTpl != null ? templateUuids[oldTpl] : null;
+      row['default_template_id'] = oldTpl != null
+          ? templateUuids[oldTpl]
+          : null;
       await _insertRow('clients', row);
     }
 
@@ -239,8 +244,9 @@ class AppDatabase extends _$AppDatabase {
       final row = Map<String, Object?>.from(r.data);
       row['id'] = profileUuids[oldId]!;
       final oldTpl = r.data['default_template_id'] as int?;
-      row['default_template_id'] =
-          oldTpl != null ? templateUuids[oldTpl] : null;
+      row['default_template_id'] = oldTpl != null
+          ? templateUuids[oldTpl]
+          : null;
       await _insertRow('user_profiles', row);
     }
 

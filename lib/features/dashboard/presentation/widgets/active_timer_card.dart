@@ -95,8 +95,7 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
               children: [
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: () =>
-                        context.push('/time-tracking/clock-in'),
+                    onPressed: () => context.push('/time-tracking/clock-in'),
                     icon: const Icon(Icons.play_arrow, size: 20),
                     label: const Text('Start Timer'),
                   ),
@@ -123,7 +122,10 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
   }
 
   Widget _buildRunningCard(
-      BuildContext context, ThemeData theme, List<TimeEntry> entries) {
+    BuildContext context,
+    ThemeData theme,
+    List<TimeEntry> entries,
+  ) {
     final multiTimer = ref.watch(multiTimerProvider).value ?? false;
     return Card(
       color: theme.colorScheme.primaryContainer,
@@ -149,8 +151,9 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
                 style: OutlinedButton.styleFrom(
                   foregroundColor: theme.colorScheme.onPrimaryContainer,
                   side: BorderSide(
-                    color: theme.colorScheme.onPrimaryContainer
-                        .withValues(alpha: 0.5),
+                    color: theme.colorScheme.onPrimaryContainer.withValues(
+                      alpha: 0.5,
+                    ),
                   ),
                 ),
               ),
@@ -198,9 +201,7 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
               .clockOut(entryId, truncateOverlaps: true);
         } catch (e2) {
           if (mounted) {
-            messenger.showSnackBar(
-              SnackBar(content: Text('Error: $e2')),
-            );
+            messenger.showSnackBar(SnackBar(content: Text('Error: $e2')));
           }
         }
       }
@@ -213,7 +214,9 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
 
   Future<void> _quickClockIn(TimeEntry lastEntry) async {
     try {
-      await ref.read(timerNotifierProvider.notifier).clockIn(
+      await ref
+          .read(timerNotifierProvider.notifier)
+          .clockIn(
             clientId: lastEntry.clientId,
             projectId: lastEntry.projectId,
             description: lastEntry.description,
@@ -224,9 +227,9 @@ class _ActiveTimerCardState extends ConsumerState<ActiveTimerCard>
       ref.invalidate(allTagsProvider);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -273,8 +276,9 @@ class _TimerRow extends ConsumerWidget {
                 height: 10,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: theme.colorScheme.error
-                      .withValues(alpha: pulseAnimation.value),
+                  color: theme.colorScheme.error.withValues(
+                    alpha: pulseAnimation.value,
+                  ),
                 ),
               ),
             ),
@@ -292,8 +296,9 @@ class _TimerRow extends ConsumerWidget {
             Text(
               '\$${earnings.toStringAsFixed(2)}',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onPrimaryContainer
-                    .withValues(alpha: 0.7),
+                color: theme.colorScheme.onPrimaryContainer.withValues(
+                  alpha: 0.7,
+                ),
               ),
             ),
           ],
@@ -336,8 +341,7 @@ class _QuickRepeatButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final clientAsync = ref.watch(clientByIdProvider(entry.clientId));
-    final clientName =
-        clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
+    final clientName = clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
 
     return OutlinedButton.icon(
       onPressed: onTap,

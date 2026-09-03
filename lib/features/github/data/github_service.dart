@@ -18,9 +18,9 @@ class GitHubService {
   GitHubService({required this.pat, required this.username, this.onLog});
 
   Map<String, String> get _headers => {
-        'Authorization': 'token $pat',
-        'Accept': 'application/vnd.github.v3+json',
-      };
+    'Authorization': 'token $pat',
+    'Accept': 'application/vnd.github.v3+json',
+  };
 
   void _log(String msg, [SyncLogLevel level = SyncLogLevel.info]) {
     final entry = SyncLog(msg, level);
@@ -45,8 +45,7 @@ class GitHubService {
   /// Verifies the PAT by calling /user.
   Future<String> verifyPat() async {
     final uri = Uri.parse('https://api.github.com/user');
-    final response =
-        await http.get(uri, headers: _headers).timeout(_timeout);
+    final response = await http.get(uri, headers: _headers).timeout(_timeout);
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       return data['login'] as String? ?? 'unknown';
@@ -63,8 +62,7 @@ class GitHubService {
     _log('Checking access to $repo…');
     final uri = Uri.parse('https://api.github.com/repos/$repo');
     try {
-      final response =
-          await http.get(uri, headers: _headers).timeout(_timeout);
+      final response = await http.get(uri, headers: _headers).timeout(_timeout);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final name = data['full_name'] ?? repo;
@@ -72,11 +70,17 @@ class GitHubService {
         _log('✓ Connected to $name (${isPrivate ? 'private' : 'public'})');
         return true;
       } else if (response.statusCode == 401) {
-        _log('✗ Authentication failed - check your GitHub PAT', SyncLogLevel.error);
+        _log(
+          '✗ Authentication failed - check your GitHub PAT',
+          SyncLogLevel.error,
+        );
       } else if (response.statusCode == 404) {
         _log('✗ $repo not found or PAT lacks access (404)', SyncLogLevel.error);
       } else {
-        _log('✗ $repo returned HTTP ${response.statusCode}', SyncLogLevel.error);
+        _log(
+          '✗ $repo returned HTTP ${response.statusCode}',
+          SyncLogLevel.error,
+        );
       }
     } catch (e) {
       _log('✗ Network error for $repo: $e', SyncLogLevel.error);
@@ -96,8 +100,10 @@ class GitHubService {
       );
       final response = await http.get(uri, headers: _headers);
       if (response.statusCode != 200) {
-        _log('  Branch list failed: HTTP ${response.statusCode}',
-            SyncLogLevel.warning);
+        _log(
+          '  Branch list failed: HTTP ${response.statusCode}',
+          SyncLogLevel.warning,
+        );
         break;
       }
 
@@ -132,21 +138,31 @@ class GitHubService {
     for (var i = 0; i < issueBranches.length; i += batchSize) {
       final batch = issueBranches.skip(i).take(batchSize).toList();
       final batchResults = await Future.wait(
-        batch.map((branch) =>
-            _getCommitTimestampsOnBranch(repo, branch, dayStart, dayEnd)
-                .then((ts) => (branch, ts))),
+        batch.map(
+          (branch) => _getCommitTimestampsOnBranch(
+            repo,
+            branch,
+            dayStart,
+            dayEnd,
+          ).then((ts) => (branch, ts)),
+        ),
       );
       for (final (branch, timestamps) in batchResults) {
         if (timestamps.isNotEmpty) {
           result[branch] = timestamps;
-          _log('  ✓ $branch — ${timestamps.length} commit(s) on ${_fmtDate(dayStart)}');
+          _log(
+            '  ✓ $branch — ${timestamps.length} commit(s) on ${_fmtDate(dayStart)}',
+          );
         }
       }
     }
 
     // Commit message refs for the day.
-    final msgEntries =
-        await _getCommitMessageRefsWithTimestamps(repo, dayStart, dayEnd);
+    final msgEntries = await _getCommitMessageRefsWithTimestamps(
+      repo,
+      dayStart,
+      dayEnd,
+    );
     for (final (ref, timestamp) in msgEntries) {
       result.putIfAbsent(ref, () => []).add(timestamp);
     }
@@ -174,7 +190,6 @@ class GitHubService {
     final timestamps = <DateTime>[];
     for (final commit in data) {
       if (!_isUserAuthor(commit)) continue;
-
 
       final dateStr = commit['commit']?['author']?['date'] as String?;
       if (dateStr != null) timestamps.add(DateTime.parse(dateStr));
@@ -230,8 +245,10 @@ class GitHubService {
 
     // If the commit's author isn't linked to a GitHub account, check the git name/email
     if (authorLogin == null) {
-      final gitName = (commit['commit']?['author']?['name'] as String?)?.toLowerCase();
-      final gitEmail = (commit['commit']?['author']?['email'] as String?)?.toLowerCase();
+      final gitName = (commit['commit']?['author']?['name'] as String?)
+          ?.toLowerCase();
+      final gitEmail = (commit['commit']?['author']?['email'] as String?)
+          ?.toLowerCase();
       if (gitName == target || gitEmail == target) return true;
     }
 

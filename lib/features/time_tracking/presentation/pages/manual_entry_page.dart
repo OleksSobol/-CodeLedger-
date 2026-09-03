@@ -74,9 +74,9 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
   Future<void> _save() async {
     if (_selectedClient == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a client')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a client')));
       return;
     }
 
@@ -92,7 +92,9 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
     setState(() => _saving = true);
     try {
-      await ref.read(timerNotifierProvider.notifier).addManualEntry(
+      await ref
+          .read(timerNotifierProvider.notifier)
+          .addManualEntry(
             clientId: _selectedClient!.id,
             projectId: _selectedProject?.id,
             startTime: start,
@@ -121,9 +123,9 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -134,8 +136,10 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   Widget build(BuildContext context) {
     final clientsAsync = ref.watch(activeClientsProvider);
     final dateFmt = DateFormat.yMMMEd();
-    final duration = _buildDateTime(_date, _endTime)
-        .difference(_buildDateTime(_date, _startTime));
+    final duration = _buildDateTime(
+      _date,
+      _endTime,
+    ).difference(_buildDateTime(_date, _startTime));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Manual Entry')),
@@ -151,11 +155,9 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 return const Text('No clients. Add one first.');
               }
               return DropdownButtonFormField<Client>(
-                decoration:
-                    const InputDecoration(labelText: 'Client *'),
+                decoration: const InputDecoration(labelText: 'Client *'),
                 items: clients
-                    .map((c) => DropdownMenuItem(
-                        value: c, child: Text(c.name)))
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c.name)))
                     .toList(),
                 onChanged: (c) {
                   setState(() {
@@ -170,21 +172,27 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
           // Project selector
           if (_selectedClient != null)
-            Consumer(builder: (context, ref, _) {
-              final projectsAsync = ref
-                  .watch(projectsForClientProvider(_selectedClient!.id));
-              return projectsAsync.when(
-                loading: () => const LinearProgressIndicator(),
-                error: (e, _) => Text('Error: $e'),
-                data: (projects) {
-                  if (projects.isEmpty) return const SizedBox.shrink();
-                  return DropdownButtonFormField<Project?>(
-                    decoration: const InputDecoration(
-                        labelText: 'Project (optional)'),
-                    items: [
-                      const DropdownMenuItem(
-                          value: null, child: Text('No project')),
-                      ...projects.map((p) => DropdownMenuItem(
+            Consumer(
+              builder: (context, ref, _) {
+                final projectsAsync = ref.watch(
+                  projectsForClientProvider(_selectedClient!.id),
+                );
+                return projectsAsync.when(
+                  loading: () => const LinearProgressIndicator(),
+                  error: (e, _) => Text('Error: $e'),
+                  data: (projects) {
+                    if (projects.isEmpty) return const SizedBox.shrink();
+                    return DropdownButtonFormField<Project?>(
+                      decoration: const InputDecoration(
+                        labelText: 'Project (optional)',
+                      ),
+                      items: [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('No project'),
+                        ),
+                        ...projects.map(
+                          (p) => DropdownMenuItem(
                             value: p,
                             child: Row(
                               children: [
@@ -196,14 +204,15 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                                 Text(p.name),
                               ],
                             ),
-                          )),
-                    ],
-                    onChanged: (p) =>
-                        setState(() => _selectedProject = p),
-                  );
-                },
-              );
-            }),
+                          ),
+                        ),
+                      ],
+                      onChanged: (p) => setState(() => _selectedProject = p),
+                    );
+                  },
+                );
+              },
+            ),
 
           const SizedBox(height: 16),
           // Date picker
@@ -253,8 +262,10 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Description',
               hintText: 'What did you work on?',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 18,
+              ),
             ),
             maxLines: 3,
           ),
@@ -264,8 +275,10 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Repository',
               hintText: 'e.g. org/repo',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 18,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -274,8 +287,10 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Issue Reference',
               hintText: 'e.g. org/repo#42',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 18,
+              ),
             ),
             minLines: 1,
             maxLines: 6,
@@ -286,8 +301,10 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
             decoration: const InputDecoration(
               labelText: 'Tags (comma separated)',
               hintText: 'e.g. bugfix, frontend, review',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 18,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -297,7 +314,8 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 ? const SizedBox(
                     height: 20,
                     width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2))
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Text('Add Entry'),
           ),
         ],

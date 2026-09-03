@@ -40,8 +40,11 @@ class TimesheetTemplate implements ReportTemplate {
 
     final grouped = <DateTime, List<TimeEntry>>{};
     for (final e in sorted) {
-      final day =
-          DateTime(e.startTime.year, e.startTime.month, e.startTime.day);
+      final day = DateTime(
+        e.startTime.year,
+        e.startTime.month,
+        e.startTime.day,
+      );
       (grouped[day] ??= []).add(e);
     }
     final dates = grouped.keys.toList()..sort();
@@ -60,8 +63,10 @@ class TimesheetTemplate implements ReportTemplate {
 
     for (final date in dates) {
       final entries = grouped[date]!;
-      final dayMinutes =
-          entries.fold<int>(0, (s, e) => s + (e.durationMinutes ?? 0));
+      final dayMinutes = entries.fold<int>(
+        0,
+        (s, e) => s + (e.durationMinutes ?? 0),
+      );
       dayTotals[date] = dayMinutes;
 
       for (int i = 0; i < entries.length; i++) {
@@ -81,9 +86,9 @@ class TimesheetTemplate implements ReportTemplate {
           row.add(e.description ?? '');
         }
         if (columns.showProject) {
-          row.add(e.projectId != null
-              ? (data.projectNames[e.projectId] ?? '')
-              : '');
+          row.add(
+            e.projectId != null ? (data.projectNames[e.projectId] ?? '') : '',
+          );
         }
         rows.add(row);
       }
@@ -128,22 +133,31 @@ class TimesheetTemplate implements ReportTemplate {
           pw.TableHelper.fromTextArray(
             border: pw.TableBorder(
               bottom: const pw.BorderSide(width: 0.5, color: PdfColors.grey400),
-              horizontalInside:
-                  const pw.BorderSide(width: 0.3, color: PdfColors.grey200),
-              verticalInside:
-                  const pw.BorderSide(width: 0.3, color: PdfColors.grey200),
+              horizontalInside: const pw.BorderSide(
+                width: 0.3,
+                color: PdfColors.grey200,
+              ),
+              verticalInside: const pw.BorderSide(
+                width: 0.3,
+                color: PdfColors.grey200,
+              ),
               left: const pw.BorderSide(width: 0.3, color: PdfColors.grey300),
               right: const pw.BorderSide(width: 0.3, color: PdfColors.grey300),
               top: const pw.BorderSide(width: 0.5, color: PdfColors.grey400),
             ),
-            headerStyle:
-                pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
-            headerDecoration:
-                const pw.BoxDecoration(color: PdfColors.blueGrey100),
+            headerStyle: pw.TextStyle(
+              fontWeight: pw.FontWeight.bold,
+              fontSize: 9,
+            ),
+            headerDecoration: const pw.BoxDecoration(
+              color: PdfColors.blueGrey100,
+            ),
             cellStyle: const pw.TextStyle(fontSize: 9),
             cellAlignment: pw.Alignment.centerLeft,
             cellPadding: const pw.EdgeInsets.symmetric(
-                horizontal: 6, vertical: 4),
+              horizontal: 6,
+              vertical: 4,
+            ),
             columnWidths: widths,
             headers: headerCells,
             data: rows,
@@ -164,30 +178,44 @@ class TimesheetTemplate implements ReportTemplate {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text('TIMESHEET',
-                style: pw.TextStyle(
-                    fontSize: 20, fontWeight: pw.FontWeight.bold)),
+            pw.Text(
+              'TIMESHEET',
+              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+            ),
             if (data.profile.businessName.isNotEmpty)
-              pw.Text(data.profile.businessName,
-                  style: pw.TextStyle(
-                      fontSize: 12, fontWeight: pw.FontWeight.bold)),
+              pw.Text(
+                data.profile.businessName,
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
           ],
         ),
         pw.SizedBox(height: 4),
         pw.Row(
           children: [
-            pw.Text('Period: $period',
-                style:
-                    const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+            pw.Text(
+              'Period: $period',
+              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+            ),
             if (data.client != null) ...[
-              pw.Text('   |   Client: ${data.client!.name}',
-                  style: const pw.TextStyle(
-                      fontSize: 9, color: PdfColors.grey700)),
+              pw.Text(
+                '   |   Client: ${data.client!.name}',
+                style: const pw.TextStyle(
+                  fontSize: 9,
+                  color: PdfColors.grey700,
+                ),
+              ),
             ],
             if (data.project != null) ...[
-              pw.Text('   |   Project: ${data.project!.name}',
-                  style: const pw.TextStyle(
-                      fontSize: 9, color: PdfColors.grey700)),
+              pw.Text(
+                '   |   Project: ${data.project!.name}',
+                style: const pw.TextStyle(
+                  fontSize: 9,
+                  color: PdfColors.grey700,
+                ),
+              ),
             ],
           ],
         ),
@@ -196,8 +224,7 @@ class TimesheetTemplate implements ReportTemplate {
     );
   }
 
-  pw.Widget _buildFooterBar(
-      WorkReportData data, Map<DateTime, int> dayTotals) {
+  pw.Widget _buildFooterBar(WorkReportData data, Map<DateTime, int> dayTotals) {
     final totalMinutes = dayTotals.values.fold<int>(0, (a, b) => a + b);
     return pw.Column(
       children: [
@@ -206,16 +233,17 @@ class TimesheetTemplate implements ReportTemplate {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Text(
-                'Generated ${DateFormat.yMMMd().format(DateTime.now())}',
-                style: const pw.TextStyle(
-                    fontSize: 8, color: PdfColors.grey600)),
+              'Generated ${DateFormat.yMMMd().format(DateTime.now())}',
+              style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+            ),
             pw.Text(
               'Total: ${_fmtHours(totalMinutes)}  '
               '(${(totalMinutes / 60.0).toStringAsFixed(2)} hrs)',
               style: pw.TextStyle(
-                  fontSize: 10,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.blue900),
+                fontSize: 10,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.blue900,
+              ),
             ),
           ],
         ),

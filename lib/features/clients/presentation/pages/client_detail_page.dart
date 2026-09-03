@@ -18,9 +18,8 @@ class ClientDetailPage extends ConsumerWidget {
     final projectsAsync = ref.watch(projectsForClientProvider(clientId));
 
     return summaryAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, s) => Scaffold(
         appBar: AppBar(),
         body: Center(child: Text('Error: $e')),
@@ -33,8 +32,8 @@ class ClientDetailPage extends ConsumerWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit),
-                onPressed: () => context.push(
-                    '/clients/${client.id}/edit', extra: client),
+                onPressed: () =>
+                    context.push('/clients/${client.id}/edit', extra: client),
               ),
               PopupMenuButton(
                 itemBuilder: (context) => [
@@ -54,7 +53,8 @@ class ClientDetailPage extends ConsumerWidget {
                       builder: (context) => AlertDialog(
                         title: const Text('Archive Client'),
                         content: Text(
-                            'Archive "${client.name}"? They will be hidden from active lists.'),
+                          'Archive "${client.name}"? They will be hidden from active lists.',
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
@@ -74,10 +74,10 @@ class ClientDetailPage extends ConsumerWidget {
                       if (context.mounted) context.pop();
                     }
                   } else if (value == 'delete') {
-                    final notifier =
-                        ref.read(clientNotifierProvider.notifier);
-                    final hasRecords =
-                        await notifier.hasLinkedRecords(client.id);
+                    final notifier = ref.read(clientNotifierProvider.notifier);
+                    final hasRecords = await notifier.hasLinkedRecords(
+                      client.id,
+                    );
 
                     if (!context.mounted) return;
 
@@ -85,7 +85,8 @@ class ClientDetailPage extends ConsumerWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                              'Cannot delete: client has time entries, invoices, or projects. Archive instead.'),
+                            'Cannot delete: client has time entries, invoices, or projects. Archive instead.',
+                          ),
                         ),
                       );
                       return;
@@ -96,7 +97,8 @@ class ClientDetailPage extends ConsumerWidget {
                       builder: (ctx) => AlertDialog(
                         title: const Text('Delete Client'),
                         content: Text(
-                            'Permanently delete "${client.name}"? This cannot be undone.'),
+                          'Permanently delete "${client.name}"? This cannot be undone.',
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(ctx, false),
@@ -105,8 +107,9 @@ class ClientDetailPage extends ConsumerWidget {
                           FilledButton(
                             onPressed: () => Navigator.pop(ctx, true),
                             style: FilledButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.error,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.error,
                             ),
                             child: const Text('Delete'),
                           ),
@@ -123,8 +126,7 @@ class ClientDetailPage extends ConsumerWidget {
             ],
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () =>
-                context.push('/clients/${client.id}/projects/add'),
+            onPressed: () => context.push('/clients/${client.id}/projects/add'),
             tooltip: 'Add Project',
             child: const Icon(Icons.add),
           ),
@@ -139,22 +141,27 @@ class ClientDetailPage extends ConsumerWidget {
                     _SummaryCard(
                       label: 'Uninvoiced',
                       value: formatDecimalHours(
-                          (summary.uninvoicedHours * 60).round()),
+                        (summary.uninvoicedHours * 60).round(),
+                      ),
                       subtitle: 'hours',
                       context: context,
                     ),
                     const SizedBox(width: 8),
                     _SummaryCard(
                       label: 'Billed',
-                      value: formatCurrency(summary.totalBilled,
-                          currency: client.currency),
+                      value: formatCurrency(
+                        summary.totalBilled,
+                        currency: client.currency,
+                      ),
                       context: context,
                     ),
                     const SizedBox(width: 8),
                     _SummaryCard(
                       label: 'Paid',
-                      value: formatCurrency(summary.totalPaid,
-                          currency: client.currency),
+                      value: formatCurrency(
+                        summary.totalPaid,
+                        currency: client.currency,
+                      ),
                       context: context,
                     ),
                   ],
@@ -171,9 +178,10 @@ class ClientDetailPage extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Contact',
-                            style:
-                                Theme.of(context).textTheme.titleSmall),
+                        Text(
+                          'Contact',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
                         const SizedBox(height: 8),
                         if (client.contactName != null)
                           Text(client.contactName!),
@@ -191,15 +199,17 @@ class ClientDetailPage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Billing',
-                          style:
-                              Theme.of(context).textTheme.titleSmall),
+                      Text(
+                        'Billing',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
                       const SizedBox(height: 8),
                       _InfoRow(
-                          'Rate',
-                          client.hourlyRate != null
-                              ? '${formatCurrency(client.hourlyRate!, currency: client.currency)}/hr'
-                              : 'Using default'),
+                        'Rate',
+                        client.hourlyRate != null
+                            ? '${formatCurrency(client.hourlyRate!, currency: client.currency)}/hr'
+                            : 'Using default',
+                      ),
                       if (client.taxRate != null)
                         _InfoRow('Tax Rate', '${client.taxRate}%'),
                       if (client.paymentTermsOverride != null)
@@ -211,10 +221,11 @@ class ClientDetailPage extends ConsumerWidget {
 
               // Projects
               Padding(
-                padding:
-                    const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Text('Projects',
-                    style: Theme.of(context).textTheme.titleMedium),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text(
+                  'Projects',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
               projectsAsync.when(
                 loading: () => const Padding(
@@ -229,7 +240,9 @@ class ClientDetailPage extends ConsumerWidget {
                   if (projects.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 32),
+                        horizontal: 16,
+                        vertical: 32,
+                      ),
                       child: Center(
                         child: Text('No projects yet. Tap + to add one.'),
                       ),
@@ -237,8 +250,10 @@ class ClientDetailPage extends ConsumerWidget {
                   }
                   return Column(
                     children: projects
-                        .map((p) => ProjectListTile(
-                            project: p, clientId: clientId))
+                        .map(
+                          (p) =>
+                              ProjectListTile(project: p, clientId: clientId),
+                        )
                         .toList(),
                   );
                 },
@@ -252,9 +267,10 @@ class ClientDetailPage extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Notes',
-                            style:
-                                Theme.of(context).textTheme.titleSmall),
+                        Text(
+                          'Notes',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
                         const SizedBox(height: 8),
                         Text(client.notes!),
                       ],
@@ -336,8 +352,7 @@ class _InfoRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 80,
-            child: Text(label,
-                style: Theme.of(context).textTheme.bodySmall),
+            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
           ),
           Expanded(child: Text(value)),
         ],

@@ -17,10 +17,10 @@ class ContextHeader extends ConsumerWidget {
   }
 
   static IconData _themeIcon(ThemeMode mode) => switch (mode) {
-        ThemeMode.system => Icons.brightness_auto,
-        ThemeMode.light => Icons.light_mode,
-        ThemeMode.dark => Icons.dark_mode,
-      };
+    ThemeMode.system => Icons.brightness_auto,
+    ThemeMode.light => Icons.light_mode,
+    ThemeMode.dark => Icons.dark_mode,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,17 +28,13 @@ class ContextHeader extends ConsumerWidget {
     final profileAsync = ref.watch(profileProvider);
     final weeklyAsync = ref.watch(weeklyHoursProvider);
     final overdueAsync = ref.watch(overdueInvoicesProvider);
-    final themeMode =
-        ref.watch(themeModeProvider).value ?? ThemeMode.system;
+    final themeMode = ref.watch(themeModeProvider).value ?? ThemeMode.system;
 
     final name = profileAsync.whenOrNull(
-      data: (p) =>
-          p.ownerName.isNotEmpty ? p.ownerName : p.businessName,
+      data: (p) => p.ownerName.isNotEmpty ? p.ownerName : p.businessName,
     );
-    final overdueCount =
-        overdueAsync.whenOrNull(data: (v) => v.count) ?? 0;
-    final weeklyHours =
-        weeklyAsync.whenOrNull(data: (v) => v) ?? 0.0;
+    final overdueCount = overdueAsync.whenOrNull(data: (v) => v.count) ?? 0;
+    final weeklyHours = weeklyAsync.whenOrNull(data: (v) => v) ?? 0.0;
 
     final dateStr = DateFormat('EEEE, MMM d, yyyy').format(DateTime.now());
 
@@ -86,8 +82,7 @@ class ContextHeader extends ConsumerWidget {
       flexibleSpace: FlexibleSpaceBar(
         background: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.only(
-                left: 16, right: 16, top: 60),
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 60),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -109,7 +104,9 @@ class ContextHeader extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(12),

@@ -43,24 +43,24 @@ class _Receipt {
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'date': date,
-        'desc': description,
-        'cat': category,
-        'amount': amount,
-        'taxded': isTaxDeductible,
-        if (imagePath != null) 'img': imagePath,
-      };
+    'id': id,
+    'date': date,
+    'desc': description,
+    'cat': category,
+    'amount': amount,
+    'taxded': isTaxDeductible,
+    if (imagePath != null) 'img': imagePath,
+  };
 
   factory _Receipt.fromJson(Map<String, dynamic> j) => _Receipt(
-        id: j['id'] as String,
-        date: j['date'] as String,
-        description: j['desc'] as String,
-        category: j['cat'] as String,
-        amount: (j['amount'] as num).toDouble(),
-        isTaxDeductible: j['taxded'] as bool? ?? true,
-        imagePath: j['img'] as String?,
-      );
+    id: j['id'] as String,
+    date: j['date'] as String,
+    description: j['desc'] as String,
+    category: j['cat'] as String,
+    amount: (j['amount'] as num).toDouble(),
+    isTaxDeductible: j['taxded'] as bool? ?? true,
+    imagePath: j['img'] as String?,
+  );
 }
 
 const _kReceiptsKey = 'tax_receipts';
@@ -94,6 +94,7 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
   DateTimeRange? _dateRange;
   String? _selectedClientId;
   bool _includeArchived = false;
+  bool _includeStateTax = false;
   bool _isLoading = false;
 
   // Receipts
@@ -159,7 +160,9 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
   Future<void> _saveReceipts() async {
     final dao = ref.read(appSettingsDaoProvider);
     await dao.setValue(
-        _kReceiptsKey, jsonEncode(_receipts.map((r) => r.toJson()).toList()));
+      _kReceiptsKey,
+      jsonEncode(_receipts.map((r) => r.toJson()).toList()),
+    );
   }
 
   // ── Tax rate settings ─────────────────────────────────────────────────────────
@@ -206,15 +209,20 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
     final dao = ref.read(appSettingsDaoProvider);
     await dao.setValue('deduct.home_rent', _homeRentCtrl.text);
     await dao.setValue(
-        'deduct.home_total_rooms', _homeOfficeTotalRooms.toString());
+      'deduct.home_total_rooms',
+      _homeOfficeTotalRooms.toString(),
+    );
     await dao.setValue(
-        'deduct.home_work_rooms', _homeOfficeWorkRooms.toString());
+      'deduct.home_work_rooms',
+      _homeOfficeWorkRooms.toString(),
+    );
   }
 
   double _incomeForRange(List<Invoice> invoices, DateTime start, DateTime end) {
     double total = 0;
     for (final inv in invoices) {
-      final validStatus = inv.status == 'paid' ||
+      final validStatus =
+          inv.status == 'paid' ||
           (_includeArchived && inv.status == 'archived');
       if (!validStatus) continue;
       final reportDate = inv.paidDate ?? inv.issueDate;
@@ -254,11 +262,14 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
       _dateRange!.end.year,
       _dateRange!.end.month,
       _dateRange!.end.day,
-      23, 59, 59,
+      23,
+      59,
+      59,
     );
 
     final filtered = allInvoices.where((inv) {
-      final validStatus = inv.status == 'paid' ||
+      final validStatus =
+          inv.status == 'paid' ||
           (_includeArchived && inv.status == 'archived');
       if (!validStatus) return false;
       final reportDate = inv.paidDate ?? inv.issueDate;
@@ -268,15 +279,13 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
         return false;
       }
       return true;
-    }).toList()
-      ..sort((a, b) => a.issueDate.compareTo(b.issueDate));
+    }).toList()..sort((a, b) => a.issueDate.compareTo(b.issueDate));
 
     final names = <String, String>{};
     for (final inv in filtered) {
       if (!names.containsKey(inv.clientId)) {
         try {
-          names[inv.clientId] =
-              (await clientDao.getClient(inv.clientId)).name;
+          names[inv.clientId] = (await clientDao.getClient(inv.clientId)).name;
         } catch (_) {
           names[inv.clientId] = 'Unknown Client';
         }
@@ -288,11 +297,15 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
       startDate: _dateRange!.start,
       endDate: _dateRange!.end,
       rows: filtered
-          .map((inv) =>
-              TaxReportRow(invoice: inv, clientName: names[inv.clientId]!))
+          .map(
+            (inv) =>
+                TaxReportRow(invoice: inv, clientName: names[inv.clientId]!),
+          )
           .toList(),
-      clientFilterName:
-          _selectedClientId != null ? names[_selectedClientId] : null,
+      clientFilterName: _selectedClientId != null
+          ? names[_selectedClientId]
+          : null,
+      includeTax: _includeStateTax,
     );
   }
 
@@ -302,21 +315,27 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
       final data = await _fetchTaxData();
       if (data == null || !mounted) return;
       if (data.rows.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(_includeArchived
-                ? 'No paid or archived invoices in the selected period.'
-                : 'No paid invoices in the selected period.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _includeArchived
+                  ? 'No paid or archived invoices in the selected period.'
+                  : 'No paid invoices in the selected period.',
+            ),
+          ),
+        );
         return;
       }
       final bytes = await (await const TaxReportTemplate().build(data)).save();
       if (!mounted) return;
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => _PdfPreviewPage(pdfBytes: bytes),
-      ));
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => _PdfPreviewPage(pdfBytes: bytes)),
+      );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -329,24 +348,31 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
       final data = await _fetchTaxData();
       if (data == null || !mounted) return;
       if (data.rows.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(_includeArchived
-                ? 'No paid or archived invoices in the selected period.'
-                : 'No paid invoices in the selected period.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _includeArchived
+                  ? 'No paid or archived invoices in the selected period.'
+                  : 'No paid invoices in the selected period.',
+            ),
+          ),
+        );
         return;
       }
       final exportService = ref.read(exportServiceProvider);
-      final file =
-          await exportService.generateTaxReportCsv(rows: data.rows);
+      final file = await exportService.generateTaxReportCsv(data: data);
       if (!mounted) return;
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path, mimeType: 'text/csv')],
-        subject: 'Federal Tax Report',
-      ));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'text/csv')],
+          subject: 'Federal Tax Report',
+        ),
+      );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -371,11 +397,7 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
       ),
       body: TabBarView(
         controller: _tabs,
-        children: [
-          _buildFederalTab(),
-          _buildStateTab(),
-          _buildGuideTab(),
-        ],
+        children: [_buildFederalTab(), _buildStateTab(), _buildGuideTab()],
       ),
     );
   }
@@ -394,12 +416,16 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
             _dateRange!.end.year,
             _dateRange!.end.month,
             _dateRange!.end.day,
-            23, 59, 59);
+            23,
+            59,
+            59,
+          );
     double totalNet = 0;
     double totalTax = 0;
     double totalPaid = 0;
     for (final inv in allInvoices) {
-      final validStatus = inv.status == 'paid' ||
+      final validStatus =
+          inv.status == 'paid' ||
           (_includeArchived && inv.status == 'archived');
       if (!validStatus) continue;
       if (_dateRange != null) {
@@ -411,8 +437,13 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
         continue;
       }
       totalNet += inv.subtotal;
-      totalTax += inv.taxAmount;
-      totalPaid += inv.total;
+      if (_includeStateTax) {
+        totalTax += inv.taxAmount;
+        totalPaid += inv.total;
+      } else {
+        totalTax += 0;
+        totalPaid += inv.subtotal;
+      }
     }
 
     final cur = NumberFormat.currency(symbol: '\$');
@@ -457,11 +488,15 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                         isDense: true,
                         items: [
                           const DropdownMenuItem(
-                              value: null, child: Text('All Clients')),
-                          ...clients.map((c) => DropdownMenuItem(
-                                value: c.id,
-                                child: Text(c.name),
-                              )),
+                            value: null,
+                            child: Text('All Clients'),
+                          ),
+                          ...clients.map(
+                            (c) => DropdownMenuItem(
+                              value: c.id,
+                              child: Text(c.name),
+                            ),
+                          ),
                         ],
                         onChanged: (val) =>
                             setState(() => _selectedClientId = val),
@@ -480,6 +515,14 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                   contentPadding: EdgeInsets.zero,
                   dense: true,
                 ),
+                CheckboxListTile(
+                  value: _includeStateTax,
+                  onChanged: (v) =>
+                      setState(() => _includeStateTax = v ?? false),
+                  title: const Text('Include state sales tax'),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
               ],
             ),
           ),
@@ -494,17 +537,22 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Income Summary',
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Income Summary',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 12),
-                _SummaryRow('Net (pre-tax)',
-                    cur.format(totalNet), theme),
-                _SummaryRow('Tax collected',
-                    cur.format(totalTax), theme),
+                _SummaryRow('Net (pre-tax)', cur.format(totalNet), theme),
+                _SummaryRow('Tax collected', cur.format(totalTax), theme),
                 const Divider(height: 16),
-                _SummaryRow('Total received',
-                    cur.format(totalPaid), theme, bold: true),
+                _SummaryRow(
+                  'Total received',
+                  cur.format(totalPaid),
+                  theme,
+                  bold: true,
+                ),
               ],
             ),
           ),
@@ -526,14 +574,14 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Income Tax Report',
-                    style: theme.textTheme.titleSmall),
+                Text('Income Tax Report', style: theme.textTheme.titleSmall),
                 const SizedBox(height: 4),
                 Text(
                   'Net income, tax collected, and total paid '
                   'for all paid invoices in the selected period.',
                   style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant),
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -566,26 +614,24 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
               ListTile(
                 leading: const Icon(Icons.home_work_outlined),
                 title: const Text('Home Office Deduction'),
-                subtitle: Builder(builder: (ctx) {
-                  final rent =
-                      double.tryParse(_homeRentCtrl.text) ?? 0;
-                  final monthly = _homeOfficeTotalRooms > 0
-                      ? rent *
-                          _homeOfficeWorkRooms /
-                          _homeOfficeTotalRooms
-                      : 0.0;
-                  return Text(
-                    monthly > 0
-                        ? '${cur.format(monthly)}/mo · ${cur.format(monthly * 12)}/yr'
-                        : 'Enter rent to calculate',
-                    style: theme.textTheme.bodySmall,
-                  );
-                }),
-                trailing: Icon(_showHomeOffice
-                    ? Icons.expand_less
-                    : Icons.expand_more),
-                onTap: () =>
-                    setState(() => _showHomeOffice = !_showHomeOffice),
+                subtitle: Builder(
+                  builder: (ctx) {
+                    final rent = double.tryParse(_homeRentCtrl.text) ?? 0;
+                    final monthly = _homeOfficeTotalRooms > 0
+                        ? rent * _homeOfficeWorkRooms / _homeOfficeTotalRooms
+                        : 0.0;
+                    return Text(
+                      monthly > 0
+                          ? '${cur.format(monthly)}/mo · ${cur.format(monthly * 12)}/yr'
+                          : 'Enter rent to calculate',
+                      style: theme.textTheme.bodySmall,
+                    );
+                  },
+                ),
+                trailing: Icon(
+                  _showHomeOffice ? Icons.expand_less : Icons.expand_more,
+                ),
+                onTap: () => setState(() => _showHomeOffice = !_showHomeOffice),
               ),
               if (_showHomeOffice)
                 Padding(
@@ -601,90 +647,102 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                           border: OutlineInputBorder(),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
+                          decimal: true,
+                        ),
                         onChanged: (_) {
                           setState(() {});
                           _saveHomeOffice();
                         },
                       ),
                       const SizedBox(height: 12),
-                      Row(children: [
-                        Expanded(
-                          child: _RoomStepper(
-                            label: 'Total rooms',
-                            value: _homeOfficeTotalRooms,
-                            min: 1,
-                            max: 20,
-                            onChanged: (v) {
-                              setState(() => _homeOfficeTotalRooms = v);
-                              _saveHomeOffice();
-                            },
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _RoomStepper(
+                              label: 'Total rooms',
+                              value: _homeOfficeTotalRooms,
+                              min: 1,
+                              max: 20,
+                              onChanged: (v) {
+                                setState(() => _homeOfficeTotalRooms = v);
+                                _saveHomeOffice();
+                              },
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _RoomStepper(
-                            label: 'Office rooms',
-                            value: _homeOfficeWorkRooms,
-                            min: 1,
-                            max: _homeOfficeTotalRooms,
-                            onChanged: (v) {
-                              setState(() => _homeOfficeWorkRooms = v);
-                              _saveHomeOffice();
-                            },
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _RoomStepper(
+                              label: 'Office rooms',
+                              value: _homeOfficeWorkRooms,
+                              min: 1,
+                              max: _homeOfficeTotalRooms,
+                              onChanged: (v) {
+                                setState(() => _homeOfficeWorkRooms = v);
+                                _saveHomeOffice();
+                              },
+                            ),
                           ),
-                        ),
-                      ]),
+                        ],
+                      ),
                       const SizedBox(height: 12),
-                      Builder(builder: (ctx) {
-                        final rent =
-                            double.tryParse(_homeRentCtrl.text) ?? 0;
-                        final frac = _homeOfficeTotalRooms > 0
-                            ? _homeOfficeWorkRooms /
-                                _homeOfficeTotalRooms
-                            : 0.0;
-                        final monthly = rent * frac;
-                        final annual = monthly * 12;
-                        return Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerLow,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _SummaryRow(
+                      Builder(
+                        builder: (ctx) {
+                          final rent = double.tryParse(_homeRentCtrl.text) ?? 0;
+                          final frac = _homeOfficeTotalRooms > 0
+                              ? _homeOfficeWorkRooms / _homeOfficeTotalRooms
+                              : 0.0;
+                          final monthly = rent * frac;
+                          final annual = monthly * 12;
+                          return Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _SummaryRow(
                                   'Office fraction',
                                   '${(frac * 100).toStringAsFixed(0)}%'
-                                  ' ($_homeOfficeWorkRooms/$_homeOfficeTotalRooms)',
-                                  theme),
-                              _SummaryRow('Monthly deduction',
-                                  cur.format(monthly), theme),
-                              _SummaryRow('Annual deduction',
-                                  cur.format(annual), theme,
-                                  bold: true),
-                              if (annual > 0) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Est. tax savings: '
-                                  '${cur.format(annual * (_federalRate + _seRate * 0.9235 * 0.5))}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                      color: const Color(0xFF2E7D32),
-                                      fontWeight: FontWeight.w600),
+                                      ' ($_homeOfficeWorkRooms/$_homeOfficeTotalRooms)',
+                                  theme,
                                 ),
+                                _SummaryRow(
+                                  'Monthly deduction',
+                                  cur.format(monthly),
+                                  theme,
+                                ),
+                                _SummaryRow(
+                                  'Annual deduction',
+                                  cur.format(annual),
+                                  theme,
+                                  bold: true,
+                                ),
+                                if (annual > 0) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Est. tax savings: '
+                                    '${cur.format(annual * (_federalRate + _seRate * 0.9235 * 0.5))}',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: const Color(0xFF2E7D32),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ],
-                            ],
-                          ),
-                        );
-                      }),
+                            ),
+                          );
+                        },
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         'IRS rule: room must be used regularly and '
                         'exclusively for business. Add monthly amount '
                         'as "Home Office" expense below to track it.',
                         style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant),
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -707,13 +765,16 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Deductible Expenses',
-                              style: theme.textTheme.titleSmall),
+                          Text(
+                            'Deductible Expenses',
+                            style: theme.textTheme.titleSmall,
+                          ),
                           const SizedBox(height: 2),
                           Text(
                             'Business expenses for Schedule C.',
                             style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant),
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
@@ -732,7 +793,8 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                       child: Text(
                         'No expenses yet. Tap Add to record one.',
                         style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant),
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   )
@@ -742,31 +804,45 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                   const Divider(height: 16),
                   () {
                     final totalAll = _receipts.fold(
-                        0.0, (sum, r) => sum + r.amount);
+                      0.0,
+                      (sum, r) => sum + r.amount,
+                    );
                     final totalDed = _receipts
                         .where((r) => r.isTaxDeductible)
                         .fold(0.0, (sum, r) => sum + r.amount);
-                    final savings = totalDed *
-                        (_federalRate + _seRate * 0.9235 * 0.5);
+                    final savings =
+                        totalDed * (_federalRate + _seRate * 0.9235 * 0.5);
                     return Column(
                       children: [
                         if (totalAll != totalDed)
-                          _SummaryRow('Total expenses',
-                              cur.format(totalAll), theme),
-                        _SummaryRow('Deductible total',
-                            cur.format(totalDed), theme,
-                            bold: true),
+                          _SummaryRow(
+                            'Total expenses',
+                            cur.format(totalAll),
+                            theme,
+                          ),
+                        _SummaryRow(
+                          'Deductible total',
+                          cur.format(totalDed),
+                          theme,
+                          bold: true,
+                        ),
                         const SizedBox(height: 2),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Est. tax savings',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                    color: const Color(0xFF2E7D32))),
-                            Text(cur.format(savings),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                    color: const Color(0xFF2E7D32),
-                                    fontWeight: FontWeight.bold)),
+                            Text(
+                              'Est. tax savings',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: const Color(0xFF2E7D32),
+                              ),
+                            ),
+                            Text(
+                              cur.format(savings),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: const Color(0xFF2E7D32),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -788,8 +864,7 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
   }
 
   Widget _buildReceiptTile(_Receipt r, ThemeData theme, NumberFormat cur) {
-    final hasPhoto =
-        r.imagePath != null && File(r.imagePath!).existsSync();
+    final hasPhoto = r.imagePath != null && File(r.imagePath!).existsSync();
 
     Widget leading = hasPhoto
         ? GestureDetector(
@@ -826,8 +901,9 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
         children: [
           Text(
             cur.format(r.amount),
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           PopupMenuButton<String>(
             tooltip: 'Options',
@@ -892,16 +968,13 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
       builder: (ctx) => Dialog(
         child: Stack(
           children: [
-            InteractiveViewer(
-              child: Image.file(File(path)),
-            ),
+            InteractiveViewer(child: Image.file(File(path))),
             Positioned(
               top: 8,
               right: 8,
               child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.white),
-                style: IconButton.styleFrom(
-                    backgroundColor: Colors.black45),
+                style: IconButton.styleFrom(backgroundColor: Colors.black45),
                 onPressed: () => Navigator.pop(ctx),
               ),
             ),
@@ -930,30 +1003,64 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
   // ── Quarterly cards ───────────────────────────────────────────────────────────
 
   Widget _buildQuarterlyCards(
-      ThemeData theme, List<Invoice> allInvoices, NumberFormat cur) {
+    ThemeData theme,
+    List<Invoice> allInvoices,
+    NumberFormat cur,
+  ) {
     final year = _dateRange?.start.year ?? DateTime.now().year;
     // Only sum receipts that are explicitly marked as tax-deductible
-    final totalDeductibleReceipts =
-        _receipts.where((r) => r.isTaxDeductible).fold(0.0, (sum, r) => sum + r.amount);
+    final totalDeductibleReceipts = _receipts
+        .where((r) => r.isTaxDeductible)
+        .fold(0.0, (sum, r) => sum + r.amount);
     // Monthly recurring deductible from the Expenses tab
     final monthlyRecurring = ref.watch(totalMonthlyDeductibleProvider);
     final now = DateTime.now();
 
     // IRS estimated quarterly payment schedule; months = calendar months in the period
-    final quarters = <({String label, String dates, DateTime start, DateTime end, DateTime due, int months})>[
-      (label: 'Q1', dates: 'Jan 1 – Mar 31',
-        start: DateTime(year, 1, 1), end: DateTime(year, 4, 1),
-        due: DateTime(year, 4, 15), months: 3),
-      (label: 'Q2', dates: 'Apr 1 – May 31',
-        start: DateTime(year, 4, 1), end: DateTime(year, 6, 1),
-        due: DateTime(year, 6, 15), months: 2),
-      (label: 'Q3', dates: 'Jun 1 – Aug 31',
-        start: DateTime(year, 6, 1), end: DateTime(year, 9, 1),
-        due: DateTime(year, 9, 15), months: 3),
-      (label: 'Q4', dates: 'Sep 1 – Dec 31',
-        start: DateTime(year, 9, 1), end: DateTime(year + 1, 1, 1),
-        due: DateTime(year + 1, 1, 15), months: 4),
-    ];
+    final quarters =
+        <
+          ({
+            String label,
+            String dates,
+            DateTime start,
+            DateTime end,
+            DateTime due,
+            int months,
+          })
+        >[
+          (
+            label: 'Q1',
+            dates: 'Jan 1 – Mar 31',
+            start: DateTime(year, 1, 1),
+            end: DateTime(year, 4, 1),
+            due: DateTime(year, 4, 15),
+            months: 3,
+          ),
+          (
+            label: 'Q2',
+            dates: 'Apr 1 – May 31',
+            start: DateTime(year, 4, 1),
+            end: DateTime(year, 6, 1),
+            due: DateTime(year, 6, 15),
+            months: 2,
+          ),
+          (
+            label: 'Q3',
+            dates: 'Jun 1 – Aug 31',
+            start: DateTime(year, 6, 1),
+            end: DateTime(year, 9, 1),
+            due: DateTime(year, 9, 15),
+            months: 3,
+          ),
+          (
+            label: 'Q4',
+            dates: 'Sep 1 – Dec 31',
+            start: DateTime(year, 9, 1),
+            end: DateTime(year + 1, 1, 1),
+            due: DateTime(year + 1, 1, 15),
+            months: 4,
+          ),
+        ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -962,8 +1069,9 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
           padding: const EdgeInsets.only(bottom: 8),
           child: Text(
             'Estimated Quarterly Taxes ($year)',
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         ...quarters.map((q) {
@@ -971,7 +1079,10 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
           // Prorate receipt deductions evenly; scale recurring by actual months
           final receiptAlloc = totalDeductibleReceipts / 4;
           final recurringAlloc = monthlyRecurring * q.months;
-          final net = (gross - receiptAlloc - recurringAlloc).clamp(0.0, double.infinity);
+          final net = (gross - receiptAlloc - recurringAlloc).clamp(
+            0.0,
+            double.infinity,
+          );
 
           // IRS SE tax: net × 92.35% × seRate
           final seBase = net * 0.9235;
@@ -982,15 +1093,15 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
           final totalEst = seTax + fedTax;
 
           final isPast = q.due.isBefore(now);
-          final isNear = !isPast &&
-              q.due.isBefore(now.add(const Duration(days: 14)));
+          final isNear =
+              !isPast && q.due.isBefore(now.add(const Duration(days: 14)));
           final dueColor = gross == 0
               ? theme.colorScheme.onSurfaceVariant
               : isPast
-                  ? theme.colorScheme.error
-                  : isNear
-                      ? const Color(0xFFE65100)
-                      : const Color(0xFF2E7D32);
+              ? theme.colorScheme.error
+              : isNear
+              ? const Color(0xFFE65100)
+              : const Color(0xFF2E7D32);
 
           return Card(
             margin: const EdgeInsets.only(bottom: 8),
@@ -999,55 +1110,74 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    Expanded(
-                      child: Text(
-                        '${q.label} — ${q.dates}',
-                        style: theme.textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${q.label} — ${q.dates}',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
-                    Text(
-                      'Due ${DateFormat.MMMd().format(q.due)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                          color: dueColor, fontWeight: FontWeight.w600),
-                    ),
-                  ]),
+                      Text(
+                        'Due ${DateFormat.MMMd().format(q.due)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: dueColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                   if (gross == 0)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         'No income in this period',
                         style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant),
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     )
                   else ...[
                     const SizedBox(height: 8),
                     _SummaryRow('Gross income', cur.format(gross), theme),
                     if (receiptAlloc > 0)
-                      _SummaryRow('Receipt deductions (÷4)',
-                          '− ${cur.format(receiptAlloc)}', theme),
+                      _SummaryRow(
+                        'Receipt deductions (÷4)',
+                        '− ${cur.format(receiptAlloc)}',
+                        theme,
+                      ),
                     if (recurringAlloc > 0)
                       _SummaryRow(
-                          'Recurring expenses (${q.months}mo)',
-                          '− ${cur.format(recurringAlloc)}',
-                          theme),
-                    _SummaryRow('Net income', cur.format(net), theme,
-                        bold: true),
+                        'Recurring expenses (${q.months}mo)',
+                        '− ${cur.format(recurringAlloc)}',
+                        theme,
+                      ),
+                    _SummaryRow(
+                      'Net income',
+                      cur.format(net),
+                      theme,
+                      bold: true,
+                    ),
                     const Divider(height: 12),
                     _SummaryRow(
-                        'SE tax (${(_seRate * 100).toStringAsFixed(1)}%)',
-                        cur.format(seTax),
-                        theme),
+                      'SE tax (${(_seRate * 100).toStringAsFixed(1)}%)',
+                      cur.format(seTax),
+                      theme,
+                    ),
                     _SummaryRow(
-                        'Federal (${(_federalRate * 100).toStringAsFixed(1)}%)',
-                        cur.format(fedTax),
-                        theme),
+                      'Federal (${(_federalRate * 100).toStringAsFixed(1)}%)',
+                      cur.format(fedTax),
+                      theme,
+                    ),
                     const SizedBox(height: 2),
                     _SummaryRow(
-                        'Est. payment', cur.format(totalEst), theme,
-                        bold: true),
+                      'Est. payment',
+                      cur.format(totalEst),
+                      theme,
+                      bold: true,
+                    ),
                   ],
                 ],
               ),
@@ -1069,13 +1199,12 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
               'SE ${_seRateCtrl.text}%',
               style: theme.textTheme.bodySmall,
             ),
-            trailing: Icon(_showTaxRateSettings
-                ? Icons.expand_less
-                : Icons.expand_more),
+            trailing: Icon(
+              _showTaxRateSettings ? Icons.expand_less : Icons.expand_more,
+            ),
             onTap: () {
               if (_showTaxRateSettings) _saveTaxRates();
-              setState(
-                  () => _showTaxRateSettings = !_showTaxRateSettings);
+              setState(() => _showTaxRateSettings = !_showTaxRateSettings);
             },
           ),
           if (_showTaxRateSettings)
@@ -1084,57 +1213,62 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _federalRateCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Federal Effective Rate (%)',
-                          hintText: '22.0',
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _federalRateCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Federal Effective Rate (%)',
+                            hintText: '22.0',
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          onChanged: (_) => setState(() {
+                            _federalRate =
+                                (double.tryParse(_federalRateCtrl.text) ??
+                                    22.0) /
+                                100;
+                          }),
+                          onEditingComplete: () {
+                            _saveTaxRates();
+                            FocusScope.of(context).unfocus();
+                          },
                         ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        onChanged: (_) => setState(() {
-                          _federalRate =
-                              (double.tryParse(_federalRateCtrl.text) ??
-                                      22.0) /
-                                  100;
-                        }),
-                        onEditingComplete: () {
-                          _saveTaxRates();
-                          FocusScope.of(context).unfocus();
-                        },
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _seRateCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'SE Tax Rate (%)',
-                          hintText: '15.3',
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _seRateCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'SE Tax Rate (%)',
+                            hintText: '15.3',
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          onChanged: (_) => setState(() {
+                            _seRate =
+                                (double.tryParse(_seRateCtrl.text) ?? 15.3) /
+                                100;
+                          }),
+                          onEditingComplete: () {
+                            _saveTaxRates();
+                            FocusScope.of(context).unfocus();
+                          },
                         ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        onChanged: (_) => setState(() {
-                          _seRate =
-                              (double.tryParse(_seRateCtrl.text) ?? 15.3) /
-                                  100;
-                        }),
-                        onEditingComplete: () {
-                          _saveTaxRates();
-                          FocusScope.of(context).unfocus();
-                        },
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'SE tax = net income × 92.35% × rate. '
                     'Federal base = net income − (SE tax ÷ 2). '
                     'WA has no state income tax.',
                     style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant),
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -1170,12 +1304,13 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
         double.tryParse(_guideIncomeCtrl.text.replaceAll(',', '')) ?? 0;
     final annualExpenses =
         double.tryParse(_guideExpensesCtrl.text.replaceAll(',', '')) ?? 0;
-    final taxableProfit =
-        (annualIncome - annualExpenses).clamp(0.0, double.infinity);
+    final taxableProfit = (annualIncome - annualExpenses).clamp(
+      0.0,
+      double.infinity,
+    );
     final seBase = taxableProfit * 0.9235;
     final seTax = seBase * _seRate;
-    final fedBase =
-        (taxableProfit - seTax / 2).clamp(0.0, double.infinity);
+    final fedBase = (taxableProfit - seTax / 2).clamp(0.0, double.infinity);
     final fedTax = fedBase * _federalRate;
     final totalEst = seTax + fedTax;
 
@@ -1191,48 +1326,59 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    Icon(Icons.savings_outlined,
-                        color: cs.onPrimaryContainer),
-                    const SizedBox(width: 8),
-                    Text('Set Aside Now',
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.savings_outlined,
+                        color: cs.onPrimaryContainer,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Set Aside Now',
                         style: theme.textTheme.titleSmall?.copyWith(
-                            color: cs.onPrimaryContainer,
-                            fontWeight: FontWeight.bold)),
-                  ]),
+                          color: cs.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'Based on your ${now.year} income so far '
                     '(${cur.format(ytdIncome)}):',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: cs.onPrimaryContainer),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: cs.onPrimaryContainer,
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  Row(children: [
-                    Expanded(
-                      child: _GuideStat(
-                        label: '25% minimum',
-                        value: cur.format(saveMin),
-                        color: cs.onPrimaryContainer,
-                        theme: theme,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _GuideStat(
+                          label: '25% minimum',
+                          value: cur.format(saveMin),
+                          color: cs.onPrimaryContainer,
+                          theme: theme,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _GuideStat(
-                        label: '30% safe buffer',
-                        value: cur.format(saveMax),
-                        color: cs.onPrimaryContainer,
-                        theme: theme,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _GuideStat(
+                          label: '30% safe buffer',
+                          value: cur.format(saveMax),
+                          color: cs.onPrimaryContainer,
+                          theme: theme,
+                        ),
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                   const SizedBox(height: 10),
                   Text(
                     'Keep in a separate savings account. '
                     'Do not touch until quarterly due dates.',
                     style: theme.textTheme.bodySmall?.copyWith(
-                        color: cs.onPrimaryContainer.withAlpha(200)),
+                      color: cs.onPrimaryContainer.withAlpha(200),
+                    ),
                   ),
                 ],
               ),
@@ -1248,19 +1394,25 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [
-                  const Icon(Icons.calculate_outlined),
-                  const SizedBox(width: 8),
-                  Text('Annual Tax Estimator',
-                      style: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                ]),
+                Row(
+                  children: [
+                    const Icon(Icons.calculate_outlined),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Annual Tax Estimator',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 4),
                 Text(
                   'Estimate your full-year tax bill. '
                   'Uses your current rate settings.',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: cs.onSurfaceVariant),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -1270,8 +1422,9 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                     prefixText: '\$',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   onChanged: (_) => setState(() {}),
                 ),
                 const SizedBox(height: 12),
@@ -1282,35 +1435,46 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                     prefixText: '\$',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   onChanged: (_) => setState(() {}),
                 ),
                 if (annualIncome > 0) ...[
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 4),
+                  _SummaryRow('Annual income', cur.format(annualIncome), theme),
                   _SummaryRow(
-                      'Annual income', cur.format(annualIncome), theme),
-                  _SummaryRow('Business expenses',
-                      '− ${cur.format(annualExpenses)}', theme),
-                  _SummaryRow('Taxable profit',
-                      cur.format(taxableProfit), theme,
-                      bold: true),
+                    'Business expenses',
+                    '− ${cur.format(annualExpenses)}',
+                    theme,
+                  ),
+                  _SummaryRow(
+                    'Taxable profit',
+                    cur.format(taxableProfit),
+                    theme,
+                    bold: true,
+                  ),
                   const Divider(height: 16),
                   _SummaryRow(
-                      'SE tax (${(_seRate * 100).toStringAsFixed(1)}%)',
-                      cur.format(seTax),
-                      theme),
+                    'SE tax (${(_seRate * 100).toStringAsFixed(1)}%)',
+                    cur.format(seTax),
+                    theme,
+                  ),
                   _SummaryRow(
-                      'Federal income tax '
-                      '(${(_federalRate * 100).toStringAsFixed(1)}%)',
-                      cur.format(fedTax),
-                      theme),
+                    'Federal income tax '
+                    '(${(_federalRate * 100).toStringAsFixed(1)}%)',
+                    cur.format(fedTax),
+                    theme,
+                  ),
                   const SizedBox(height: 4),
-                  _SummaryRow('Total estimated tax',
-                      cur.format(totalEst), theme,
-                      bold: true),
+                  _SummaryRow(
+                    'Total estimated tax',
+                    cur.format(totalEst),
+                    theme,
+                    bold: true,
+                  ),
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -1318,20 +1482,26 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                       color: cs.surfaceContainerLow,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(children: [
-                      Icon(Icons.info_outline,
-                          size: 16, color: cs.onSurfaceVariant),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Set aside ~${cur.format(totalEst / 4)} per quarter'
-                          ' (${annualIncome > 0 ? (totalEst / annualIncome * 100).toStringAsFixed(0) : 0}%'
-                          ' of income).',
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: cs.onSurfaceVariant),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: cs.onSurfaceVariant,
                         ),
-                      ),
-                    ]),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Set aside ~${cur.format(totalEst / 4)} per quarter'
+                            ' (${annualIncome > 0 ? (totalEst / annualIncome * 100).toStringAsFixed(0) : 0}%'
+                            ' of income).',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ],
@@ -1347,28 +1517,46 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [
-                  const Icon(Icons.calendar_today_outlined),
-                  const SizedBox(width: 8),
-                  Text('${now.year} Payment Schedule',
-                      style: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                ]),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today_outlined),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${now.year} Payment Schedule',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 12),
-                _DueDateRow('Q1 — Jan 1 to Mar 31',
-                    DateTime(now.year, 4, 15), theme),
-                _DueDateRow('Q2 — Apr 1 to May 31',
-                    DateTime(now.year, 6, 15), theme),
-                _DueDateRow('Q3 — Jun 1 to Aug 31',
-                    DateTime(now.year, 9, 15), theme),
-                _DueDateRow('Q4 — Sep 1 to Dec 31',
-                    DateTime(now.year + 1, 1, 15), theme),
+                _DueDateRow(
+                  'Q1 — Jan 1 to Mar 31',
+                  DateTime(now.year, 4, 15),
+                  theme,
+                ),
+                _DueDateRow(
+                  'Q2 — Apr 1 to May 31',
+                  DateTime(now.year, 6, 15),
+                  theme,
+                ),
+                _DueDateRow(
+                  'Q3 — Jun 1 to Aug 31',
+                  DateTime(now.year, 9, 15),
+                  theme,
+                ),
+                _DueDateRow(
+                  'Q4 — Sep 1 to Dec 31',
+                  DateTime(now.year + 1, 1, 15),
+                  theme,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   'Pay online via IRS Direct Pay — no account required, '
                   'straight from your bank.',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: cs.onSurfaceVariant),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -1383,13 +1571,18 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [
-                  const Icon(Icons.link),
-                  const SizedBox(width: 8),
-                  Text('Official Resources',
-                      style: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                ]),
+                Row(
+                  children: [
+                    const Icon(Icons.link),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Official Resources',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 8),
                 _LinkTile(
                   icon: Icons.receipt_long_outlined,
@@ -1408,8 +1601,7 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                   icon: Icons.description_outlined,
                   title: 'Form 1040-ES',
                   subtitle: 'Quarterly payment vouchers and worksheet',
-                  url:
-                      'https://www.irs.gov/forms-pubs/about-form-1040-es',
+                  url: 'https://www.irs.gov/forms-pubs/about-form-1040-es',
                 ),
                 _LinkTile(
                   icon: Icons.store_outlined,
@@ -1431,43 +1623,51 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [
-                  Icon(Icons.location_on_outlined, color: cs.primary),
-                  const SizedBox(width: 8),
-                  Text('Washington State Notes',
-                      style: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                ]),
+                Row(
+                  children: [
+                    Icon(Icons.location_on_outlined, color: cs.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Washington State Notes',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 10),
                 _GuideCheckRow(
-                    icon: Icons.check_circle_outline,
-                    color: const Color(0xFF2E7D32),
-                    text: 'No state income tax — only federal',
-                    theme: theme),
+                  icon: Icons.check_circle_outline,
+                  color: const Color(0xFF2E7D32),
+                  text: 'No state income tax — only federal',
+                  theme: theme,
+                ),
                 _GuideCheckRow(
-                    icon: Icons.info_outline,
-                    color: cs.primary,
-                    text:
-                        'B&O tax applies to gross business receipts',
-                    theme: theme),
+                  icon: Icons.info_outline,
+                  color: cs.primary,
+                  text: 'B&O tax applies to gross business receipts',
+                  theme: theme,
+                ),
                 _GuideCheckRow(
-                    icon: Icons.info_outline,
-                    color: cs.primary,
-                    text:
-                        'Sales tax may apply to some digital services / SaaS',
-                    theme: theme),
+                  icon: Icons.info_outline,
+                  color: cs.primary,
+                  text: 'Sales tax may apply to some digital services / SaaS',
+                  theme: theme,
+                ),
                 _GuideCheckRow(
-                    icon: Icons.info_outline,
-                    color: cs.primary,
-                    text: 'File quarterly at MyDOR (dor.wa.gov)',
-                    theme: theme),
+                  icon: Icons.info_outline,
+                  color: cs.primary,
+                  text: 'File quarterly at MyDOR (dor.wa.gov)',
+                  theme: theme,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   'Custom web development is typically B&O taxable. '
                   'Hosting, SaaS, or digital products may also trigger '
                   'sales tax — verify with a WA tax professional.',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: cs.onSurfaceVariant),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -1482,55 +1682,68 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [
-                  const Icon(Icons.folder_outlined),
-                  const SizedBox(width: 8),
-                  Text('Keep Records Now',
-                      style: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                ]),
+                Row(
+                  children: [
+                    const Icon(Icons.folder_outlined),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Keep Records Now',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 4),
                 Text(
                   'Everything you need for Schedule C (self-employment).',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: cs.onSurfaceVariant),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 _GuideCheckRow(
-                    icon: Icons.check_circle_outline,
-                    color: const Color(0xFF2E7D32),
-                    text: 'All invoices sent',
-                    theme: theme),
+                  icon: Icons.check_circle_outline,
+                  color: const Color(0xFF2E7D32),
+                  text: 'All invoices sent',
+                  theme: theme,
+                ),
                 _GuideCheckRow(
-                    icon: Icons.check_circle_outline,
-                    color: const Color(0xFF2E7D32),
-                    text: 'Business expense receipts',
-                    theme: theme),
+                  icon: Icons.check_circle_outline,
+                  color: const Color(0xFF2E7D32),
+                  text: 'Business expense receipts',
+                  theme: theme,
+                ),
                 _GuideCheckRow(
-                    icon: Icons.check_circle_outline,
-                    color: const Color(0xFF2E7D32),
-                    text: 'Software / subscription invoices',
-                    theme: theme),
+                  icon: Icons.check_circle_outline,
+                  color: const Color(0xFF2E7D32),
+                  text: 'Software / subscription invoices',
+                  theme: theme,
+                ),
                 _GuideCheckRow(
-                    icon: Icons.check_circle_outline,
-                    color: const Color(0xFF2E7D32),
-                    text: 'Hardware and equipment purchases',
-                    theme: theme),
+                  icon: Icons.check_circle_outline,
+                  color: const Color(0xFF2E7D32),
+                  text: 'Hardware and equipment purchases',
+                  theme: theme,
+                ),
                 _GuideCheckRow(
-                    icon: Icons.check_circle_outline,
-                    color: const Color(0xFF2E7D32),
-                    text: 'Bank statements',
-                    theme: theme),
+                  icon: Icons.check_circle_outline,
+                  color: const Color(0xFF2E7D32),
+                  text: 'Bank statements',
+                  theme: theme,
+                ),
                 _GuideCheckRow(
-                    icon: Icons.check_circle_outline,
-                    color: const Color(0xFF2E7D32),
-                    text: 'Home office costs (if applicable)',
-                    theme: theme),
+                  icon: Icons.check_circle_outline,
+                  color: const Color(0xFF2E7D32),
+                  text: 'Home office costs (if applicable)',
+                  theme: theme,
+                ),
                 _GuideCheckRow(
-                    icon: Icons.check_circle_outline,
-                    color: const Color(0xFF2E7D32),
-                    text: 'Mileage log (if any business travel)',
-                    theme: theme),
+                  icon: Icons.check_circle_outline,
+                  color: const Color(0xFF2E7D32),
+                  text: 'Mileage log (if any business travel)',
+                  theme: theme,
+                ),
               ],
             ),
           ),
@@ -1545,15 +1758,22 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: [
-                  Icon(Icons.lightbulb_outline,
-                      color: cs.onSecondaryContainer),
-                  const SizedBox(width: 8),
-                  Text('First Year Self-Employed',
+                Row(
+                  children: [
+                    Icon(
+                      Icons.lightbulb_outline,
+                      color: cs.onSecondaryContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'First Year Self-Employed',
                       style: theme.textTheme.titleSmall?.copyWith(
-                          color: cs.onSecondaryContainer,
-                          fontWeight: FontWeight.bold)),
-                ]),
+                        color: cs.onSecondaryContainer,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 8),
                 Text(
                   'The IRS is generally forgiving in your first year. '
@@ -1563,8 +1783,9 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                   'point for freelance web developers. Consider a CPA '
                   'review for your first annual return if your income is '
                   'significant.',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: cs.onSecondaryContainer),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: cs.onSecondaryContainer,
+                  ),
                 ),
               ],
             ),
@@ -1590,15 +1811,15 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('WA Excise Tax (B&O)',
-                    style: theme.textTheme.titleSmall),
+                Text('WA Excise Tax (B&O)', style: theme.textTheme.titleSmall),
                 const SizedBox(height: 4),
                 Text(
                   'Quarterly Business & Occupation return for Washington '
                   'state. Generates a DOR-format CSV ready to upload at '
                   'MyDOR. Tracks which quarters have been submitted.',
                   style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant),
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -1622,28 +1843,34 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Other State / Local Taxes',
-                    style: theme.textTheme.titleSmall),
+                Text(
+                  'Other State / Local Taxes',
+                  style: theme.textTheme.titleSmall,
+                ),
                 const SizedBox(height: 4),
                 Text(
                   'State income tax and local tax filing support for '
                   'additional jurisdictions is planned for a future release.',
                   style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant),
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.info_outline,
-                        size: 16,
-                        color: theme.colorScheme.onSurfaceVariant),
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         'Use the Federal tab income summary and your '
                         'state\'s tax portal to prepare your return.',
                         style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant),
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ],
@@ -1766,14 +1993,15 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
 
       // Copy to app documents so it persists
       final dir = await getApplicationDocumentsDirectory();
-      final receiptsDir =
-          Directory(p.join(dir.path, 'receipt_photos'));
+      final receiptsDir = Directory(p.join(dir.path, 'receipt_photos'));
       await receiptsDir.create(recursive: true);
       final ext = p.extension(file.path).isNotEmpty
           ? p.extension(file.path)
           : '.jpg';
-      final dest = p.join(receiptsDir.path,
-          '${DateTime.now().millisecondsSinceEpoch}$ext');
+      final dest = p.join(
+        receiptsDir.path,
+        '${DateTime.now().millisecondsSinceEpoch}$ext',
+      );
       await File(file.path).copy(dest);
 
       setState(() => _imagePath = dest);
@@ -1791,7 +2019,8 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
     Navigator.pop(
       context,
       _Receipt(
-        id: widget.existing?.id ??
+        id:
+            widget.existing?.id ??
             DateTime.now().millisecondsSinceEpoch.toString(),
         date: DateFormat('yyyy-MM-dd').format(_date),
         description: description,
@@ -1822,8 +2051,9 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
         children: [
           Text(
             isEditing ? 'Edit Expense' : 'Add Expense',
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
           InkWell(
@@ -1867,8 +2097,7 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
               border: OutlineInputBorder(),
               prefixText: '\$ ',
             ),
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 12),
 
@@ -1890,27 +2119,29 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
               label: const Text('Remove photo'),
             ),
           ] else ...[
-            Row(children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _pickingImage
-                      ? null
-                      : () => _pickImage(ImageSource.camera),
-                  icon: const Icon(Icons.camera_alt_outlined, size: 18),
-                  label: const Text('Camera'),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _pickingImage
+                        ? null
+                        : () => _pickImage(ImageSource.camera),
+                    icon: const Icon(Icons.camera_alt_outlined, size: 18),
+                    label: const Text('Camera'),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _pickingImage
-                      ? null
-                      : () => _pickImage(ImageSource.gallery),
-                  icon: const Icon(Icons.photo_library_outlined, size: 18),
-                  label: const Text('Gallery'),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _pickingImage
+                        ? null
+                        : () => _pickImage(ImageSource.gallery),
+                    icon: const Icon(Icons.photo_library_outlined, size: 18),
+                    label: const Text('Gallery'),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
           ],
 
           const SizedBox(height: 4),
@@ -1962,9 +2193,12 @@ class _RoomStepper extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1973,19 +2207,20 @@ class _RoomStepper extends StatelessWidget {
                 iconSize: 18,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                onPressed:
-                    value > min ? () => onChanged(value - 1) : null,
+                onPressed: value > min ? () => onChanged(value - 1) : null,
               ),
-              Text('$value',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                '$value',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               IconButton(
                 icon: const Icon(Icons.add),
                 iconSize: 18,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                onPressed:
-                    value < max ? () => onChanged(value + 1) : null,
+                onPressed: value < max ? () => onChanged(value + 1) : null,
               ),
             ],
           ),
@@ -2021,11 +2256,14 @@ class _GuideStat extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(value,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold, color: color)),
-          Text(label,
-              style: theme.textTheme.bodySmall?.copyWith(color: color)),
+          Text(
+            value,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(label, style: theme.textTheme.bodySmall?.copyWith(color: color)),
         ],
       ),
     );
@@ -2043,34 +2281,40 @@ class _DueDateRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final isPast = due.isBefore(now);
-    final isNear =
-        !isPast && due.isBefore(now.add(const Duration(days: 21)));
+    final isNear = !isPast && due.isBefore(now.add(const Duration(days: 21)));
     final color = isPast
         ? theme.colorScheme.onSurfaceVariant
         : isNear
-            ? const Color(0xFFE65100)
-            : const Color(0xFF2E7D32);
+        ? const Color(0xFFE65100)
+        : const Color(0xFF2E7D32);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(children: [
-        Icon(
-          isPast ? Icons.check_circle_outline : Icons.radio_button_unchecked,
-          size: 18,
-          color: color,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(label,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: isPast ? theme.colorScheme.onSurfaceVariant : null)),
-        ),
-        Text(
-          'Due ${DateFormat.MMMd().format(due)}',
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: color, fontWeight: FontWeight.w600),
-        ),
-      ]),
+      child: Row(
+        children: [
+          Icon(
+            isPast ? Icons.check_circle_outline : Icons.radio_button_unchecked,
+            size: 18,
+            color: color,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: isPast ? theme.colorScheme.onSurfaceVariant : null,
+              ),
+            ),
+          ),
+          Text(
+            'Due ${DateFormat.MMMd().format(due)}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -2094,12 +2338,14 @@ class _LinkTile extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: cs.primary),
-      title: Text(title,
-          style: TextStyle(color: cs.primary, fontWeight: FontWeight.w500)),
+      title: Text(
+        title,
+        style: TextStyle(color: cs.primary, fontWeight: FontWeight.w500),
+      ),
       subtitle: Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
       trailing: Icon(Icons.open_in_new, size: 16, color: cs.primary),
-      onTap: () => launchUrl(Uri.parse(url),
-          mode: LaunchMode.externalApplication),
+      onTap: () =>
+          launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
     );
   }
 }
@@ -2121,11 +2367,13 @@ class _GuideCheckRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 8),
-        Expanded(child: Text(text, style: theme.textTheme.bodySmall)),
-      ]),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text, style: theme.textTheme.bodySmall)),
+        ],
+      ),
     );
   }
 }
@@ -2138,8 +2386,7 @@ class _SummaryRow extends StatelessWidget {
   final ThemeData theme;
   final bool bold;
 
-  const _SummaryRow(this.label, this.value, this.theme,
-      {this.bold = false});
+  const _SummaryRow(this.label, this.value, this.theme, {this.bold = false});
 
   @override
   Widget build(BuildContext context) {

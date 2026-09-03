@@ -20,25 +20,25 @@ class QuickAction {
   });
 
   Map<String, dynamic> toJson() => {
-        'clientId': clientId,
-        if (projectId != null) 'projectId': projectId,
-        'label': label,
-        if (description != null) 'description': description,
-      };
+    'clientId': clientId,
+    if (projectId != null) 'projectId': projectId,
+    'label': label,
+    if (description != null) 'description': description,
+  };
 
   factory QuickAction.fromJson(Map<String, dynamic> json) => QuickAction(
-        clientId: json['clientId'].toString(),
-        projectId: json['projectId']?.toString(),
-        label: json['label'] as String,
-        description: json['description'] as String?,
-      );
+    clientId: json['clientId'].toString(),
+    projectId: json['projectId']?.toString(),
+    label: json['label'] as String,
+    description: json['description'] as String?,
+  );
 }
 
 /// Loads/saves quick actions from app_settings.
 final quickActionsProvider =
     AsyncNotifierProvider<QuickActionsNotifier, List<QuickAction>>(
-  QuickActionsNotifier.new,
-);
+      QuickActionsNotifier.new,
+    );
 
 class QuickActionsNotifier extends AsyncNotifier<List<QuickAction>> {
   late AppSettingsDao _dao;

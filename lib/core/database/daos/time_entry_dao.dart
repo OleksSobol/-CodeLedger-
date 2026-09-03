@@ -41,12 +41,14 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
     return transaction(() async {
       final start = entry.startTime.value;
       final end = entry.endTime.value;
-      final clientId =
-          entry.clientId.present ? entry.clientId.value : null;
+      final clientId = entry.clientId.present ? entry.clientId.value : null;
 
       if (end != null) {
-        final overlapping =
-            await _findOverlapping(start, end, clientId: clientId);
+        final overlapping = await _findOverlapping(
+          start,
+          end,
+          clientId: clientId,
+        );
         if (overlapping.isNotEmpty) {
           throw OverlappingTimeEntryException(overlapping.first);
         }
@@ -65,9 +67,9 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
   }) {
     final now = DateTime.now();
     return transaction(() async {
-      final entry =
-          await (select(timeEntries)..where((t) => t.id.equals(entryId)))
-              .getSingle();
+      final entry = await (select(
+        timeEntries,
+      )..where((t) => t.id.equals(entryId))).getSingle();
       final duration = now.difference(entry.startTime).inMinutes;
 
       final overlapping = await _findOverlapping(
@@ -84,13 +86,16 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
       }
 
       return (update(timeEntries)..where((t) => t.id.equals(entryId)))
-          .write(TimeEntriesCompanion(
-            endTime: Value(now),
-            durationMinutes: Value(duration),
-            description:
-                description != null ? Value(description) : const Value.absent(),
-            updatedAt: Value(now),
-          ))
+          .write(
+            TimeEntriesCompanion(
+              endTime: Value(now),
+              durationMinutes: Value(duration),
+              description: description != null
+                  ? Value(description)
+                  : const Value.absent(),
+              updatedAt: Value(now),
+            ),
+          )
           .then((rows) => rows > 0);
     });
   }
@@ -103,9 +108,9 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
       final start = companion.startTime;
       final end = companion.endTime;
 
-      final existing =
-          await (select(timeEntries)..where((t) => t.id.equals(entryId)))
-              .getSingle();
+      final existing = await (select(
+        timeEntries,
+      )..where((t) => t.id.equals(entryId))).getSingle();
       final clientId = existing.clientId;
 
       if (start.present && end.present && end.value != null) {
@@ -157,7 +162,8 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
   }) {
     final query = select(timeEntries)
       ..where((t) {
-        var condition = t.startTime.isSmallerThanValue(end) &
+        var condition =
+            t.startTime.isSmallerThanValue(end) &
             t.endTime.isNotNull() &
             t.endTime.isBiggerThanValue(start);
         if (excludeId != null) {
@@ -209,68 +215,78 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
     DateTime end,
   ) {
     return (select(timeEntries)
-          ..where((t) =>
-              t.startTime.isBiggerOrEqualValue(start) &
-              t.startTime.isSmallerThanValue(end))
+          ..where(
+            (t) =>
+                t.startTime.isBiggerOrEqualValue(start) &
+                t.startTime.isSmallerThanValue(end),
+          )
           ..orderBy([(t) => OrderingTerm.desc(t.startTime)]))
         .watch();
   }
 
   Future<List<TimeEntry>> getUninvoicedForClient(String clientId) {
     return (select(timeEntries)
-          ..where((t) =>
-              t.clientId.equals(clientId) &
-              t.isInvoiced.equals(false) &
-              t.endTime.isNotNull())
+          ..where(
+            (t) =>
+                t.clientId.equals(clientId) &
+                t.isInvoiced.equals(false) &
+                t.endTime.isNotNull(),
+          )
           ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
         .get();
   }
 
   Future<List<TimeEntry>> getUninvoicedForProject(String projectId) {
     return (select(timeEntries)
-          ..where((t) =>
-              t.projectId.equals(projectId) &
-              t.isInvoiced.equals(false) &
-              t.endTime.isNotNull())
+          ..where(
+            (t) =>
+                t.projectId.equals(projectId) &
+                t.isInvoiced.equals(false) &
+                t.endTime.isNotNull(),
+          )
           ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
         .get();
   }
 
   Future<TimeEntry?> getMostRecentCompleted() async {
-    final results = await (select(timeEntries)
-          ..where((t) => t.endTime.isNotNull())
-          ..orderBy([(t) => OrderingTerm.desc(t.startTime)])
-          ..limit(1))
-        .get();
+    final results =
+        await (select(timeEntries)
+              ..where((t) => t.endTime.isNotNull())
+              ..orderBy([(t) => OrderingTerm.desc(t.startTime)])
+              ..limit(1))
+            .get();
     return results.isEmpty ? null : results.first;
   }
 
   Future<int> updateRateForClient(String clientId, double newRate) {
-    return (update(timeEntries)
-          ..where((t) =>
-              t.clientId.equals(clientId) &
-              t.isInvoiced.equals(false)))
-        .write(TimeEntriesCompanion(
-          hourlyRateSnapshot: Value(newRate),
-          updatedAt: Value(DateTime.now()),
-        ));
+    return (update(timeEntries)..where(
+          (t) => t.clientId.equals(clientId) & t.isInvoiced.equals(false),
+        ))
+        .write(
+          TimeEntriesCompanion(
+            hourlyRateSnapshot: Value(newRate),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
   }
 
   Future<int> countUninvoicedAtRate(String clientId, double rate) async {
-    final entries = await (select(timeEntries)
-          ..where((t) =>
-              t.clientId.equals(clientId) &
-              t.isInvoiced.equals(false) &
-              t.endTime.isNotNull() &
-              t.hourlyRateSnapshot.equals(rate)))
-        .get();
+    final entries =
+        await (select(timeEntries)..where(
+              (t) =>
+                  t.clientId.equals(clientId) &
+                  t.isInvoiced.equals(false) &
+                  t.endTime.isNotNull() &
+                  t.hourlyRateSnapshot.equals(rate),
+            ))
+            .get();
     return entries.length;
   }
 
   Future<Set<String>> getAllTags() async {
-    final rows = await (select(timeEntries)
-          ..where((t) => t.tags.isNotNull()))
-        .get();
+    final rows = await (select(
+      timeEntries,
+    )..where((t) => t.tags.isNotNull())).get();
     final result = <String>{};
     for (final row in rows) {
       result.addAll(parseTags(row.tags));
@@ -289,12 +305,14 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<void> unmarkInvoiced(String invoiceId) {
-    return (update(timeEntries)
-          ..where((t) => t.invoiceId.equals(invoiceId)))
-        .write(const TimeEntriesCompanion(
-          isInvoiced: Value(false),
-          invoiceId: Value(null),
-        ));
+    return (update(
+      timeEntries,
+    )..where((t) => t.invoiceId.equals(invoiceId))).write(
+      const TimeEntriesCompanion(
+        isInvoiced: Value(false),
+        invoiceId: Value(null),
+      ),
+    );
   }
 
   Future<List<TimeEntry>> getAllEntries({

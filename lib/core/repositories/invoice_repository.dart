@@ -14,7 +14,11 @@ abstract class InvoiceRepository {
     required List<String> timeEntryIds,
   });
   Future<bool> updateStatus(String id, String status);
-  Future<bool> recordPayment({required String invoiceId, required double amount, required String method});
+  Future<bool> recordPayment({
+    required String invoiceId,
+    required double amount,
+    required String method,
+  });
   Future<void> deleteDraftInvoice(String invoiceId);
   Future<bool> archiveInvoice(String invoiceId);
   Future<bool> unarchiveInvoice(String invoiceId);

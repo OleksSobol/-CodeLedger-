@@ -10,25 +10,25 @@ class SupabaseTimeEntryRepository implements TimeEntryRepository {
   String get _uid => _client.auth.currentUser!.id;
 
   TimeEntry _fromRow(Map<String, dynamic> r) => TimeEntry(
-        id: r['id'] as String,
-        clientId: r['client_id'] as String,
-        projectId: r['project_id'] as String?,
-        startTime: DateTime.parse(r['start_time'] as String),
-        endTime: r['end_time'] != null
-            ? DateTime.parse(r['end_time'] as String)
-            : null,
-        durationMinutes: r['duration_minutes'] as int?,
-        description: r['description'] as String?,
-        issueReference: r['issue_reference'] as String?,
-        repository: r['repository'] as String?,
-        tags: r['tags'] as String?,
-        isManual: r['is_manual'] as bool? ?? false,
-        hourlyRateSnapshot: (r['hourly_rate_snapshot'] as num).toDouble(),
-        isInvoiced: r['is_invoiced'] as bool? ?? false,
-        invoiceId: r['invoice_id'] as String?,
-        createdAt: DateTime.parse(r['created_at'] as String),
-        updatedAt: DateTime.parse(r['updated_at'] as String),
-      );
+    id: r['id'] as String,
+    clientId: r['client_id'] as String,
+    projectId: r['project_id'] as String?,
+    startTime: DateTime.parse(r['start_time'] as String),
+    endTime: r['end_time'] != null
+        ? DateTime.parse(r['end_time'] as String)
+        : null,
+    durationMinutes: r['duration_minutes'] as int?,
+    description: r['description'] as String?,
+    issueReference: r['issue_reference'] as String?,
+    repository: r['repository'] as String?,
+    tags: r['tags'] as String?,
+    isManual: r['is_manual'] as bool? ?? false,
+    hourlyRateSnapshot: (r['hourly_rate_snapshot'] as num).toDouble(),
+    isInvoiced: r['is_invoiced'] as bool? ?? false,
+    invoiceId: r['invoice_id'] as String?,
+    createdAt: DateTime.parse(r['created_at'] as String),
+    updatedAt: DateTime.parse(r['updated_at'] as String),
+  );
 
   Future<List<TimeEntry>> _findOverlapping(
     DateTime start,
@@ -66,18 +66,24 @@ class SupabaseTimeEntryRepository implements TimeEntryRepository {
         await _client.from('time_entries').delete().eq('id', entry.id);
       } else if (eStart.isBefore(start)) {
         final newDuration = start.difference(eStart).inMinutes;
-        await _client.from('time_entries').update({
-          'end_time': start.toUtc().toIso8601String(),
-          'duration_minutes': newDuration,
-          'updated_at': now,
-        }).eq('id', entry.id);
+        await _client
+            .from('time_entries')
+            .update({
+              'end_time': start.toUtc().toIso8601String(),
+              'duration_minutes': newDuration,
+              'updated_at': now,
+            })
+            .eq('id', entry.id);
       } else {
         final newDuration = eEnd.difference(end).inMinutes;
-        await _client.from('time_entries').update({
-          'start_time': end.toUtc().toIso8601String(),
-          'duration_minutes': newDuration,
-          'updated_at': now,
-        }).eq('id', entry.id);
+        await _client
+            .from('time_entries')
+            .update({
+              'start_time': end.toUtc().toIso8601String(),
+              'duration_minutes': newDuration,
+              'updated_at': now,
+            })
+            .eq('id', entry.id);
       }
     }
   }
@@ -117,8 +123,11 @@ class SupabaseTimeEntryRepository implements TimeEntryRepository {
     final clientId = entry.clientId.present ? entry.clientId.value : null;
 
     if (end != null) {
-      final overlapping =
-          await _findOverlapping(start, end, clientId: clientId);
+      final overlapping = await _findOverlapping(
+        start,
+        end,
+        clientId: clientId,
+      );
       if (overlapping.isNotEmpty) {
         throw OverlappingTimeEntryException(overlapping.first);
       }
@@ -134,9 +143,11 @@ class SupabaseTimeEntryRepository implements TimeEntryRepository {
       if (entry.projectId.present) 'project_id': entry.projectId.value,
       'start_time': start.toUtc().toIso8601String(),
       if (end != null) 'end_time': end.toUtc().toIso8601String(),
-      if (entry.durationMinutes.present) 'duration_minutes': entry.durationMinutes.value,
+      if (entry.durationMinutes.present)
+        'duration_minutes': entry.durationMinutes.value,
       if (entry.description.present) 'description': entry.description.value,
-      if (entry.issueReference.present) 'issue_reference': entry.issueReference.value,
+      if (entry.issueReference.present)
+        'issue_reference': entry.issueReference.value,
       if (entry.repository.present) 'repository': entry.repository.value,
       if (entry.tags.present) 'tags': entry.tags.value,
       'is_manual': entry.isManual.present ? entry.isManual.value : false,
@@ -228,8 +239,7 @@ class SupabaseTimeEntryRepository implements TimeEntryRepository {
   Stream<List<TimeEntry>> watchEntriesForDateRange(
     DateTime start,
     DateTime end,
-  ) =>
-      Stream.fromFuture(_fetchForDateRange(start, end));
+  ) => Stream.fromFuture(_fetchForDateRange(start, end));
 
   Future<List<TimeEntry>> _fetchForDateRange(
     DateTime start,
@@ -333,20 +343,26 @@ class SupabaseTimeEntryRepository implements TimeEntryRepository {
   @override
   Future<void> markAsInvoiced(List<String> entryIds, String invoiceId) async {
     if (entryIds.isEmpty) return;
-    await _client.from('time_entries').update({
-      'is_invoiced': true,
-      'invoice_id': invoiceId,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    }).inFilter('id', entryIds);
+    await _client
+        .from('time_entries')
+        .update({
+          'is_invoiced': true,
+          'invoice_id': invoiceId,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .inFilter('id', entryIds);
   }
 
   @override
   Future<void> unmarkInvoiced(String invoiceId) async {
-    await _client.from('time_entries').update({
-      'is_invoiced': false,
-      'invoice_id': null,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    }).eq('invoice_id', invoiceId);
+    await _client
+        .from('time_entries')
+        .update({
+          'is_invoiced': false,
+          'invoice_id': null,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('invoice_id', invoiceId);
   }
 
   @override
@@ -380,27 +396,37 @@ class SupabaseTimeEntryRepository implements TimeEntryRepository {
 
   @override
   Future<bool> updateEntry(
-      String entryId, TimeEntriesCompanion companion) async {
+    String entryId,
+    TimeEntriesCompanion companion,
+  ) async {
     final map = <String, dynamic>{
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
     if (companion.clientId.present) map['client_id'] = companion.clientId.value;
-    if (companion.projectId.present) map['project_id'] = companion.projectId.value;
+    if (companion.projectId.present)
+      map['project_id'] = companion.projectId.value;
     if (companion.startTime.present) {
       map['start_time'] = companion.startTime.value.toUtc().toIso8601String();
     }
     if (companion.endTime.present) {
       map['end_time'] = companion.endTime.value?.toUtc().toIso8601String();
     }
-    if (companion.durationMinutes.present) map['duration_minutes'] = companion.durationMinutes.value;
-    if (companion.description.present) map['description'] = companion.description.value;
-    if (companion.issueReference.present) map['issue_reference'] = companion.issueReference.value;
-    if (companion.repository.present) map['repository'] = companion.repository.value;
+    if (companion.durationMinutes.present)
+      map['duration_minutes'] = companion.durationMinutes.value;
+    if (companion.description.present)
+      map['description'] = companion.description.value;
+    if (companion.issueReference.present)
+      map['issue_reference'] = companion.issueReference.value;
+    if (companion.repository.present)
+      map['repository'] = companion.repository.value;
     if (companion.tags.present) map['tags'] = companion.tags.value;
     if (companion.isManual.present) map['is_manual'] = companion.isManual.value;
-    if (companion.hourlyRateSnapshot.present) map['hourly_rate_snapshot'] = companion.hourlyRateSnapshot.value;
-    if (companion.isInvoiced.present) map['is_invoiced'] = companion.isInvoiced.value;
-    if (companion.invoiceId.present) map['invoice_id'] = companion.invoiceId.value;
+    if (companion.hourlyRateSnapshot.present)
+      map['hourly_rate_snapshot'] = companion.hourlyRateSnapshot.value;
+    if (companion.isInvoiced.present)
+      map['is_invoiced'] = companion.isInvoiced.value;
+    if (companion.invoiceId.present)
+      map['invoice_id'] = companion.invoiceId.value;
     final result = await _client
         .from('time_entries')
         .update(map)

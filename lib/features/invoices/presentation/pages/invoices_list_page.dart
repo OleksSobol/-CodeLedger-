@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../shared/widgets/responsive_layout.dart';
 import '../providers/invoice_providers.dart';
 import '../widgets/invoice_status_badge.dart';
 import '../../../clients/presentation/providers/client_providers.dart';
@@ -11,8 +12,22 @@ import '../../../clients/presentation/providers/client_providers.dart';
 class InvoicesListPage extends ConsumerWidget {
   const InvoicesListPage({super.key});
 
-  static const _statuses = [null, 'draft', 'sent', 'paid', 'overdue', 'archived'];
-  static const _labels = ['All', 'Draft', 'Sent', 'Paid', 'Overdue', 'Archived'];
+  static const _statuses = [
+    null,
+    'draft',
+    'sent',
+    'paid',
+    'overdue',
+    'archived',
+  ];
+  static const _labels = [
+    'All',
+    'Draft',
+    'Sent',
+    'Paid',
+    'Overdue',
+    'Archived',
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,10 +35,12 @@ class InvoicesListPage extends ConsumerWidget {
     final currentFilter = ref.watch(invoiceStatusFilterProvider);
     final theme = Theme.of(context);
 
-    final draftCount = ref.watch(allInvoicesProvider).maybeWhen(
-      data: (list) => list.where((i) => i.status == 'draft').length,
-      orElse: () => 0,
-    );
+    final draftCount = ref
+        .watch(allInvoicesProvider)
+        .maybeWhen(
+          data: (list) => list.where((i) => i.status == 'draft').length,
+          orElse: () => 0,
+        );
 
     return Scaffold(
       appBar: AppBar(
@@ -43,57 +60,64 @@ class InvoicesListPage extends ConsumerWidget {
         ],
       ),
       floatingActionButton: _NewInvoiceFab(),
-      body: Column(
-        children: [
-          // Status filter chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: List.generate(_statuses.length, (i) {
-                final isSelected = currentFilter == _statuses[i];
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(_labels[i]),
-                    selected: isSelected,
-                    onSelected: (_) {
-                      ref.read(invoiceStatusFilterProvider.notifier).set(
-                          _statuses[i]);
-                    },
-                  ),
-                );
-              }),
-            ),
-          ),
-          // Invoice list
-          Expanded(
-            child: invoicesAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
-              data: (invoices) {
-                if (invoices.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.receipt_long_outlined,
-                            size: 64, color: theme.colorScheme.outline),
-                        const SizedBox(height: 16),
-                        Text('No invoices',
-                            style: theme.textTheme.titleMedium),
-                        const SizedBox(height: 8),
-                        const Text('Create your first invoice'),
-                      ],
+      body: ResponsiveAlign(
+        child: Column(
+          children: [
+            // Status filter chips
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: List.generate(_statuses.length, (i) {
+                  final isSelected = currentFilter == _statuses[i];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Text(_labels[i]),
+                      selected: isSelected,
+                      onSelected: (_) {
+                        ref
+                            .read(invoiceStatusFilterProvider.notifier)
+                            .set(_statuses[i]);
+                      },
                     ),
                   );
-                }
-                return _InvoiceListView(invoices: invoices);
-              },
+                }),
+              ),
             ),
-          ),
-        ],
+            // Invoice list
+            Expanded(
+              child: invoicesAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(child: Text('Error: $e')),
+                data: (invoices) {
+                  if (invoices.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.receipt_long_outlined,
+                            size: 64,
+                            color: theme.colorScheme.outline,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No invoices',
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text('Create your first invoice'),
+                        ],
+                      ),
+                    );
+                  }
+                  return _InvoiceListView(invoices: invoices);
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -114,10 +138,7 @@ class _InvoiceListView extends ConsumerWidget {
       itemBuilder: (context, index) {
         final inv = invoices[index];
         final clientAsync = ref.watch(clientByIdProvider(inv.clientId));
-        final clientName = clientAsync.whenOrNull(
-              data: (c) => c.name,
-            ) ??
-            '...';
+        final clientName = clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
 
         final balanceDue = inv.total - inv.amountPaid;
 
@@ -127,9 +148,12 @@ class _InvoiceListView extends ConsumerWidget {
             onTap: () => context.push('/invoices/${inv.id}'),
             title: Row(
               children: [
-                Text(inv.invoiceNumber,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  inv.invoiceNumber,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 InvoiceStatusBadge(status: inv.status),
               ],
@@ -147,14 +171,16 @@ class _InvoiceListView extends ConsumerWidget {
               children: [
                 Text(
                   formatCurrency(inv.total, currency: inv.currency),
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 if (balanceDue > 0 && inv.status != 'draft')
                   Text(
                     'Due: ${formatCurrency(balanceDue, currency: inv.currency)}',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: theme.colorScheme.error),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
                   ),
               ],
             ),
@@ -187,9 +213,12 @@ class _NewInvoiceFab extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text('New Invoice',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold)),
+              child: Text(
+                'New Invoice',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.receipt_long_outlined),

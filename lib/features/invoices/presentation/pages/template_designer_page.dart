@@ -62,7 +62,8 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
     _lineItemDisplayMode = t.lineItemDisplayMode;
     _showDateColumn =
         _lineItemDisplayMode == 'full' || _lineItemDisplayMode == 'date_issue';
-    _showIssueColumn = _lineItemDisplayMode == 'issue_desc' ||
+    _showIssueColumn =
+        _lineItemDisplayMode == 'issue_desc' ||
         _lineItemDisplayMode == 'date_issue';
     _showLogo = t.showLogo;
     _showPaymentInfo = t.showPaymentInfo;
@@ -138,10 +139,10 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
     _lineItemDisplayMode = _showDateColumn && _showIssueColumn
         ? 'date_issue'
         : _showDateColumn
-            ? 'full'
-            : _showIssueColumn
-                ? 'issue_desc'
-                : 'desc_only';
+        ? 'full'
+        : _showIssueColumn
+        ? 'issue_desc'
+        : 'desc_only';
   }
 
   Future<void> _save() async {
@@ -176,18 +177,20 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
               showPaymentTerms: Value(_showPaymentTerms),
               showLateFeeClause: Value(_showLateFeeClause),
               showDescription: Value(_showDescription),
-              footerText: Value(_footerCtrl.text.trim().isEmpty
-                  ? null
-                  : _footerCtrl.text.trim()),
+              footerText: Value(
+                _footerCtrl.text.trim().isEmpty
+                    ? null
+                    : _footerCtrl.text.trim(),
+              ),
               updatedAt: Value(DateTime.now()),
             ),
           );
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -217,7 +220,8 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
     final profile = profileAsync.value;
 
     final now = DateTime.now();
-    final sampleProfile = profile ??
+    final sampleProfile =
+        profile ??
         UserProfile(
           id: 'sample-profile',
           businessName: 'Your Business',
@@ -353,7 +357,8 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
                 ? const SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2))
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Text('Save'),
           ),
           PopupMenuButton<String>(
@@ -364,7 +369,9 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
                 final id = await ref
                     .read(templateNotifierProvider.notifier)
                     .duplicateTemplate(
-                        _currentTemplate(), '${_nameCtrl.text} (Copy)');
+                      _currentTemplate(),
+                      '${_nameCtrl.text} (Copy)',
+                    );
                 if (mounted) {
                   final dao = ref.read(invoiceTemplateRepositoryProvider);
                   final newTemplate = await dao.getById(id);
@@ -385,8 +392,7 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
                     .setDefault(widget.template.id);
                 if (mounted) {
                   messenger.showSnackBar(
-                    const SnackBar(
-                        content: Text('Set as default template')),
+                    const SnackBar(content: Text('Set as default template')),
                   );
                 }
               } else if (value == 'delete') {
@@ -396,14 +402,17 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
                   builder: (ctx) => AlertDialog(
                     title: const Text('Delete Template'),
                     content: const Text(
-                        'Are you sure you want to delete this template?'),
+                      'Are you sure you want to delete this template?',
+                    ),
                     actions: [
                       TextButton(
-                          onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text('Cancel')),
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancel'),
+                      ),
                       FilledButton(
-                          onPressed: () => Navigator.pop(ctx, true),
-                          child: const Text('Delete')),
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Delete'),
+                      ),
                     ],
                   ),
                 );
@@ -474,9 +483,7 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
           if (!isBuiltIn) ...[
             TextFormField(
               controller: _nameCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Template Name',
-              ),
+              decoration: const InputDecoration(labelText: 'Template Name'),
             ),
             const SizedBox(height: Spacing.sm),
             TextFormField(
@@ -496,12 +503,9 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
             const SizedBox(height: Spacing.sm),
             SegmentedButton<String>(
               segments: const [
-                ButtonSegment(
-                    value: 'minimal', label: Text('Minimal')),
-                ButtonSegment(
-                    value: 'detailed', label: Text('Detailed')),
-                ButtonSegment(
-                    value: 'modern_developer', label: Text('Modern')),
+                ButtonSegment(value: 'minimal', label: Text('Minimal')),
+                ButtonSegment(value: 'detailed', label: Text('Detailed')),
+                ButtonSegment(value: 'modern_developer', label: Text('Modern')),
               ],
               selected: {_resolveBaseKey(_templateKey)},
               onSelectionChanged: (selection) {
@@ -524,8 +528,7 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
                 setState(() => _primaryColor = color);
                 _refreshPreview();
               }),
-              child: CircleAvatar(
-                  backgroundColor: _primaryColor, radius: 18),
+              child: CircleAvatar(backgroundColor: _primaryColor, radius: 18),
             ),
           ),
           ListTile(
@@ -536,22 +539,16 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
                 setState(() => _accentColor = color);
                 _refreshPreview();
               }),
-              child: CircleAvatar(
-                  backgroundColor: _accentColor, radius: 18),
+              child: CircleAvatar(backgroundColor: _accentColor, radius: 18),
             ),
           ),
           DropdownButtonFormField<String>(
             initialValue: _fontFamily,
-            decoration: const InputDecoration(
-              labelText: 'Font Family',
-            ),
+            decoration: const InputDecoration(labelText: 'Font Family'),
             items: const [
-              DropdownMenuItem(
-                  value: 'Helvetica', child: Text('Helvetica')),
-              DropdownMenuItem(
-                  value: 'Courier', child: Text('Courier')),
-              DropdownMenuItem(
-                  value: 'Times', child: Text('Times')),
+              DropdownMenuItem(value: 'Helvetica', child: Text('Helvetica')),
+              DropdownMenuItem(value: 'Courier', child: Text('Courier')),
+              DropdownMenuItem(value: 'Times', child: Text('Times')),
             ],
             onChanged: (value) {
               if (value != null) {
@@ -706,20 +703,17 @@ class _TemplateDesignerPageState extends ConsumerState<TemplateDesignerPage> {
                   .setDefault(widget.template.id);
               if (mounted) {
                 messenger.showSnackBar(
-                  const SnackBar(
-                      content: Text('Set as default template')),
+                  const SnackBar(content: Text('Set as default template')),
                 );
               }
             },
             icon: Icon(
-              widget.template.isDefault
-                  ? Icons.star
-                  : Icons.star_outline,
+              widget.template.isDefault ? Icons.star : Icons.star_outline,
               color: theme.colorScheme.primary,
             ),
-            label: Text(widget.template.isDefault
-                ? 'Default Template'
-                : 'Set as Default'),
+            label: Text(
+              widget.template.isDefault ? 'Default Template' : 'Set as Default',
+            ),
           ),
           const SizedBox(height: Spacing.xl),
         ],
@@ -737,8 +731,8 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       label,
       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        color: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 }

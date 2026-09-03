@@ -40,18 +40,20 @@ class ProfileNotifier extends AsyncNotifier<UserProfile> {
     String? postalCode,
     String? country,
   }) {
-    return updateProfile(UserProfilesCompanion(
-      businessName: Value(businessName),
-      ownerName: Value(ownerName),
-      email: Value(email),
-      phone: Value(phone),
-      addressLine1: Value(addressLine1),
-      addressLine2: Value(addressLine2),
-      city: Value(city),
-      stateProvince: Value(stateProvince),
-      postalCode: Value(postalCode),
-      country: Value(country),
-    ));
+    return updateProfile(
+      UserProfilesCompanion(
+        businessName: Value(businessName),
+        ownerName: Value(ownerName),
+        email: Value(email),
+        phone: Value(phone),
+        addressLine1: Value(addressLine1),
+        addressLine2: Value(addressLine2),
+        city: Value(city),
+        stateProvince: Value(stateProvince),
+        postalCode: Value(postalCode),
+        country: Value(country),
+      ),
+    );
   }
 
   Future<bool> updateTaxInfo({
@@ -60,12 +62,14 @@ class ProfileNotifier extends AsyncNotifier<UserProfile> {
     String? waBusinessLicense,
     required bool showWaLicense,
   }) {
-    return updateProfile(UserProfilesCompanion(
-      taxId: Value(taxId),
-      showTaxId: Value(showTaxId),
-      waBusinessLicense: Value(waBusinessLicense),
-      showWaLicense: Value(showWaLicense),
-    ));
+    return updateProfile(
+      UserProfilesCompanion(
+        taxId: Value(taxId),
+        showTaxId: Value(showTaxId),
+        waBusinessLicense: Value(waBusinessLicense),
+        showWaLicense: Value(showWaLicense),
+      ),
+    );
   }
 
   Future<bool> updateBankDetails({
@@ -78,16 +82,18 @@ class ProfileNotifier extends AsyncNotifier<UserProfile> {
     String? bankIban,
     required bool showBankDetails,
   }) {
-    return updateProfile(UserProfilesCompanion(
-      bankName: Value(bankName),
-      bankAccountName: Value(bankAccountName),
-      bankAccountNumber: Value(bankAccountNumber),
-      bankRoutingNumber: Value(bankRoutingNumber),
-      bankAccountType: Value(bankAccountType),
-      bankSwift: Value(bankSwift),
-      bankIban: Value(bankIban),
-      showBankDetails: Value(showBankDetails),
-    ));
+    return updateProfile(
+      UserProfilesCompanion(
+        bankName: Value(bankName),
+        bankAccountName: Value(bankAccountName),
+        bankAccountNumber: Value(bankAccountNumber),
+        bankRoutingNumber: Value(bankRoutingNumber),
+        bankAccountType: Value(bankAccountType),
+        bankSwift: Value(bankSwift),
+        bankIban: Value(bankIban),
+        showBankDetails: Value(showBankDetails),
+      ),
+    );
   }
 
   Future<bool> updatePaymentLinks({
@@ -95,11 +101,13 @@ class ProfileNotifier extends AsyncNotifier<UserProfile> {
     required bool showStripeLink,
     String? paymentInstructions,
   }) {
-    return updateProfile(UserProfilesCompanion(
-      stripePaymentLink: Value(stripePaymentLink),
-      showStripeLink: Value(showStripeLink),
-      paymentInstructions: Value(paymentInstructions),
-    ));
+    return updateProfile(
+      UserProfilesCompanion(
+        stripePaymentLink: Value(stripePaymentLink),
+        showStripeLink: Value(showStripeLink),
+        paymentInstructions: Value(paymentInstructions),
+      ),
+    );
   }
 
   Future<bool> updateDefaults({
@@ -111,15 +119,17 @@ class ProfileNotifier extends AsyncNotifier<UserProfile> {
     required int defaultPaymentTermsDays,
     double? lateFeePercentage,
   }) {
-    return updateProfile(UserProfilesCompanion(
-      defaultCurrency: Value(defaultCurrency),
-      defaultHourlyRate: Value(defaultHourlyRate),
-      defaultTaxLabel: Value(defaultTaxLabel),
-      defaultTaxRate: Value(defaultTaxRate),
-      defaultPaymentTerms: Value(defaultPaymentTerms),
-      defaultPaymentTermsDays: Value(defaultPaymentTermsDays),
-      lateFeePercentage: Value(lateFeePercentage),
-    ));
+    return updateProfile(
+      UserProfilesCompanion(
+        defaultCurrency: Value(defaultCurrency),
+        defaultHourlyRate: Value(defaultHourlyRate),
+        defaultTaxLabel: Value(defaultTaxLabel),
+        defaultTaxRate: Value(defaultTaxRate),
+        defaultPaymentTerms: Value(defaultPaymentTerms),
+        defaultPaymentTermsDays: Value(defaultPaymentTermsDays),
+        lateFeePercentage: Value(lateFeePercentage),
+      ),
+    );
   }
 
   Future<bool> updateInvoiceSettings({
@@ -128,13 +138,15 @@ class ProfileNotifier extends AsyncNotifier<UserProfile> {
     String? defaultTemplateId,
     int? nextInvoiceNumber,
   }) {
-    return updateProfile(UserProfilesCompanion(
-      invoiceNumberPrefix: Value(invoiceNumberPrefix),
-      defaultEmailSubjectFormat: Value(defaultEmailSubjectFormat),
-      defaultTemplateId: Value(defaultTemplateId),
-      nextInvoiceNumber: nextInvoiceNumber != null
-          ? Value(nextInvoiceNumber)
-          : const Value.absent(),
-    ));
+    return updateProfile(
+      UserProfilesCompanion(
+        invoiceNumberPrefix: Value(invoiceNumberPrefix),
+        defaultEmailSubjectFormat: Value(defaultEmailSubjectFormat),
+        defaultTemplateId: Value(defaultTemplateId),
+        nextInvoiceNumber: nextInvoiceNumber != null
+            ? Value(nextInvoiceNumber)
+            : const Value.absent(),
+      ),
+    );
   }
 }

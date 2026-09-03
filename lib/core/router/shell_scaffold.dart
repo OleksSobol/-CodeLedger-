@@ -132,8 +132,7 @@ class ShellScaffold extends ConsumerWidget {
         final timeRunningEntry = timeRunning.value;
         if (timeRunningEntry != null) {
           return FloatingActionButton.extended(
-            onPressed: () =>
-                _clockOut(context, ref, timeRunningEntry.id),
+            onPressed: () => _clockOut(context, ref, timeRunningEntry.id),
             icon: const Icon(Icons.stop),
             label: const Text('Clock Out'),
             backgroundColor: theme.colorScheme.error,
@@ -165,14 +164,17 @@ class ShellScaffold extends ConsumerWidget {
   }
 
   Future<void> _clockOut(
-      BuildContext context, WidgetRef ref, String entryId) async {
+    BuildContext context,
+    WidgetRef ref,
+    String entryId,
+  ) async {
     try {
       await ref.read(timerNotifierProvider.notifier).clockOut(entryId);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }

@@ -57,7 +57,8 @@ class DetailedBreakdownTemplate extends BaseInvoiceTemplate {
       }
 
       final parts = item.description.split(' | ');
-      final looksLikeDate = parts.length > 1 &&
+      final looksLikeDate =
+          parts.length > 1 &&
           RegExp(r'^[A-Za-z]+ \d+, \d{4}$').hasMatch(parts.first.trim());
       final qtyStr = looksLikeDate || item.timeEntryId != null
           ? '${item.quantity.toStringAsFixed(2)}h'
@@ -74,9 +75,10 @@ class DetailedBreakdownTemplate extends BaseInvoiceTemplate {
     return pw.TableHelper.fromTextArray(
       border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
       headerStyle: pw.TextStyle(
-          fontWeight: pw.FontWeight.bold,
-          fontSize: 10,
-          color: PdfColors.white),
+        fontWeight: pw.FontWeight.bold,
+        fontSize: 10,
+        color: PdfColors.white,
+      ),
       headerDecoration: pw.BoxDecoration(color: accent),
       cellStyle: const pw.TextStyle(fontSize: 9),
       cellAlignment: pw.Alignment.centerLeft,

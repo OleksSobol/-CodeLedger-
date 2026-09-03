@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'responsive_layout.dart';
 
 /// Centralized page scaffold that handles AppBar, SafeArea, and bottom bars.
 ///
@@ -25,7 +26,7 @@ class AppPageScaffold extends StatelessWidget {
       appBar: title != null
           ? AppBar(title: Text(title!), actions: actions)
           : null,
-      body: body,
+      body: ResponsiveAlign(child: body),
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: bottomBar != null
           ? SafeArea(child: bottomBar!)

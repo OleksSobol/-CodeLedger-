@@ -30,7 +30,9 @@ class _TimeEntryLayoutPageState extends ConsumerState<TimeEntryLayoutPage> {
 
   void _toggle(int index) {
     setState(() {
-      _configs[index] = _configs[index].copyWith(isVisible: !_configs[index].isVisible);
+      _configs[index] = _configs[index].copyWith(
+        isVisible: !_configs[index].isVisible,
+      );
     });
   }
 
@@ -70,10 +72,7 @@ class _TimeEntryLayoutPageState extends ConsumerState<TimeEntryLayoutPage> {
       appBar: AppBar(
         title: const Text('Entry Layout'),
         actions: [
-          TextButton(
-            onPressed: _reset,
-            child: const Text('Reset'),
-          ),
+          TextButton(onPressed: _reset, child: const Text('Reset')),
           TextButton(
             onPressed: _saving ? null : _save,
             child: _saving
@@ -92,20 +91,27 @@ class _TimeEntryLayoutPageState extends ConsumerState<TimeEntryLayoutPage> {
           // ── Live preview ──────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                Spacing.md, Spacing.md, Spacing.md, 0),
+              Spacing.md,
+              Spacing.md,
+              Spacing.md,
+              0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Preview',
-                  style: theme.textTheme.labelLarge
-                      ?.copyWith(color: theme.colorScheme.primary),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
                 const SizedBox(height: Spacing.sm),
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: Spacing.md, vertical: 12),
+                      horizontal: Spacing.md,
+                      vertical: 12,
+                    ),
                     child: TimeEntryTileBody(
                       entry: _sampleEntry(),
                       clientName: 'Acme Corp',
@@ -124,8 +130,9 @@ class _TimeEntryLayoutPageState extends ConsumerState<TimeEntryLayoutPage> {
             padding: const EdgeInsets.fromLTRB(Spacing.md, 10, Spacing.md, 4),
             child: Text(
               'Drag to reorder · toggle to show / hide',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
 
@@ -203,9 +210,7 @@ class _FieldRow extends StatelessWidget {
       ),
       title: Text(
         config.field.label,
-        style: TextStyle(
-          color: active ? null : theme.colorScheme.outline,
-        ),
+        style: TextStyle(color: active ? null : theme.colorScheme.outline),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -220,8 +225,10 @@ class _FieldRow extends StatelessWidget {
             index: index,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-              child: Icon(Icons.drag_handle,
-                  color: theme.colorScheme.onSurfaceVariant),
+              child: Icon(
+                Icons.drag_handle,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],

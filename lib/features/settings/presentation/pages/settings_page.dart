@@ -3,37 +3,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/providers/app_version_provider.dart';
+import '../../../easter_egg/presentation/pages/snake_game_page.dart';
 import '../../../../core/providers/landing_route_provider.dart';
 import '../../../../core/providers/multi_timer_provider.dart';
 import '../../../../core/providers/sync_service_provider.dart';
 import '../../../../core/sync/sync_service.dart';
 import '../../../../core/providers/theme_provider.dart';
 
+int _easterEggTaps = 0;
+
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
   static IconData _themeIcon(ThemeMode mode) => switch (mode) {
-        ThemeMode.system => Icons.brightness_auto,
-        ThemeMode.light => Icons.light_mode,
-        ThemeMode.dark => Icons.dark_mode,
-      };
+    ThemeMode.system => Icons.brightness_auto,
+    ThemeMode.light => Icons.light_mode,
+    ThemeMode.dark => Icons.dark_mode,
+  };
 
   static String _themeLabel(ThemeMode mode) => switch (mode) {
-        ThemeMode.system => 'System',
-        ThemeMode.light => 'Light',
-        ThemeMode.dark => 'Dark',
-      };
+    ThemeMode.system => 'System',
+    ThemeMode.light => 'Light',
+    ThemeMode.dark => 'Dark',
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode =
-        ref.watch(themeModeProvider).value ?? ThemeMode.system;
+    final themeMode = ref.watch(themeModeProvider).value ?? ThemeMode.system;
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
           // --- Navigation section ---
@@ -108,8 +108,10 @@ class SettingsPage extends ConsumerWidget {
           _SectionHeader(title: 'Appearance'),
           _LandingRouteTile(),
           ListTile(
-            leading: Icon(_themeIcon(themeMode),
-                color: theme.colorScheme.primary),
+            leading: Icon(
+              _themeIcon(themeMode),
+              color: theme.colorScheme.primary,
+            ),
             title: const Text('Theme'),
             subtitle: Text(_themeLabel(themeMode)),
             trailing: SegmentedButton<ThemeMode>(
@@ -129,9 +131,7 @@ class SettingsPage extends ConsumerWidget {
               ],
               selected: {themeMode},
               onSelectionChanged: (modes) {
-                ref
-                    .read(themeModeProvider.notifier)
-                    .setThemeMode(modes.first);
+                ref.read(themeModeProvider.notifier).setThemeMode(modes.first);
               },
               showSelectedIcon: false,
               style: ButtonStyle(
@@ -143,13 +143,20 @@ class SettingsPage extends ConsumerWidget {
           const Divider(height: 1),
 
           // --- About section ---
-          _SectionHeader(title: 'About'),
+          const _SectionHeader(title: 'About'),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('CodeLedger'),
-            subtitle: Text(
-              ref.watch(appVersionProvider).value ?? '...',
-            ),
+            subtitle: Text(ref.watch(appVersionProvider).value ?? '...'),
+            onTap: () {
+              _easterEggTaps++;
+              if (_easterEggTaps >= 7) {
+                _easterEggTaps = 0;
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SnakeGamePage()),
+                );
+              }
+            },
           ),
         ],
       ),
@@ -168,8 +175,8 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }
@@ -189,18 +196,19 @@ class _LandingRouteTile extends ConsumerWidget {
         .label;
 
     return ListTile(
-      leading:
-          Icon(Icons.home_outlined, color: theme.colorScheme.primary),
+      leading: Icon(Icons.home_outlined, color: theme.colorScheme.primary),
       title: const Text('Default Page on Launch'),
       subtitle: Text(currentLabel),
       trailing: DropdownButton<String>(
         value: current,
         underline: const SizedBox.shrink(),
         items: landingRouteOptions
-            .map((o) => DropdownMenuItem<String>(
-                  value: o.value,
-                  child: Text(o.label),
-                ))
+            .map(
+              (o) => DropdownMenuItem<String>(
+                value: o.value,
+                child: Text(o.label),
+              ),
+            )
             .toList(),
         onChanged: (route) {
           if (route == null) return;
@@ -221,8 +229,9 @@ class _MultiTimerTile extends ConsumerWidget {
       title: const Text('Multi-company clocking'),
       subtitle: Text(
         'Run simultaneous timers for different clients at the same time',
-        style: theme.textTheme.bodySmall
-            ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
       ),
       value: enabled,
       onChanged: (v) => ref.read(multiTimerProvider.notifier).setEnabled(v),
@@ -258,17 +267,40 @@ class _SyncStatusTileState extends ConsumerState<_SyncStatusTile> {
 
     final (label, color, icon) = statusAsync.when(
       data: (status) {
-        if (status == null) return ('Sign in to sync', theme.colorScheme.outline, Icons.cloud_off_outlined);
+        if (status == null)
+          return (
+            'Sign in to sync',
+            theme.colorScheme.outline,
+            Icons.cloud_off_outlined,
+          );
         return switch (status.state) {
-          SyncState.syncing => ('Syncing…', theme.colorScheme.primary, Icons.sync),
-          SyncState.error => ('Sync error: ${status.error ?? ''}', theme.colorScheme.error, Icons.sync_problem_outlined),
-          SyncState.idle => status.lastSyncedAt != null
-              ? ('Last synced ${_ago(status.lastSyncedAt!)}', Colors.green, Icons.cloud_done_outlined)
-              : ('Never synced', theme.colorScheme.outline, Icons.cloud_upload_outlined),
+          SyncState.syncing => (
+            'Syncing…',
+            theme.colorScheme.primary,
+            Icons.sync,
+          ),
+          SyncState.error => (
+            'Sync error: ${status.error ?? ''}',
+            theme.colorScheme.error,
+            Icons.sync_problem_outlined,
+          ),
+          SyncState.idle =>
+            status.lastSyncedAt != null
+                ? (
+                    'Last synced ${_ago(status.lastSyncedAt!)}',
+                    Colors.green,
+                    Icons.cloud_done_outlined,
+                  )
+                : (
+                    'Never synced',
+                    theme.colorScheme.outline,
+                    Icons.cloud_upload_outlined,
+                  ),
         };
       },
       loading: () => ('Loading…', theme.colorScheme.outline, Icons.sync),
-      error: (err, st) => ('Error', theme.colorScheme.error, Icons.error_outline),
+      error: (err, st) =>
+          ('Error', theme.colorScheme.error, Icons.error_outline),
     );
 
     return ListTile(
@@ -277,12 +309,16 @@ class _SyncStatusTileState extends ConsumerState<_SyncStatusTile> {
               width: 24,
               height: 24,
               child: CircularProgressIndicator(
-                  strokeWidth: 2, color: theme.colorScheme.primary),
+                strokeWidth: 2,
+                color: theme.colorScheme.primary,
+              ),
             )
           : Icon(icon, color: color),
       title: const Text('Cloud Sync'),
-      subtitle: Text(label,
-          style: theme.textTheme.bodySmall?.copyWith(color: color)),
+      subtitle: Text(
+        label,
+        style: theme.textTheme.bodySmall?.copyWith(color: color),
+      ),
       trailing: TextButton(
         onPressed: _syncing ? null : _syncNow,
         child: const Text('Sync Now'),
@@ -318,11 +354,17 @@ class _SettingsTile extends StatelessWidget {
     return ListTile(
       leading: Icon(icon, color: theme.colorScheme.primary),
       title: Text(title),
-      subtitle: Text(subtitle,
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-      trailing: Icon(Icons.chevron_right,
-          size: 20, color: theme.colorScheme.outline),
+      subtitle: Text(
+        subtitle,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+      trailing: Icon(
+        Icons.chevron_right,
+        size: 20,
+        color: theme.colorScheme.outline,
+      ),
       onTap: onTap,
     );
   }

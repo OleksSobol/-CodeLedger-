@@ -21,9 +21,12 @@ class QuickActionChips extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Text('Quick Actions',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Quick Actions',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const Spacer(),
             if ((actionsAsync.value ?? []).isNotEmpty)
               IconButton(
@@ -48,26 +51,33 @@ class QuickActionChips extends ConsumerWidget {
                   return Padding(
                     padding: const EdgeInsets.only(right: Spacing.sm),
                     child: ActionChip(
-                      avatar: Icon(Icons.play_arrow,
-                          size: 18, color: theme.colorScheme.primary),
+                      avatar: Icon(
+                        Icons.play_arrow,
+                        size: 18,
+                        color: theme.colorScheme.primary,
+                      ),
                       label: Text(action.label),
                       tooltip: 'Clock in: ${action.label}',
                       side: BorderSide(
-                          color: theme.colorScheme.primary
-                              .withValues(alpha: 0.3)),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                      ),
                       onPressed: () => _clockIn(context, ref, action),
                     ),
                   );
                 }),
                 // "Add" chip — outlined/secondary style to differentiate
                 ActionChip(
-                  avatar: Icon(Icons.add, size: 18,
-                      color: theme.colorScheme.outline),
-                  label: Text('Add',
-                      style: TextStyle(color: theme.colorScheme.outline)),
+                  avatar: Icon(
+                    Icons.add,
+                    size: 18,
+                    color: theme.colorScheme.outline,
+                  ),
+                  label: Text(
+                    'Add',
+                    style: TextStyle(color: theme.colorScheme.outline),
+                  ),
                   tooltip: 'Add quick action',
-                  side: BorderSide(
-                      color: theme.colorScheme.outlineVariant),
+                  side: BorderSide(color: theme.colorScheme.outlineVariant),
                   onPressed: () => _showAddSheet(context, ref),
                 ),
               ],
@@ -79,18 +89,23 @@ class QuickActionChips extends ConsumerWidget {
   }
 
   Future<void> _clockIn(
-      BuildContext context, WidgetRef ref, QuickAction action) async {
+    BuildContext context,
+    WidgetRef ref,
+    QuickAction action,
+  ) async {
     try {
-      await ref.read(timerNotifierProvider.notifier).clockIn(
+      await ref
+          .read(timerNotifierProvider.notifier)
+          .clockIn(
             clientId: action.clientId,
             projectId: action.projectId,
             description: action.description,
           );
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -100,9 +115,9 @@ class QuickActionChips extends ConsumerWidget {
     final clients = clientsAsync.value ?? [];
 
     if (clients.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add a client first')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Add a client first')));
       return;
     }
 
@@ -114,7 +129,10 @@ class QuickActionChips extends ConsumerWidget {
   }
 
   void _showEditSheet(
-      BuildContext context, WidgetRef ref, List<QuickAction> actions) {
+    BuildContext context,
+    WidgetRef ref,
+    List<QuickAction> actions,
+  ) {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => _EditQuickActionsSheet(actions: actions),
@@ -159,9 +177,12 @@ class _AddQuickActionSheetState extends ConsumerState<_AddQuickActionSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Add Quick Action',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'Add Quick Action',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: Spacing.md),
           DropdownButtonFormField<String>(
             decoration: const InputDecoration(
@@ -177,8 +198,7 @@ class _AddQuickActionSheetState extends ConsumerState<_AddQuickActionSheet> {
             onChanged: (id) {
               setState(() => _selectedClientId = id);
               if (_labelController.text.isEmpty && id != null) {
-                final client =
-                    widget.clients.firstWhere((c) => c.id == id);
+                final client = widget.clients.firstWhere((c) => c.id == id);
                 _labelController.text = client.name as String;
               }
             },
@@ -201,18 +221,21 @@ class _AddQuickActionSheetState extends ConsumerState<_AddQuickActionSheet> {
           ),
           const SizedBox(height: Spacing.md),
           FilledButton(
-            onPressed: _selectedClientId == null ||
+            onPressed:
+                _selectedClientId == null ||
                     _labelController.text.trim().isEmpty
                 ? null
                 : () {
-                    ref.read(quickActionsProvider.notifier).addAction(
+                    ref
+                        .read(quickActionsProvider.notifier)
+                        .addAction(
                           QuickAction(
                             clientId: _selectedClientId!,
                             label: _labelController.text.trim(),
                             description:
                                 _descriptionController.text.trim().isEmpty
-                                    ? null
-                                    : _descriptionController.text.trim(),
+                                ? null
+                                : _descriptionController.text.trim(),
                           ),
                         );
                     Navigator.pop(context);
@@ -242,10 +265,17 @@ class _EditQuickActionsSheet extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                Spacing.lg, Spacing.lg, Spacing.lg, Spacing.sm),
-            child: Text('Edit Quick Actions',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+              Spacing.lg,
+              Spacing.lg,
+              Spacing.lg,
+              Spacing.sm,
+            ),
+            child: Text(
+              'Edit Quick Actions',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           const Divider(height: 1),
           ...actions.asMap().entries.map((entry) {

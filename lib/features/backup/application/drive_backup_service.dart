@@ -64,8 +64,7 @@ class DriveBackupService {
     final folderId = await _getOrCreateFolder(api);
     final filename = p.basename(backupFile.path);
 
-    final media =
-        drive.Media(backupFile.openRead(), await backupFile.length());
+    final media = drive.Media(backupFile.openRead(), await backupFile.length());
     final driveFile = drive.File()
       ..name = filename
       ..parents = [folderId];
@@ -79,7 +78,8 @@ class DriveBackupService {
     final folderId = await _getOrCreateFolder(api);
 
     final result = await api.files.list(
-      q: "'$folderId' in parents and name contains "
+      q:
+          "'$folderId' in parents and name contains "
           "'${AppConstants.backupFilePrefix}' and trashed = false",
       orderBy: 'createdTime desc',
       $fields: 'files(id, name, size, createdTime)',
@@ -99,10 +99,12 @@ class DriveBackupService {
   Future<File> downloadBackup(String fileId, String filename) async {
     final api = _requireApi();
 
-    final media = await api.files.get(
-      fileId,
-      downloadOptions: drive.DownloadOptions.fullMedia,
-    ) as drive.Media;
+    final media =
+        await api.files.get(
+              fileId,
+              downloadOptions: drive.DownloadOptions.fullMedia,
+            )
+            as drive.Media;
 
     final dir = await Directory.systemTemp.createTemp('codledger_restore');
     final file = File(p.join(dir.path, filename));
@@ -124,8 +126,7 @@ class DriveBackupService {
 
   // -- Private helpers --
 
-  Future<GoogleSignInAccount?> _authenticateAndWait(
-      GoogleSignIn signIn) async {
+  Future<GoogleSignInAccount?> _authenticateAndWait(GoogleSignIn signIn) async {
     // Try lightweight first
     final silentResult = signIn.attemptLightweightAuthentication();
     if (silentResult != null) {
@@ -161,7 +162,8 @@ class DriveBackupService {
   /// Finds or creates the `/CodeLedger/` folder on Drive.
   Future<String> _getOrCreateFolder(drive.DriveApi api) async {
     final result = await api.files.list(
-      q: "name = '${AppConstants.driveFolder}' and "
+      q:
+          "name = '${AppConstants.driveFolder}' and "
           "mimeType = 'application/vnd.google-apps.folder' and "
           "trashed = false",
       $fields: 'files(id)',

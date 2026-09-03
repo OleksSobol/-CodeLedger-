@@ -46,7 +46,8 @@ class FinancialSummaryRow extends ConsumerWidget {
         icon: Icons.send_outlined,
         accentColor: theme.colorScheme.secondary,
         badge: outstandingAsync.whenOrNull(
-            data: (v) => v.count > 0 ? '${v.count}' : null),
+          data: (v) => v.count > 0 ? '${v.count}' : null,
+        ),
         wide: isWide,
         onTap: () {
           ref.read(invoiceStatusFilterProvider.notifier).set('sent');
@@ -60,17 +61,21 @@ class FinancialSummaryRow extends ConsumerWidget {
           error: (_, _) => '--',
           data: (v) => v.count == 0 ? 'None' : formatCurrency(v.total),
         ),
-        icon: overdueAsync.whenOrNull(
-                data: (v) => v.count > 0
-                    ? Icons.warning_amber_rounded
-                    : Icons.check_circle_outline) ??
+        icon:
+            overdueAsync.whenOrNull(
+              data: (v) => v.count > 0
+                  ? Icons.warning_amber_rounded
+                  : Icons.check_circle_outline,
+            ) ??
             Icons.warning_amber_rounded,
-        accentColor: overdueAsync.whenOrNull(
-                data: (v) =>
-                    v.count > 0 ? theme.colorScheme.error : null) ??
+        accentColor:
+            overdueAsync.whenOrNull(
+              data: (v) => v.count > 0 ? theme.colorScheme.error : null,
+            ) ??
             theme.colorScheme.tertiary,
         badge: overdueAsync.whenOrNull(
-            data: (v) => v.count > 0 ? '${v.count}' : null),
+          data: (v) => v.count > 0 ? '${v.count}' : null,
+        ),
         wide: isWide,
         onTap: () {
           ref.read(invoiceStatusFilterProvider.notifier).set('overdue');
@@ -83,20 +88,21 @@ class FinancialSummaryRow extends ConsumerWidget {
           loading: () => '...',
           error: (_, _) => '--',
           data: (items) {
-            final totalHours =
-                items.fold<double>(0, (sum, i) => sum + i.hours);
+            final totalHours = items.fold<double>(0, (sum, i) => sum + i.hours);
             return totalHours > 0
                 ? '${totalHours.toStringAsFixed(1)}h'
                 : 'All clear';
           },
         ),
-        icon: uninvoicedAsync.whenOrNull(
-                data: (items) {
-                  final h = items.fold<double>(0, (s, i) => s + i.hours);
-                  return h > 0
-                      ? Icons.hourglass_empty
-                      : Icons.check_circle_outline;
-                }) ??
+        icon:
+            uninvoicedAsync.whenOrNull(
+              data: (items) {
+                final h = items.fold<double>(0, (s, i) => s + i.hours);
+                return h > 0
+                    ? Icons.hourglass_empty
+                    : Icons.check_circle_outline;
+              },
+            ) ??
             Icons.hourglass_empty,
         accentColor: theme.colorScheme.tertiary,
         wide: isWide,
@@ -156,72 +162,74 @@ class _InsightTile extends StatelessWidget {
     final card = Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-            onTap: onTap,
-            child: Row(
-              children: [
-                Container(width: 4, color: accentColor),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: Spacing.sm + 4, vertical: Spacing.sm),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
+        onTap: onTap,
+        child: Row(
+          children: [
+            Container(width: 4, color: accentColor),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Spacing.sm + 4,
+                  vertical: Spacing.sm,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Icon(icon, size: 14, color: accentColor),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                label,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  letterSpacing: 0.3,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (badge != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: accentColor,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  badge!,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    fontSize: 10,
-                                    color: theme.colorScheme.surface,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: Spacing.xs),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
+                        Icon(icon, size: 14, color: accentColor),
+                        const SizedBox(width: 4),
+                        Expanded(
                           child: Text(
-                            value,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontFeatures: [
-                                const FontFeature.tabularFigures()
-                              ],
+                            label,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              letterSpacing: 0.3,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        if (badge != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: accentColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              badge!,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                fontSize: 10,
+                                color: theme.colorScheme.surface,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: Spacing.xs),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        value,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontFeatures: [const FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
+        ),
+      ),
     );
 
     if (wide) return card;

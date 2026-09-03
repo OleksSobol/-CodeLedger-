@@ -95,10 +95,14 @@ class BackupService {
     final tempDir = await getTemporaryDirectory();
     final files = await tempDir
         .list()
-        .where((entity) =>
-            entity is File &&
-            p.basename(entity.path).startsWith(AppConstants.backupFilePrefix) &&
-            entity.path.endsWith(AppConstants.backupFileExtension))
+        .where(
+          (entity) =>
+              entity is File &&
+              p
+                  .basename(entity.path)
+                  .startsWith(AppConstants.backupFilePrefix) &&
+              entity.path.endsWith(AppConstants.backupFileExtension),
+        )
         .cast<File>()
         .toList();
     files.sort((a, b) => b.path.compareTo(a.path)); // Newest first

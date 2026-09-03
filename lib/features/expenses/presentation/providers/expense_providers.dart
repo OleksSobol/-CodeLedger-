@@ -31,12 +31,13 @@ double annualDeductibleForYear(List<Expense> expenses, int year) {
   final start = DateTime(year, 1, 1);
   final end = DateTime(year, 12, 31);
   for (final e in expenses) {
-    final effectiveStart =
-        e.startDate.isAfter(start) ? e.startDate : start;
-    final effectiveEnd =
-        (e.endDate != null && e.endDate!.isBefore(end)) ? e.endDate! : end;
+    final effectiveStart = e.startDate.isAfter(start) ? e.startDate : start;
+    final effectiveEnd = (e.endDate != null && e.endDate!.isBefore(end))
+        ? e.endDate!
+        : end;
     if (effectiveStart.isAfter(effectiveEnd)) continue;
-    final months = (effectiveEnd.year - effectiveStart.year) * 12 +
+    final months =
+        (effectiveEnd.year - effectiveStart.year) * 12 +
         effectiveEnd.month -
         effectiveStart.month +
         1;

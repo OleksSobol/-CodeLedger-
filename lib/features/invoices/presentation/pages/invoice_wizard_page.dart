@@ -76,9 +76,7 @@ class _InvoiceWizardPageState extends ConsumerState<InvoiceWizardPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Discard Invoice?'),
-        content: const Text(
-          'Your invoice progress will be lost.',
-        ),
+        content: const Text('Your invoice progress will be lost.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -118,8 +116,9 @@ class _InvoiceWizardPageState extends ConsumerState<InvoiceWizardPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _creating = false);
@@ -183,18 +182,22 @@ class _InvoiceWizardPageState extends ConsumerState<InvoiceWizardPage> {
                               ),
                               child: Center(
                                 child: isCompleted
-                                    ? Icon(Icons.check,
+                                    ? Icon(
+                                        Icons.check,
                                         size: 16,
-                                        color: theme.colorScheme.onPrimary)
+                                        color: theme.colorScheme.onPrimary,
+                                      )
                                     : Text(
                                         '${i + 1}',
-                                        style:
-                                            theme.textTheme.labelSmall?.copyWith(
-                                          color: isActive
-                                              ? theme.colorScheme.onPrimary
-                                              : theme.colorScheme.onSurfaceVariant,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              color: isActive
+                                                  ? theme.colorScheme.onPrimary
+                                                  : theme
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                               ),
                             ),
@@ -227,8 +230,9 @@ class _InvoiceWizardPageState extends ConsumerState<InvoiceWizardPage> {
                           color: isActive
                               ? theme.colorScheme.primary
                               : theme.colorScheme.onSurfaceVariant,
-                          fontWeight:
-                              isActive ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isActive
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       );
                     }),
@@ -286,8 +290,11 @@ class _ClientStep extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.people_outline,
-                    size: 64, color: theme.colorScheme.outline),
+                Icon(
+                  Icons.people_outline,
+                  size: 64,
+                  color: theme.colorScheme.outline,
+                ),
                 const SizedBox(height: 16),
                 Text('No clients', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
@@ -380,8 +387,7 @@ class _EntriesStep extends ConsumerWidget {
       return const Center(child: Text('Select a client first'));
     }
 
-    final entriesAsync =
-        ref.watch(uninvoicedEntriesProvider(wizard.clientId!));
+    final entriesAsync = ref.watch(uninvoicedEntriesProvider(wizard.clientId!));
 
     return Column(
       children: [
@@ -389,8 +395,7 @@ class _EntriesStep extends ConsumerWidget {
           child: entriesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('Error: $e')),
-            data: (entries) =>
-                _EntriesBody(entries: entries, wizard: wizard),
+            data: (entries) => _EntriesBody(entries: entries, wizard: wizard),
           ),
         ),
         _EntriesBottomBar(wizard: wizard, onNext: onNext),
@@ -416,7 +421,8 @@ class _EntriesBottomBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
-            top: BorderSide(color: theme.colorScheme.outlineVariant)),
+          top: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
       ),
       child: SafeArea(
         child: Row(
@@ -429,8 +435,9 @@ class _EntriesBottomBar extends StatelessWidget {
                   Text('Subtotal', style: theme.textTheme.bodySmall),
                   Text(
                     formatCurrency(wizard.subtotal),
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -464,9 +471,12 @@ class _EntriesBody extends ConsumerWidget {
         if (entries.isNotEmpty)
           Row(
             children: [
-              Text('Time Entries (${entries.length})',
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                'Time Entries (${entries.length})',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const Spacer(),
               TextButton(
                 onPressed: () {
@@ -490,14 +500,16 @@ class _EntriesBody extends ConsumerWidget {
             child: Center(
               child: Text(
                 'No uninvoiced time entries for this client',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.outline),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
               ),
             ),
           ),
         ...entries.map((entry) {
-          final isSelected =
-              wizard.selectedEntries.any((e) => e.id == entry.id);
+          final isSelected = wizard.selectedEntries.any(
+            (e) => e.id == entry.id,
+          );
           final dateFmt = DateFormat.yMMMd();
           final hours = (entry.durationMinutes ?? 0) / 60.0;
           final amount = hours * entry.hourlyRateSnapshot;
@@ -521,9 +533,12 @@ class _EntriesBody extends ConsumerWidget {
         const Divider(height: 32),
         Row(
           children: [
-            Text('Manual Line Items',
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Manual Line Items',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const Spacer(),
             TextButton.icon(
               onPressed: () => _showAddManualItemDialog(context, ref),
@@ -536,8 +551,9 @@ class _EntriesBody extends ConsumerWidget {
         if (wizard.manualLineItems.isEmpty)
           Text(
             'No manual line items',
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.outline),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.outline,
+            ),
           ),
         ...wizard.manualLineItems.asMap().entries.map((e) {
           final idx = e.key;
@@ -581,8 +597,7 @@ class _EntriesBody extends ConsumerWidget {
                   labelText: 'Description',
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 12),
               Row(
@@ -595,10 +610,12 @@ class _EntriesBody extends ConsumerWidget {
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                        decimal: true,
+                      ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d{0,2}')),
+                          RegExp(r'^\d*\.?\d{0,2}'),
+                        ),
                       ],
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
@@ -617,10 +634,12 @@ class _EntriesBody extends ConsumerWidget {
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                        decimal: true,
+                      ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d{0,2}')),
+                          RegExp(r'^\d*\.?\d{0,2}'),
+                        ),
                       ],
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
@@ -642,7 +661,9 @@ class _EntriesBody extends ConsumerWidget {
           FilledButton(
             onPressed: () {
               if (formKey.currentState!.validate()) {
-                ref.read(invoiceWizardProvider.notifier).addManualLineItem(
+                ref
+                    .read(invoiceWizardProvider.notifier)
+                    .addManualLineItem(
                       ManualLineItem(
                         description: descCtrl.text.trim(),
                         quantity: double.parse(qtyCtrl.text.trim()),
@@ -689,11 +710,12 @@ class _ReviewStep extends ConsumerWidget {
     }
 
     final clientAsync = ref.watch(clientByIdProvider(wizard.clientId!));
-    final clientName =
-        clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
+    final clientName = clientAsync.whenOrNull(data: (c) => c.name) ?? '...';
 
     final totalHours = wizard.selectedEntries.fold<int>(
-        0, (sum, e) => sum + (e.durationMinutes ?? 0));
+      0,
+      (sum, e) => sum + (e.durationMinutes ?? 0),
+    );
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -705,22 +727,28 @@ class _ReviewStep extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Invoice Summary',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Invoice Summary',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 _SummaryRow(label: 'Client', value: clientName),
                 _SummaryRow(
-                    label: 'Time Entries',
-                    value: '${wizard.selectedEntries.length}'),
+                  label: 'Time Entries',
+                  value: '${wizard.selectedEntries.length}',
+                ),
                 if (wizard.selectedEntries.isNotEmpty)
                   _SummaryRow(
-                      label: 'Total Hours',
-                      value: formatDuration(totalHours)),
+                    label: 'Total Hours',
+                    value: formatDuration(totalHours),
+                  ),
                 if (wizard.manualLineItems.isNotEmpty)
                   _SummaryRow(
-                      label: 'Manual Items',
-                      value: '${wizard.manualLineItems.length}'),
+                    label: 'Manual Items',
+                    value: '${wizard.manualLineItems.length}',
+                  ),
               ],
             ),
           ),
@@ -728,32 +756,44 @@ class _ReviewStep extends ConsumerWidget {
         const SizedBox(height: 16),
 
         // Line items preview
-        Text('Line Items',
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          'Line Items',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 8),
 
         ...wizard.selectedEntries.map((entry) {
           final hours = (entry.durationMinutes ?? 0) / 60.0;
           return ListTile(
             dense: true,
-            title: Text(entry.description ?? 'Work session',
-                maxLines: 1, overflow: TextOverflow.ellipsis),
-            trailing:
-                Text(formatCurrency(hours * entry.hourlyRateSnapshot)),
+            title: Text(
+              entry.description ?? 'Work session',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: Text(formatCurrency(hours * entry.hourlyRateSnapshot)),
           );
         }),
-        ...wizard.manualLineItems.map((item) => ListTile(
-              dense: true,
-              title: Text(item.description,
-                  maxLines: 1, overflow: TextOverflow.ellipsis),
-              trailing: Text(formatCurrency(item.total)),
-            )),
+        ...wizard.manualLineItems.map(
+          (item) => ListTile(
+            dense: true,
+            title: Text(
+              item.description,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: Text(formatCurrency(item.total)),
+          ),
+        ),
 
         const Divider(height: 32),
 
         // Invoice template picker
-        ref.watch(allTemplatesProvider).when(
+        ref
+            .watch(allTemplatesProvider)
+            .when(
               loading: () => const LinearProgressIndicator(),
               error: (_, _) => const SizedBox.shrink(),
               data: (templates) {
@@ -764,14 +804,15 @@ class _ReviewStep extends ConsumerWidget {
                     border: OutlineInputBorder(),
                   ),
                   items: templates
-                      .map((t) => DropdownMenuItem<String?>(
-                            value: t.id,
-                            child: Text(t.name),
-                          ))
+                      .map(
+                        (t) => DropdownMenuItem<String?>(
+                          value: t.id,
+                          child: Text(t.name),
+                        ),
+                      )
                       .toList(),
-                  onChanged: (v) => ref
-                      .read(invoiceWizardProvider.notifier)
-                      .setTemplate(v),
+                  onChanged: (v) =>
+                      ref.read(invoiceWizardProvider.notifier).setTemplate(v),
                 );
               },
             ),
@@ -786,8 +827,7 @@ class _ReviewStep extends ConsumerWidget {
             border: OutlineInputBorder(),
             suffixText: '%',
           ),
-          keyboardType:
-              const TextInputType.numberWithOptions(decimal: true),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
         const SizedBox(height: 16),
 
@@ -811,13 +851,17 @@ class _ReviewStep extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Subtotal',
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Subtotal',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 Text(
                   formatCurrency(wizard.subtotal),
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -835,7 +879,9 @@ class _ReviewStep extends ConsumerWidget {
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Icon(Icons.receipt),
             label: Text(creating ? 'Creating...' : 'Create Invoice'),
@@ -859,12 +905,12 @@ class _SummaryRow extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-              width: 120,
-              child: Text(label,
-                  style: Theme.of(context).textTheme.bodySmall)),
+            width: 120,
+            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+          ),
           Expanded(
-              child: Text(value,
-                  style: Theme.of(context).textTheme.bodyMedium)),
+            child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
+          ),
         ],
       ),
     );

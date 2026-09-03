@@ -13,8 +13,10 @@ final allClientsProvider = StreamProvider<List<Client>>((ref) {
   return ref.watch(clientRepositoryProvider).watchAllClients();
 });
 
-final clientByIdProvider =
-    FutureProvider.family<Client, String>((ref, clientId) async {
+final clientByIdProvider = FutureProvider.family<Client, String>((
+  ref,
+  clientId,
+) async {
   return ref.watch(clientRepositoryProvider).getClient(clientId);
 });
 
@@ -32,8 +34,10 @@ class ClientSummary {
   });
 }
 
-final clientSummaryProvider =
-    FutureProvider.family<ClientSummary, String>((ref, clientId) async {
+final clientSummaryProvider = FutureProvider.family<ClientSummary, String>((
+  ref,
+  clientId,
+) async {
   final repo = ref.watch(clientRepositoryProvider);
   final client = await repo.getClient(clientId);
   final uninvoiced = await repo.getUninvoicedHours(clientId);
@@ -79,24 +83,26 @@ class ClientNotifier extends AsyncNotifier<List<Client>> {
     int? paymentTermsDaysOverride,
     String? notes,
   }) async {
-    final id = await _dao.insertClient(ClientsCompanion(
-      name: Value(name),
-      contactName: Value(contactName),
-      email: Value(email),
-      phone: Value(phone),
-      addressLine1: Value(addressLine1),
-      addressLine2: Value(addressLine2),
-      city: Value(city),
-      stateProvince: Value(stateProvince),
-      postalCode: Value(postalCode),
-      country: Value(country),
-      hourlyRate: Value(hourlyRate),
-      currency: Value(currency),
-      taxRate: Value(taxRate),
-      paymentTermsOverride: Value(paymentTermsOverride),
-      paymentTermsDaysOverride: Value(paymentTermsDaysOverride),
-      notes: Value(notes),
-    ));
+    final id = await _dao.insertClient(
+      ClientsCompanion(
+        name: Value(name),
+        contactName: Value(contactName),
+        email: Value(email),
+        phone: Value(phone),
+        addressLine1: Value(addressLine1),
+        addressLine2: Value(addressLine2),
+        city: Value(city),
+        stateProvince: Value(stateProvince),
+        postalCode: Value(postalCode),
+        country: Value(country),
+        hourlyRate: Value(hourlyRate),
+        currency: Value(currency),
+        taxRate: Value(taxRate),
+        paymentTermsOverride: Value(paymentTermsOverride),
+        paymentTermsDaysOverride: Value(paymentTermsDaysOverride),
+        notes: Value(notes),
+      ),
+    );
     ref.invalidateSelf();
     return id;
   }

@@ -8,8 +8,8 @@ const _kFieldConfigKey = 'time_entry_field_config';
 /// Backed by AppSettings (same SQLite store as theme mode).
 final fieldConfigProvider =
     AsyncNotifierProvider<FieldConfigNotifier, List<FieldConfig>>(
-  FieldConfigNotifier.new,
-);
+      FieldConfigNotifier.new,
+    );
 
 class FieldConfigNotifier extends AsyncNotifier<List<FieldConfig>> {
   @override

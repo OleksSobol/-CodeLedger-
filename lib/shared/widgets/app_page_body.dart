@@ -14,7 +14,8 @@ class AppPageBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).padding.bottom;
     return ListView(
-      padding: padding ??
+      padding:
+          padding ??
           EdgeInsets.fromLTRB(
             Spacing.md,
             Spacing.md,

@@ -18,7 +18,8 @@ class InvoiceStatusFilterNotifier extends Notifier<String?> {
 
 final invoiceStatusFilterProvider =
     NotifierProvider<InvoiceStatusFilterNotifier, String?>(
-        InvoiceStatusFilterNotifier.new);
+      InvoiceStatusFilterNotifier.new,
+    );
 
 // ── All invoices stream ────────────────────────────────────────────
 final allInvoicesProvider = StreamProvider<List<Invoice>>((ref) {
@@ -39,22 +40,26 @@ final filteredInvoicesProvider = Provider<AsyncValue<List<Invoice>>>((ref) {
 });
 
 // ── Single invoice by ID ───────────────────────────────────────────
-final invoiceDetailProvider =
-    FutureProvider.family<Invoice, String>((ref, id) async {
+final invoiceDetailProvider = FutureProvider.family<Invoice, String>((
+  ref,
+  id,
+) async {
   return ref.watch(invoiceRepositoryProvider).getInvoice(id);
 });
 
 // ── Line items for invoice ─────────────────────────────────────────
 final invoiceLineItemsProvider =
     StreamProvider.family<List<InvoiceLineItem>, String>((ref, invoiceId) {
-  return ref.watch(invoiceRepositoryProvider).watchLineItems(invoiceId);
-});
+      return ref.watch(invoiceRepositoryProvider).watchLineItems(invoiceId);
+    });
 
 // ── Uninvoiced entries for a client ────────────────────────────────
 final uninvoicedEntriesProvider = FutureProvider.autoDispose
     .family<List<TimeEntry>, String>((ref, clientId) async {
-  return ref.watch(timeEntryRepositoryProvider).getUninvoicedForClient(clientId);
-});
+      return ref
+          .watch(timeEntryRepositoryProvider)
+          .getUninvoicedForClient(clientId);
+    });
 
 // ── Invoice wizard state ───────────────────────────────────────────
 
@@ -98,8 +103,10 @@ class InvoiceWizardState {
       final hours = (e.durationMinutes ?? 0) / 60.0;
       return sum + hours * e.hourlyRateSnapshot;
     });
-    final manualTotal =
-        manualLineItems.fold<double>(0, (sum, m) => sum + m.total);
+    final manualTotal = manualLineItems.fold<double>(
+      0,
+      (sum, m) => sum + m.total,
+    );
     return entriesTotal + manualTotal;
   }
 }
@@ -120,7 +127,8 @@ class ManualLineItem {
 
 final invoiceWizardProvider =
     NotifierProvider<InvoiceWizardNotifier, InvoiceWizardState>(
-        InvoiceWizardNotifier.new);
+      InvoiceWizardNotifier.new,
+    );
 
 class InvoiceWizardNotifier extends Notifier<InvoiceWizardState> {
   @override
@@ -154,9 +162,7 @@ class InvoiceWizardNotifier extends Notifier<InvoiceWizardState> {
   }
 
   void addManualLineItem(ManualLineItem item) {
-    state = state.copyWith(
-      manualLineItems: [...state.manualLineItems, item],
-    );
+    state = state.copyWith(manualLineItems: [...state.manualLineItems, item]);
   }
 
   void removeManualLineItem(int index) {
@@ -183,8 +189,9 @@ class InvoiceWizardNotifier extends Notifier<InvoiceWizardState> {
 }
 
 // ── Invoice notifier — create, update status, record payment ───────
-final invoiceNotifierProvider =
-    AsyncNotifierProvider<InvoiceNotifier, void>(InvoiceNotifier.new);
+final invoiceNotifierProvider = AsyncNotifierProvider<InvoiceNotifier, void>(
+  InvoiceNotifier.new,
+);
 
 class InvoiceNotifier extends AsyncNotifier<void> {
   late InvoiceRepository _invoiceDao;
@@ -204,11 +211,11 @@ class InvoiceNotifier extends AsyncNotifier<void> {
     }
 
     final profile = await _profileDao.getProfile();
-    final client =
-        await ref.read(clientRepositoryProvider).getClient(wizard.clientId!);
+    final client = await ref
+        .read(clientRepositoryProvider)
+        .getClient(wizard.clientId!);
 
-    final termsStr =
-        client.paymentTermsOverride ?? profile.defaultPaymentTerms;
+    final termsStr = client.paymentTermsOverride ?? profile.defaultPaymentTerms;
     final terms = PaymentTerms.fromString(termsStr);
     final termsDays = terms.resolveDays(
       customDays:
@@ -250,8 +257,10 @@ class InvoiceNotifier extends AsyncNotifier<void> {
     }
 
     final sortedKeys = groups.keys.toList()
-      ..sort((a, b) => groups[a]!.first.startTime
-          .compareTo(groups[b]!.first.startTime));
+      ..sort(
+        (a, b) =>
+            groups[a]!.first.startTime.compareTo(groups[b]!.first.startTime),
+      );
 
     for (final key in sortedKeys) {
       final entries = groups[key]!;
@@ -259,7 +268,9 @@ class InvoiceNotifier extends AsyncNotifier<void> {
       final rate = key.$2;
 
       final totalHours = entries.fold<double>(
-          0, (sum, e) => sum + (e.durationMinutes ?? 0) / 60.0);
+        0,
+        (sum, e) => sum + (e.durationMinutes ?? 0) / 60.0,
+      );
       final descriptions = entries
           .map((e) => e.description ?? 'Work session')
           .join('; ');
@@ -273,30 +284,33 @@ class InvoiceNotifier extends AsyncNotifier<void> {
           .join(', ');
 
       final projectIds = entries.map((e) => e.projectId).toSet();
-      final sharedProject =
-          projectIds.length == 1 ? projectIds.first : null;
+      final sharedProject = projectIds.length == 1 ? projectIds.first : null;
 
-      lineItems.add(InvoiceLineItemsCompanion(
-        invoiceId: const Value(''), // overwritten by repo
-        description: Value(desc),
-        quantity: Value(totalHours),
-        unitPrice: Value(rate),
-        total: Value(totalHours * rate),
-        sortOrder: Value(sortOrder++),
-        projectId: Value(sharedProject),
-        issueReference: Value(issueRefs.isEmpty ? null : issueRefs),
-      ));
+      lineItems.add(
+        InvoiceLineItemsCompanion(
+          invoiceId: const Value(''), // overwritten by repo
+          description: Value(desc),
+          quantity: Value(totalHours),
+          unitPrice: Value(rate),
+          total: Value(totalHours * rate),
+          sortOrder: Value(sortOrder++),
+          projectId: Value(sharedProject),
+          issueReference: Value(issueRefs.isEmpty ? null : issueRefs),
+        ),
+      );
     }
 
     for (final manual in wizard.manualLineItems) {
-      lineItems.add(InvoiceLineItemsCompanion(
-        invoiceId: const Value(''), // overwritten by repo
-        description: Value(manual.description),
-        quantity: Value(manual.quantity),
-        unitPrice: Value(manual.unitPrice),
-        total: Value(manual.total),
-        sortOrder: Value(sortOrder++),
-      ));
+      lineItems.add(
+        InvoiceLineItemsCompanion(
+          invoiceId: const Value(''), // overwritten by repo
+          description: Value(manual.description),
+          quantity: Value(manual.quantity),
+          unitPrice: Value(manual.unitPrice),
+          total: Value(manual.total),
+          sortOrder: Value(sortOrder++),
+        ),
+      );
     }
 
     final templateId = wizard.templateId;
@@ -430,8 +444,10 @@ class InvoiceNotifier extends AsyncNotifier<void> {
     }
 
     final sortedKeys = groups.keys.toList()
-      ..sort((a, b) => groups[a]!.first.startTime
-          .compareTo(groups[b]!.first.startTime));
+      ..sort(
+        (a, b) =>
+            groups[a]!.first.startTime.compareTo(groups[b]!.first.startTime),
+      );
 
     for (final key in sortedKeys) {
       final groupEntries = groups[key]!;
@@ -439,7 +455,9 @@ class InvoiceNotifier extends AsyncNotifier<void> {
       final rate = key.$2;
 
       final totalHours = groupEntries.fold<double>(
-          0, (sum, e) => sum + (e.durationMinutes ?? 0) / 60.0);
+        0,
+        (sum, e) => sum + (e.durationMinutes ?? 0) / 60.0,
+      );
       final descriptions = groupEntries
           .map((e) => e.description ?? 'Work session')
           .join('; ');
@@ -453,18 +471,19 @@ class InvoiceNotifier extends AsyncNotifier<void> {
           .join(', ');
 
       final projectIds = groupEntries.map((e) => e.projectId).toSet();
-      final sharedProject =
-          projectIds.length == 1 ? projectIds.first : null;
+      final sharedProject = projectIds.length == 1 ? projectIds.first : null;
 
-      lineItems.add(InvoiceLineItemsCompanion(
-        invoiceId: const Value(''), // overwritten by repo
-        description: Value(desc),
-        quantity: Value(totalHours),
-        unitPrice: Value(rate),
-        total: Value(totalHours * rate),
-        projectId: Value(sharedProject),
-        issueReference: Value(issueRefs.isEmpty ? null : issueRefs),
-      ));
+      lineItems.add(
+        InvoiceLineItemsCompanion(
+          invoiceId: const Value(''), // overwritten by repo
+          description: Value(desc),
+          quantity: Value(totalHours),
+          unitPrice: Value(rate),
+          total: Value(totalHours * rate),
+          projectId: Value(sharedProject),
+          issueReference: Value(issueRefs.isEmpty ? null : issueRefs),
+        ),
+      );
     }
 
     await _invoiceDao.appendLineItems(
@@ -480,7 +499,10 @@ class InvoiceNotifier extends AsyncNotifier<void> {
     ref.invalidate(monthlyIncomeProvider);
   }
 
-  Future<void> updateInvoiceNumber(String invoiceId, String invoiceNumber) async {
+  Future<void> updateInvoiceNumber(
+    String invoiceId,
+    String invoiceNumber,
+  ) async {
     await _invoiceDao.updateInvoiceNumber(invoiceId, invoiceNumber);
     ref.invalidate(allInvoicesProvider);
     ref.invalidate(invoiceDetailProvider(invoiceId));
