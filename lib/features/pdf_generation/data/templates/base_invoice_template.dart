@@ -13,6 +13,53 @@ abstract class BaseInvoiceTemplate {
   Future<pw.Document> build(PdfInvoiceData data);
 
   // ── Shared helpers ──────────────────────────────────────────────
+  
+  pw.PageTheme buildPageTheme(
+    PdfInvoiceData data, {
+    pw.EdgeInsets? margin,
+    PdfPageFormat? pageFormat,
+  }) {
+    if (data.invoice.status != 'paid') {
+      return pw.PageTheme(
+        margin: margin,
+        pageFormat: pageFormat,
+      );
+    }
+    
+    return pw.PageTheme(
+      margin: margin,
+      pageFormat: pageFormat,
+      buildBackground: (context) {
+        return pw.FullPage(
+          ignoreMargins: true,
+          child: pw.Center(
+            child: pw.Transform.rotate(
+              angle: 0.523598776, // ~30 degrees (pi/6)
+              child: pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(
+                    color: const PdfColor(0.8, 0.1, 0.1, 0.4), // 40% opacity red
+                    width: 8,
+                  ),
+                  borderRadius: pw.BorderRadius.circular(24),
+                ),
+                child: pw.Text(
+                  'PAID',
+                  style: pw.TextStyle(
+                    fontSize: 100,
+                    color: const PdfColor(0.8, 0.1, 0.1, 0.4),
+                    fontWeight: pw.FontWeight.bold,
+                    letterSpacing: 16,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   PdfColor colorFromArgb(int argb) {
     return PdfColor(

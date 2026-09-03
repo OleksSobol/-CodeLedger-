@@ -20,8 +20,11 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
 
     doc.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.letter,
-        margin: const pw.EdgeInsets.all(40),
+        pageTheme: buildPageTheme(
+          data,
+          pageFormat: PdfPageFormat.letter,
+          margin: const pw.EdgeInsets.all(40),
+        ),
         build: (context) => [
           // Developer-style header with accent bar
           _buildDevHeader(data, primary),

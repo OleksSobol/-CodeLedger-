@@ -18,8 +18,11 @@ class MinimalTemplate extends BaseInvoiceTemplate {
 
     doc.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.letter,
-        margin: const pw.EdgeInsets.all(48),
+        pageTheme: buildPageTheme(
+          data,
+          pageFormat: PdfPageFormat.letter,
+          margin: const pw.EdgeInsets.all(48),
+        ),
         build: (context) => [
           _buildPlainHeader(data),
           pw.SizedBox(height: 24),

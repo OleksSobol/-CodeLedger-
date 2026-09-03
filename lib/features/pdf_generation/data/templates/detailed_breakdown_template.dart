@@ -19,8 +19,11 @@ class DetailedBreakdownTemplate extends BaseInvoiceTemplate {
 
     doc.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.letter,
-        margin: const pw.EdgeInsets.all(40),
+        pageTheme: buildPageTheme(
+          data,
+          pageFormat: PdfPageFormat.letter,
+          margin: const pw.EdgeInsets.all(40),
+        ),
         build: (context) => [
           buildHeader(data, accentColor: primary),
           pw.SizedBox(height: 24),
