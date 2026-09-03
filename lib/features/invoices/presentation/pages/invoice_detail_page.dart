@@ -382,23 +382,26 @@ class _InvoiceDetailBody extends ConsumerWidget {
             return Card(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final fixedColsWidth = (hasDates ? 80.0 : 0.0) +
+                  final fixedColsWidth =
+                      (hasDates ? 80.0 : 0.0) +
                       (hasIssues ? 80.0 : 0.0) +
                       (64.0 * 3) + // Qty, Rate, Total
                       32.0; // padding
 
                   final minDescWidth = 150.0;
                   // If there's enough space, expand the description. Otherwise, lock it to minDescWidth and allow scroll.
-                  final descWidth = (constraints.maxWidth - fixedColsWidth) > minDescWidth
+                  final descWidth =
+                      (constraints.maxWidth - fixedColsWidth) > minDescWidth
                       ? (constraints.maxWidth - fixedColsWidth)
                       : minDescWidth;
 
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                      constraints: BoxConstraints(
+                        minWidth: constraints.maxWidth,
+                      ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           // Header row
                           Container(
@@ -419,9 +422,10 @@ class _InvoiceDetailBody extends ConsumerWidget {
                                     width: 80,
                                     child: Text(
                                       'Date',
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                                   ),
                                 if (hasIssues)
@@ -429,9 +433,10 @@ class _InvoiceDetailBody extends ConsumerWidget {
                                     width: 80,
                                     child: Text(
                                       'Issue #',
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                                   ),
                                 SizedBox(
@@ -452,7 +457,11 @@ class _InvoiceDetailBody extends ConsumerWidget {
                           ...items.map(
                             (item) => InkWell(
                               onTap: () => showEditLineItemSheet(
-                                  context, ref, item, invoice.id),
+                                context,
+                                ref,
+                                item,
+                                invoice.id,
+                              ),
                               child: _LineItemRow(
                                 item: item,
                                 currency: invoice.currency,
@@ -874,11 +883,14 @@ class _LineItemRow extends StatelessWidget {
   final String currency;
   final bool showDateColumn;
   final bool showIssueColumn;
+  final double descWidth;
+
   const _LineItemRow({
     required this.item,
     required this.currency,
     this.showDateColumn = false,
     this.showIssueColumn = false,
+    required this.descWidth,
   });
 
   @override
@@ -909,8 +921,8 @@ class _LineItemRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-          Expanded(
-            flex: 3,
+          SizedBox(
+            width: descWidth,
             child: Text(
               split.description,
               style: theme.textTheme.bodyMedium,
