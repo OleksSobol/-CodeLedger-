@@ -1,7 +1,7 @@
 name: code_ledger
 description: "Offline-first time tracking and invoicing for freelance developers."
 publish_to: 'none'
-version: 1.0.0+97
+version: 1.0.0+100
 
 environment:
   sdk: ^3.9.2
@@ -38,7 +38,7 @@ dependencies:
   printing: ^5.14.2
 
   # Email & Sharing
-  flutter_email_sender: ^9.0.0
+  flutter_email_sender: ^10.0.1
   share_plus: ^13.3.0
 
   # File Picking

@@ -34,6 +34,7 @@ class ModernDeveloperTemplate extends BaseInvoiceTemplate {
           pw.SizedBox(height: 20),
 
           buildTotals(data, accentColor: accent),
+          if (data.outstandingInvoices.isNotEmpty) buildOutstandingInvoices(data),
           pw.SizedBox(height: 24),
           buildPaymentSection(data),
           pw.SizedBox(height: 16),

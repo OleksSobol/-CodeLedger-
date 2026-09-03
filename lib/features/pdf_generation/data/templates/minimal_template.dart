@@ -32,6 +32,7 @@ class MinimalTemplate extends BaseInvoiceTemplate {
           _buildLineItemsTable(data),
           pw.SizedBox(height: 20),
           _buildTotals(data),
+          if (data.outstandingInvoices.isNotEmpty) buildOutstandingInvoices(data),
           pw.SizedBox(height: 32),
           _buildPaymentInfo(data),
           pw.SizedBox(height: 16),

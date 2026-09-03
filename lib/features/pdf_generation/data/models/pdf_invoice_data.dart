@@ -7,6 +7,7 @@ class PdfInvoiceData {
   final UserProfile profile;
   final InvoiceTemplate template;
   final List<InvoiceLineItem> lineItems;
+  final List<Invoice> outstandingInvoices;
   final Map<String, String> projectNames; // projectId -> name
 
   const PdfInvoiceData({
@@ -15,6 +16,7 @@ class PdfInvoiceData {
     required this.profile,
     required this.template,
     required this.lineItems,
+    this.outstandingInvoices = const [],
     this.projectNames = const <String, String>{},
   });
 

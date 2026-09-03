@@ -394,6 +394,54 @@ abstract class BaseInvoiceTemplate {
     );
   }
 
+  pw.Widget buildOutstandingInvoices(PdfInvoiceData data) {
+    if (data.outstandingInvoices.isEmpty) return pw.SizedBox.shrink();
+
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(top: 16),
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.red50,
+        border: pw.Border.all(color: PdfColors.red200),
+        borderRadius: pw.BorderRadius.circular(4),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Outstanding Invoices',
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.red800),
+          ),
+          pw.SizedBox(height: 6),
+          pw.Text(
+            'You have prior unpaid invoices. Please review and submit payment for the following:',
+            style: const pw.TextStyle(fontSize: 9, color: PdfColors.red900),
+          ),
+          pw.SizedBox(height: 6),
+          ...data.outstandingInvoices.map((inv) {
+            final balance = inv.total - inv.amountPaid;
+            return pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 2),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    'Invoice ${inv.invoiceNumber} (${fmtDate(inv.issueDate)})',
+                    style: const pw.TextStyle(fontSize: 9, color: PdfColors.red900),
+                  ),
+                  pw.Text(
+                    fmtCurrency(balance),
+                    style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.red900),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   pw.Widget buildFooter(PdfInvoiceData data) {
     final parts = <pw.Widget>[];
 

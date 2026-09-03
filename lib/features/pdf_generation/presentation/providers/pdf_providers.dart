@@ -50,12 +50,23 @@ final invoicePdfProvider = FutureProvider.family<pw.Document, String>((
     }
   }
 
+  // Fetch outstanding invoices for the same client
+  final allInvoices = await invoiceDao.watchInvoices(clientId: invoice.clientId).first;
+  final outstandingInvoices = allInvoices.where((i) {
+    if (i.id == invoice.id) return false;
+    final balance = i.total - i.amountPaid;
+    return balance > 0 && i.status == 'sent';
+  }).toList();
+  // Sort them by issueDate
+  outstandingInvoices.sort((a, b) => a.issueDate.compareTo(b.issueDate));
+
   final data = PdfInvoiceData(
     invoice: invoice,
     client: client,
     profile: profile,
     template: template,
     lineItems: lineItems,
+    outstandingInvoices: outstandingInvoices,
     projectNames: projectNames,
   );
 
@@ -113,12 +124,21 @@ final invoicePdfWithTemplateProvider =
         } catch (_) {}
       }
 
+      final allInvoices = await invoiceDao.watchInvoices(clientId: invoice.clientId).first;
+      final outstandingInvoices = allInvoices.where((i) {
+        if (i.id == invoice.id) return false;
+        final balance = i.total - i.amountPaid;
+        return balance > 0 && i.status == 'sent';
+      }).toList();
+      outstandingInvoices.sort((a, b) => a.issueDate.compareTo(b.issueDate));
+
       final data = PdfInvoiceData(
         invoice: invoice,
         client: client,
         profile: profile,
         template: template,
         lineItems: lineItems,
+        outstandingInvoices: outstandingInvoices,
         projectNames: projectNames,
       );
 
