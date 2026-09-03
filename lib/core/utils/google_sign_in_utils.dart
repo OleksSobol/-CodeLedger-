@@ -1,9 +1,8 @@
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
 
-bool _initialized = false;
+final googleSignIn = GoogleSignIn(scopes: [drive.DriveApi.driveFileScope]);
 
 Future<void> ensureGoogleSignInInitialized() async {
-  if (_initialized) return;
-  _initialized = true;
-  await GoogleSignIn.instance.initialize();
+  // Not needed in 6.2.1
 }

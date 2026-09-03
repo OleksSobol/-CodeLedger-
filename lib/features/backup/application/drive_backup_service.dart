@@ -17,9 +17,7 @@ class DriveBackupService {
 
   /// Signs in to Google and initializes the Drive API client.
   Future<String?> signIn() async {
-    final signIn = GoogleSignIn.instance;
-    await ensureGoogleSignInInitialized();
-    final user = await _authenticateAndWait(signIn);
+    final user = await _authenticateAndWait(googleSignIn);
     if (user == null) return null;
 
     await _initDriveApi(user);
@@ -28,23 +26,20 @@ class DriveBackupService {
 
   /// Attempts lightweight (silent) sign-in for returning users.
   Future<String?> trySilentSignIn() async {
-    final signIn = GoogleSignIn.instance;
-    await ensureGoogleSignInInitialized();
-
-    final result = signIn.attemptLightweightAuthentication();
-    if (result == null) return null;
-
-    final user = await result;
-    if (user == null) return null;
-
-    await _initDriveApi(user);
-    return user.email;
+    try {
+      final user = await googleSignIn.signInSilently();
+      if (user == null) return null;
+      await _initDriveApi(user);
+      return user.email;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Signs out of Google and clears Drive API client.
   Future<void> signOut() async {
     try {
-      await GoogleSignIn.instance.signOut();
+      await googleSignIn.signOut();
     } catch (_) {
       // Ignore errors during sign out
     }
@@ -128,16 +123,18 @@ class DriveBackupService {
 
   Future<GoogleSignInAccount?> _authenticateAndWait(GoogleSignIn signIn) async {
     // Try lightweight first
-    final silentResult = signIn.attemptLightweightAuthentication();
-    if (silentResult != null) {
-      final silentUser = await silentResult;
+    try {
+      final silentUser = await signIn.signInSilently();
       if (silentUser != null) return silentUser;
+    } catch (_) {
+      // Ignore errors in silent sign-in
     }
 
     // Full interactive sign-in
     try {
-      return await signIn.authenticate(scopeHint: _scopes);
-    } on GoogleSignInException {
+      return await signIn.signIn();
+    } catch (e) {
+      print('Unknown exception during signIn: $e');
       return null;
     }
   }
@@ -146,12 +143,9 @@ class DriveBackupService {
     _currentUser = user;
 
     // Get authorization headers for Drive scope
-    final headers = await user.authorizationClient.authorizationHeaders(
-      _scopes,
-      promptIfNecessary: true,
-    );
+    final headers = await user.authHeaders;
 
-    if (headers == null) {
+    if (headers.isEmpty) {
       throw StateError('Failed to obtain Drive authorization');
     }
 
