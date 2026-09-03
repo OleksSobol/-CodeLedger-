@@ -24,6 +24,9 @@ class TaxReportData {
 
   final bool includeTax;
 
+  final double estimatedIncomeTax;
+  final double bankReserve;
+
   const TaxReportData({
     required this.profile,
     required this.startDate,
@@ -31,6 +34,8 @@ class TaxReportData {
     required this.rows,
     this.clientFilterName,
     this.includeTax = true,
+    this.estimatedIncomeTax = 0.0,
+    this.bankReserve = 0.0,
   });
 
   double get totalSubtotal => rows.fold(0.0, (s, r) => s + r.invoice.subtotal);

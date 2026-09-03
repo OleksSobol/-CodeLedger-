@@ -292,6 +292,19 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
       }
     }
 
+    double totalNet = 0.0;
+    double totalTax = 0.0;
+    for (final inv in filtered) {
+      totalNet += inv.subtotal;
+      totalTax += inv.taxAmount;
+    }
+    final seBase = totalNet * 0.9235;
+    final seTax = seBase * _seRate;
+    final fedBase = (totalNet - seTax / 2).clamp(0.0, double.infinity);
+    final fedTax = fedBase * _federalRate;
+    final totalEstTax = seTax + fedTax;
+    final bankReserve = totalEstTax + totalTax;
+
     return TaxReportData(
       profile: profile,
       startDate: _dateRange!.start,
@@ -306,6 +319,8 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
           ? names[_selectedClientId]
           : null,
       includeTax: _includeStateTax,
+      estimatedIncomeTax: totalEstTax,
+      bankReserve: bankReserve,
     );
   }
 
@@ -553,6 +568,68 @@ class _TaxesPageState extends ConsumerState<TaxesPage>
                   theme,
                   bold: true,
                 ),
+                const SizedBox(height: 8),
+                () {
+                  final seBase = totalNet * 0.9235;
+                  final seTax = seBase * _seRate;
+                  final fedBase = (totalNet - seTax / 2).clamp(0.0, double.infinity);
+                  final fedTax = fedBase * _federalRate;
+                  final totalEstTax = seTax + fedTax;
+                  final bankReserve = totalTax + totalEstTax;
+                  
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Icon(
+                            Icons.account_balance,
+                            size: 18,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Bank Reserve',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Sales tax: ${cur.format(totalTax)}\nEst. income tax: ${cur.format(totalEstTax)}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onPrimaryContainer.withAlpha(200),
+                                  fontSize: 11,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          cur.format(bankReserve),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }(),
               ],
             ),
           ),
@@ -2385,13 +2462,15 @@ class _SummaryRow extends StatelessWidget {
   final String value;
   final ThemeData theme;
   final bool bold;
+  final Color? color;
 
-  const _SummaryRow(this.label, this.value, this.theme, {this.bold = false});
+  const _SummaryRow(this.label, this.value, this.theme, {this.bold = false, this.color});
 
   @override
   Widget build(BuildContext context) {
     final style = theme.textTheme.bodySmall?.copyWith(
       fontWeight: bold ? FontWeight.bold : null,
+      color: color,
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
